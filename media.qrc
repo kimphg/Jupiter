@@ -1,0 +1,36 @@
+<RCC>
+    <qresource prefix="/icon">
+        <file>icon/1appbar.close.ico</file>
+        <file>icon/1appbar.control.play.ico</file>
+        <file>icon/1443499740_world_map.ico</file>
+        <file>icon/appbar.add.ico</file>
+        <file>icon/appbar.anchor.ico</file>
+        <file>icon/appbar.browser.ico</file>
+        <file>icon/appbar.bug.ico</file>
+        <file>icon/appbar.bug.remove.ico</file>
+        <file>icon/appbar.cursor.default.ico</file>
+        <file>icon/appbar.cursor.hand.ico</file>
+        <file>icon/appbar.disk.upload.ico</file>
+        <file>icon/appbar.ferry.ico</file>
+        <file>icon/appbar.folder.open.ico</file>
+        <file>icon/appbar.globe.ico</file>
+        <file>icon/appbar.information.ico</file>
+        <file>icon/appbar.journal.ico</file>
+        <file>icon/appbar.movie.clapper.ico</file>
+        <file>icon/appbar.sailboat.ico</file>
+        <file>icon/appbar.settings.ico</file>
+        <file>icon/appbar.thermometer.ico</file>
+        <file>icon/appbar.tools.ico</file>
+        <file>icon/appbar.tower - Copy.ico</file>
+        <file>icon/appbar.tower.ico</file>
+        <file>icon/isi logo.ico</file>
+        <file>icon/isi logo.png</file>
+        <file>icon/sectr icon.ico</file>
+        <file>icon/Vietnam-128.ico</file>
+        <file>icon/refresh_128.ico</file>
+        <file>icon/gridIcon.ico</file>
+        <file>icon/target icon.ico</file>
+        <file>icon/move_96x96.png</file>
+    </qresource>
+    <qresource prefix="/"/>
+</RCC>

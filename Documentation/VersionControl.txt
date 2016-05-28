@@ -1,0 +1,8 @@
+# Author Phung Kim Phuong pawnc7@gmail.com
+#-------------------------------------------------
+#Features:
+#Control and process data from HR2D radar
+#view ARPA data
+#-------------------------------------------------
+# Version 1.7.1
+#-------------------------------------------------
