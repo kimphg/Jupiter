@@ -153,7 +153,7 @@ void dataProcessingThread::run()
             }
 
         }
-        else { usleep(100);}
+        else { usleep(200);}
     }
 }
 void dataProcessingThread::stopThread()

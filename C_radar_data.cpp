@@ -120,9 +120,8 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
     short px = signal_map.x[azi_draw][r_pos];
     short py = signal_map.y[azi_draw][r_pos];
     if(px<0||py<0)return;
-    short pSize = 2;
+    short pSize = 1;
 
-    //if(pSize>2)pSize = 2;
     if((px<pSize)||(py<pSize)||(px>=img_ppi->width()-pSize)||(py>=img_ppi->height()-pSize))return;
     for(short x = -pSize;x <= pSize;x++)
     {
@@ -140,10 +139,10 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
                 else k=1;
                 break;
             case 2:
-                if(signal_map.display_mask[px+x][py+y])k=0.4f;
+                if(signal_map.display_mask[px+x][py+y])k=0.6f;
                 else k=1;
             default:
-                if(signal_map.display_mask[px+x][py+y])continue;
+                if(signal_map.display_mask[px+x][py+y])k=0.3f;
                 k=0.7f;
                 break;
             }
