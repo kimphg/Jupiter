@@ -9,6 +9,7 @@
 #define MAX_VIEW_RANGE_KM 50
 
 #include <queue>
+
 //static bool                 isAddingTarget=false;
 static QPixmap              *pMap=NULL;
 //static QImage               *sgn_img = new QImage(RADAR_MAX_RESOLUTION*2,RADAR_MAX_RESOLUTION*2,QImage::Format_RGB32);
@@ -100,10 +101,16 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event) {
     //mouseY = (event->y());
     if(isDraging&&(event->buttons() & Qt::LeftButton)) {
 
-        if(dx>dxMax)    {dx=dxMax;  }
-        if(dx<-dxMax)   {dx=-dxMax; }
-        if(dy>dyMax)    {dy=dyMax;  }
-        if(dy<-dyMax)   {dy=-dyMax; }
+        while(dx*dx+dy*dy>dxMax*dxMax)
+        {
+            if(abs(dx)>abs(dy))
+            {
+                if(dx>0){dx--;dxMap--;}else {dx++;dxMap++;}}
+            else
+            {
+                if(dy>0){dy--;dyMap--;}else {dy++;dyMap++;}
+            }
+        }
         dx+= mouseX-event->x();
         dy+= mouseY-event->y();
         dxMap += mouseX-event->x();
@@ -312,14 +319,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::DrawMap()
 {
-    return;
+
     if(!pMap) return;
+
     dxMap = 0;
     dyMap = 0;
     QPainter p(pMap);
-    pMap->fill(QColor(34,52,60,255));
-
-    QPen pen(Qt::black);
+    pMap->fill(QColor(0,0,0,255));
+    //pMap->fill(Qt::transparent);
+    if(ui->toolButton_map->isChecked()==false)return;
+    QPen pen(QColor(255,255,255,180));
     QColor color[5];
     color[0].setRgb(143,137,87,255);//land
     color[1].setRgb( 34,52,60,255);//lake
@@ -335,7 +344,7 @@ void MainWindow::DrawMap()
     short centerX = pMap->width()/2-dx;
     short centerY = pMap->height()/2-dy;
     p.setRenderHint(QPainter::Antialiasing, true);
-
+    p.setPen(pen);
     //-----draw provinces in polygons
 
 
@@ -358,9 +367,9 @@ void MainWindow::DrawMap()
                 p.setPen(pen);
                 p.drawPolygon(poly);
             }
-        }else
+        }else if(false)
         {
-            pen.setColor(color[i]);
+            //pen.setColor(color[i]);
             if(i==3)pen.setWidth(2);else pen.setWidth(1);
             p.setPen(pen);
             for(uint j = 0; j < vnmap.layers[i].size(); j++) {
@@ -405,18 +414,17 @@ void MainWindow::DrawMap()
 }
 void MainWindow::DrawGrid(QPainter* p,short centerX,short centerY)
 {
-    QPen pen(QColor(0xff,0xff,0x00,0xff));
-    pen.setWidth(4);
+    //return;
+    QPen pen(QColor(0x7f,0x7f,0x7f,0x7f));
+    pen.setWidth(3);
     pen.setStyle(Qt::SolidLine);
     p->setBrush(QBrush(Qt::NoBrush));
     p->setPen(pen);
     p->drawLine(centerX-5,centerY,centerX+5,centerY);
     p->drawLine(centerX,centerY-5,centerX,centerY+5);
-    pen.setColor(QColor(30,90,150,120));
+    //pen.setColor(QColor(30,90,150,120));
     pen.setWidth(2);
     p->setPen(pen);
-
-    //p.drawRect(QRect(centerX-3,centerY-3,6,6));
 
     p->drawEllipse(QPoint(centerX,centerY),
                   (short)(10.0*CONST_NM*scale),
@@ -439,6 +447,7 @@ void MainWindow::DrawGrid(QPainter* p,short centerX,short centerY)
     p->drawEllipse(QPoint(centerX,centerY),
                   (short)(70.0*CONST_NM*scale),
                   (short)(70.0*CONST_NM*scale));
+    return;
     if(gridOff == 0)//with frame
     {
         //p->drawLine(0,centerY,width(),centerY);
@@ -734,26 +743,9 @@ void MainWindow::paintEvent(QPaintEvent *event)
 
     if(pMap)
     {
-       /* p.drawPixmap(scrCtX-scrCtY,0,height(),height(),
-                     *pMap,
-                     dxMap+(pMap->width()-height())/2,dyMap+(pMap->height()-height())/2,height(),height());*/
-        //p.fillRect(0,0,width(),height(),QBrush(Qt::blue));
-        if(!gridOff)
-        {
-            p.drawPixmap(scrCtX-scrCtY,0,height(),height(),
-                             *pMap,
-                             dxMap,dyMap,height(),height());
-        }
-        else
-        {
-            p.drawPixmap(0,0,width(),height(),
-                             *pMap,
-                             dxMap,dyMap,width(),height());
-        }
-    }else
-    {
-        //p.fillRect(0,0,width(),height(),QBrush(Qt::blue));
-        //DrawGrid(&p,scrCtX-dx,scrCtY-dy);
+        p.drawPixmap(scrCtX-scrCtY,0,height(),height(),
+                         *pMap,
+                         dxMap,dyMap,height(),height());
     }
     //draw signal
     DrawSignal(&p);
@@ -782,7 +774,8 @@ void MainWindow::paintEvent(QPaintEvent *event)
     p.drawText(mouseX+5,mouseY+5,100,20,0,QString::number(range,'g',4)+"|"+QString::number(azi,'g',4),0);
 
     //draw frame
-    if(gridOff==0)DrawViewFrame(&p);
+
+    DrawViewFrame(&p);
 }
 //void MainWindow::keyPressEvent(QKeyEvent *event)
 //{
@@ -842,8 +835,8 @@ void MainWindow::InitSetting()
     }
     mouseX = width()/2;
     mouseY = height()/2;
-    dxMax = height()/3;
-    dyMax = height()/3;
+    dxMax = height()/4-10;
+    dyMax = height()/4-10;
     processing->radarData->setTrueN(config.m_config.trueN);
     //ui->horizontalSlider_2->setValue(config.m_config.cfarThresh);
 
@@ -914,21 +907,22 @@ void MainWindow::UpdateSetting()
 void MainWindow::DrawViewFrame(QPainter* p)
 {
     //draw grid
+
     if(ui->toolButton_grid->isChecked())
     {
         DrawGrid(p,scrCtX-dx,scrCtY-dy);
     }
     short d = height()-50;
-    QPen penBlack(QColor(40,60,100,255));
+    QPen penBackground(QColor(40,60,100,255));
     short linewidth = 0.6*height();
-    penBlack.setWidth(linewidth/10);
-    p->setPen(penBlack);
+    penBackground.setWidth(linewidth/10);
+    p->setPen(penBackground);
     for (short i=linewidth/12;i<linewidth;i+=linewidth/6)
     {
         p->drawEllipse(-i/2+(scrCtX-scrCtY)+25,-i/2+25,d+i,d+i);
     }
-    penBlack.setWidth(0);
-    p->setPen(penBlack);
+    penBackground.setWidth(0);
+    p->setPen(penBackground);
     p->setBrush(QColor(40,60,100,255));
     p->drawRect(scrCtX+scrCtY,0,width()-scrCtX-scrCtY,height());
     p->drawRect(0,0,scrCtX-scrCtY,height());
@@ -1555,6 +1549,25 @@ void MainWindow::on_pushButton_clicked()
     command_queue.push(new_com);
 }
 */
+int char2int( char input)
+{
+  if(input >= '0' && input <= '9')
+    return input - '0';
+  if(input >= 'A' && input <= 'F')
+    return input - 'A' + 10;
+  if(input >= 'a' && input <= 'f')
+    return input - 'a' + 10;
+  return 0;
+}
+void hex2bin(const char* src,unsigned char* target)
+{
+  while(*src && src[1])
+  {
+    *(target++) = char2int(*src)*16 + char2int(src[1]);
+    src += 2;
+  }
+  *(target++)=0;
+}
 void bin2hex(unsigned char byte, char* str)
 {
     switch (byte>>4) {
@@ -1879,26 +1892,13 @@ void MainWindow::UpdateScale()
     //dx /=short(scale/oldScale);
     //dy /=short(scale/oldScale);
 }
-void MainWindow::on_toolButton_13_clicked()
-{
-    //ui->horizontalSlider->setValue(ui->horizontalSlider->value()+1);
-    if(range>0)range--;
-    UpdateScale();
-    //isSettingUp2Date = false;
 
-}
 void MainWindow::UpdateSignScale()
 {
     signsize = sn_scale*scale;
     processing->radarData->setViewScale(signsize);
 }
-void MainWindow::on_toolButton_14_clicked()
-{
 
-    if(range<7)range++;
-    UpdateScale();
-    //isSettingUp2Date = false;
-}
 
 //void MainWindow::on_toolButton_10_toggled(bool checked)
 //{
@@ -2043,7 +2043,7 @@ void MainWindow::updateCodeType()// chuyen ma
 
 void MainWindow::on_horizontalSlider_gain_valueChanged(int value)
 {
-    processing->radarData->kgain = 6-(float)value/(ui->horizontalSlider_gain->maximum())*10;
+    processing->radarData->kgain = 7-(float)value/(ui->horizontalSlider_gain->maximum())*10;
     //printf("processing->radarData->kgain %f \n",processing->radarData->kgain);
 }
 
@@ -2145,7 +2145,7 @@ void MainWindow::on_toolButton_replay_fast_toggled(bool checked)
         processing->playRate = 40;
     }else
     {
-        processing->playRate = 10;
+        processing->playRate = 15;
     }
 }
 
@@ -2168,11 +2168,7 @@ void MainWindow::on_toolButton_alphaView_toggled(bool checked)
 }
 
 
-void MainWindow::on_toolButton_replay_2_clicked()
-{
-    this->on_actionPlayPause_toggled(true);
 
-}
 
 void MainWindow::on_toolButton_centerView_clicked()
 {
@@ -2209,19 +2205,48 @@ void MainWindow::on_comboBox_currentIndexChanged(int index)
 
 void MainWindow::on_comboBox_img_mode_currentIndexChanged(int index)
 {
-    switch (index)
-    {
-    case 0:
-        processing->radarData->imgMode = VALUE_YELLOW_SHADES;
-        break;
-    case 1:
-        processing->radarData->imgMode = VALUE_ORANGE_BLUE;
-        break;
-    case 2:
-        processing->radarData->imgMode = DOPLER_3_COLOR;
-        break;
+    processing->radarData->imgMode = imgDrawMode(index) ;
+}
 
-    default:
-        break;
-    }
+
+void MainWindow::on_toolButton_send_command_clicked()
+{
+    unsigned char        bytes[8];
+    QUdpSocket      *udpSendSocket;//radar control
+    udpSendSocket = new QUdpSocket(this);
+    udpSendSocket->bind(7777);
+    udpSendSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 10);
+    hex2bin(ui->lineEdit_byte_1->text().toStdString().data(),&bytes[0]);
+    hex2bin(ui->lineEdit_byte_2->text().toStdString().data(),&bytes[1]);
+    hex2bin(ui->lineEdit_byte_3->text().toStdString().data(),&bytes[2]);
+    hex2bin(ui->lineEdit_byte_4->text().toStdString().data(),&bytes[3]);
+    hex2bin(ui->lineEdit_byte_5->text().toStdString().data(),&bytes[4]);
+    hex2bin(ui->lineEdit_byte_6->text().toStdString().data(),&bytes[5]);
+    hex2bin(ui->lineEdit_byte_7->text().toStdString().data(),&bytes[6]);
+    hex2bin(ui->lineEdit_byte_8->text().toStdString().data(),&bytes[7]);
+    udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+}
+
+void MainWindow::on_toolButton_map_toggled(bool checked)
+{
+    DrawMap();
+}
+
+void MainWindow::on_toolButton_zoom_in_clicked()
+{
+    if(range>0)range--;
+    UpdateScale();
+    DrawMap();
+}
+
+void MainWindow::on_toolButton_zoom_out_clicked()
+{
+    if(range<7)range++;
+    UpdateScale();
+    DrawMap();
+}
+
+void MainWindow::on_toolButton_reset_clicked()
+{
+    processing->radarData->resetData();
 }

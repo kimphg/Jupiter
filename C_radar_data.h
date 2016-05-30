@@ -16,7 +16,7 @@
 #define MAX_TRACK_LEN               400
 #define MAX_TRACKS                  199
 #define MAX_AZIR                    2048
-#define MAX_AZIR_DRAW               4096
+#define MAX_AZIR_DRAW               6144
 #define RAD_M_PULSE_RES             1536
 #define RAD_S_PULSE_RES             256
 #define DISPLAY_RES                 768
@@ -62,10 +62,11 @@ typedef struct {
 */
 typedef struct  {
     unsigned char level_m [MAX_AZIR][RAD_M_PULSE_RES];
+    unsigned char sled[MAX_AZIR][RAD_M_PULSE_RES];
     unsigned char dopler_m[MAX_AZIR][RAD_M_PULSE_RES];
     unsigned char level_s [MAX_AZIR][RAD_S_PULSE_RES];
     unsigned char dopler_s[MAX_AZIR][RAD_S_PULSE_RES];
-    unsigned char display [DISPLAY_RES][2];
+    unsigned char display [DISPLAY_RES][3];//0 - signal, 1- dopler, 2 - sled;
     unsigned char display_mask [DISPLAY_RES*2+1][DISPLAY_RES*2+1];
     short x[MAX_AZIR_DRAW][DISPLAY_RES+1];
     short y[MAX_AZIR_DRAW][DISPLAY_RES+1];
@@ -360,7 +361,11 @@ typedef std::vector<track_t> trackList;
 //______________________________________//
 enum imgDrawMode
 {
-    VALUE_ORANGE_BLUE,VALUE_YELLOW_SHADES,VALUE_ORANGE_CYAN,DOPLER_3_COLOR
+    VALUE_ORANGE_BLUE = 0,
+    VALUE_YELLOW_SHADES = 1,
+    VALUE_ORANGE_CYAN = 2,
+    DOPLER_3_COLOR = 3,
+    DOPLER_4_COLOR = 4
 };
 enum DataOverLay { m_only, s_m_200, s_m_150 , max_s_m_200, max_s_m_150};
 class C_radar_data {

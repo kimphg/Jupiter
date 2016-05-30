@@ -40,43 +40,25 @@ void GPSDialog::on_pushButton_clicked()
     if(!filename.size())return;
     config->m_config.mapFilename =  filename.toStdString();
 }
-int char2int( char input)
-{
-  if(input >= '0' && input <= '9')
-    return input - '0';
-  if(input >= 'A' && input <= 'F')
-    return input - 'A' + 10;
-  if(input >= 'a' && input <= 'f')
-    return input - 'a' + 10;
-  return 0;
-}
-void hex2bin(const char* src,unsigned char* target)
-{
-  while(*src && src[1])
-  {
-    *(target++) = char2int(*src)*16 + char2int(src[1]);
-    src += 2;
-  }
-  *(target++)=0;
-}
-void GPSDialog::on_pushButton_2_clicked()
-{
-    unsigned char        bytes[8];
-    QUdpSocket      *udpSendSocket;//radar control
-    udpSendSocket = new QUdpSocket(this);
-    udpSendSocket->bind(5800);
-    udpSendSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 10);
-    hex2bin(ui->lineEdit_byte_1->text().toStdString().data(),&bytes[0]);
-    hex2bin(ui->lineEdit_byte_2->text().toStdString().data(),&bytes[1]);
-    hex2bin(ui->lineEdit_byte_3->text().toStdString().data(),&bytes[2]);
-    hex2bin(ui->lineEdit_byte_4->text().toStdString().data(),&bytes[3]);
-    hex2bin(ui->lineEdit_byte_5->text().toStdString().data(),&bytes[4]);
-    hex2bin(ui->lineEdit_byte_6->text().toStdString().data(),&bytes[5]);
-    hex2bin(ui->lineEdit_byte_7->text().toStdString().data(),&bytes[6]);
-    hex2bin(ui->lineEdit_byte_8->text().toStdString().data(),&bytes[7]);
-    udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
 
-}
+//void GPSDialog::on_pushButton_2_clicked()
+//{
+//    unsigned char        bytes[8];
+//    QUdpSocket      *udpSendSocket;//radar control
+//    udpSendSocket = new QUdpSocket(this);
+//    udpSendSocket->bind(5800);
+//    udpSendSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 10);
+//    hex2bin(ui->lineEdit_byte_1->text().toStdString().data(),&bytes[0]);
+//    hex2bin(ui->lineEdit_byte_2->text().toStdString().data(),&bytes[1]);
+//    hex2bin(ui->lineEdit_byte_3->text().toStdString().data(),&bytes[2]);
+//    hex2bin(ui->lineEdit_byte_4->text().toStdString().data(),&bytes[3]);
+//    hex2bin(ui->lineEdit_byte_5->text().toStdString().data(),&bytes[4]);
+//    hex2bin(ui->lineEdit_byte_6->text().toStdString().data(),&bytes[5]);
+//    hex2bin(ui->lineEdit_byte_7->text().toStdString().data(),&bytes[6]);
+//    hex2bin(ui->lineEdit_byte_8->text().toStdString().data(),&bytes[7]);
+//    udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+
+//}
 
 void GPSDialog::on_pushButton_3_clicked()
 {

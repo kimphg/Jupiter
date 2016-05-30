@@ -103,19 +103,26 @@ void C_radar_data::drawVet(short azi, short r_pos)
 void C_radar_data::drawSgn(short azi_draw, short r_pos)
 {
     //printf("value:%d",value);
-    unsigned short value = signal_map.display[r_pos][0];
-    unsigned char dopler = signal_map.display[r_pos][1];
+    unsigned short value    = signal_map.display[r_pos][0];
+    unsigned char dopler    = signal_map.display[r_pos][1];
+    unsigned short sled     = signal_map.display[r_pos][2];
     value*=brightness;
-    //value = (log(double(value)))*46.0f;
+
     if(value>0xff)
     {
         value = 0xff;
+    }
+    sled*=brightness*4;
+    if(sled>0xff)
+    {
+        sled = 0xff;
     }
     short px = signal_map.x[azi_draw][r_pos];
     short py = signal_map.y[azi_draw][r_pos];
     if(px<0||py<0)return;
     short pSize = 2;
-    if(viewScale>5)pSize = 3;
+
+    //if(pSize>2)pSize = 2;
     if((px<pSize)||(py<pSize)||(px>=img_ppi->width()-pSize)||(py>=img_ppi->height()-pSize))return;
     for(short x = -pSize;x <= pSize;x++)
     {
@@ -129,12 +136,15 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
                 k=1;
                 break;
             case 1:
-                k=0.95f;
+                if(signal_map.display_mask[px+x][py+y])k=0.7f;
+                else k=1;
                 break;
             case 2:
-                k=0.8f;
+                if(signal_map.display_mask[px+x][py+y])k=0.4f;
+                else k=1;
             default:
-                k=0.3f;
+                if(signal_map.display_mask[px+x][py+y])continue;
+                k=0.7f;
                 break;
             }
             unsigned char alpha;
@@ -149,6 +159,7 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
             case DOPLER_3_COLOR:
                 if(dopler==0||dopler==1||dopler==15)
                 {
+
                     color = 0xffff00;
                 }else
                     if(dopler==2||dopler==3||dopler==13||dopler==14)
@@ -163,7 +174,27 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
                     {
                         color = 0x00ffff;
                     }
-                alpha = value;
+                alpha = 0xff - ((0xff - pvalue)*0.75);
+                color = color|(alpha<<24);
+                break;
+            case DOPLER_4_COLOR:
+                if(dopler==0||dopler==1||dopler==15)
+                {
+                    color = 0xffff00;
+                }else
+                    if(dopler==2||dopler==3||dopler==13||dopler==14)
+                    {
+                        color = 0x00ff7f;
+                    }
+                    else if(dopler==4||dopler==5||dopler==11||dopler==12)
+                    {
+                        color = 0x007fff;
+                    }
+                    else
+                    {
+                        color = 0x0000ff;
+                    }
+                alpha = 0xff - ((0xff - pvalue)*0.75);
                 color = color|(alpha<<24);
                 break;
             case VALUE_ORANGE_BLUE:
@@ -189,6 +220,17 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
                     break;
                 }
                 color = (alpha<<24)|(red<<16)|(green<<8)|blue;
+                break;
+            case VALUE_YELLOW_SHADES:
+                if(signal_map.display[r_pos][0]>1)
+                {
+                alpha = 0xff - ((0xff - pvalue)*0.75);
+                color = (pvalue<<24)|(0xff<<16)|(0xff<<8);
+                }
+                else
+                {
+                    color = (sled<<24)|(0xff);
+                }
                 break;
             default:
                 return;
@@ -236,7 +278,7 @@ void C_radar_data::drawBlackAzi(short azi_draw)
 
         short px = signal_map.x[azi_draw][r_pos];
         short py = signal_map.y[azi_draw][r_pos];
-        short pSize = 2;
+        short pSize = 1;
         if((px<pSize)||(py<pSize)||(px>=img_ppi->width()-pSize)||(py>=img_ppi->height()-pSize))return;
 
         for(short x = -pSize;x <= pSize;x++)
@@ -255,8 +297,10 @@ void C_radar_data::drawAzi(short azi)
     img_alpha->fill(0);
     short prev_azi = azi + 200;
     if(prev_azi>=MAX_AZIR)prev_azi -= MAX_AZIR;
-    drawBlackAzi(prev_azi*2);
-    drawBlackAzi(prev_azi*2+1);
+    drawBlackAzi(prev_azi*3);
+    drawBlackAzi(prev_azi*3+1);
+    drawBlackAzi(prev_azi*3+2);
+    memset(&signal_map.display[0][0],0,DISPLAY_RES*3);
     unsigned short thresh = 0;
     unsigned short  lastDisplayPos =0;
     for (short r_pos = 1;r_pos<range_max-1;r_pos++)
@@ -363,28 +407,25 @@ void C_radar_data::drawAzi(short azi)
                 }
                 else
                 rainLevel += krain*(value-rainLevel);
-                if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage+3*noiseVar;
+                if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage+6*noiseVar;
                 thresh = rainLevel+ noiseVar*kgain;
 
-                if(value<thresh)
+                if(value<=thresh)
                 {
                     value = 1;
                 }
                 else
                 {
-                    value-=thresh;
+                    value-=(thresh);
                 }
 
             }
-
+            signal_map.sled[azi][r_pos]+= (value - signal_map.sled[azi][r_pos])/5.0f;
             //________________________________///////////////////////
-
-
-            //printf("value:%d\n",value);
-            //alpha display
+            //alpha graph display
             if(isDisplayAlpha)
             {
-                if(imgMode==DOPLER_3_COLOR)
+                if(imgMode==DOPLER_3_COLOR||imgMode==DOPLER_4_COLOR)
                 {
                     for(short i=255;i>255-(dopler<<4);i--)
                     {img_alpha->setPixel(r_pos,i,1);}
@@ -402,15 +443,23 @@ void C_radar_data::drawAzi(short azi)
                     img_alpha->setPixel(r_pos,255-thresh,1);
                 }
             }
-            /**/
-//            drawSgn(azi,r_pos,value,dopler);
             short display_pos = r_pos*viewScale;
             short display_pos_next = (r_pos+1)*viewScale;
-            for(;display_pos<display_pos_next;display_pos++)
+            for(;;)
             {
                 if(display_pos>=DISPLAY_RES)break;
-                signal_map.display[display_pos][0] = value;
-                signal_map.display[display_pos][1] = dopler;
+                if(signal_map.display[display_pos][0]<value)
+                {
+                    signal_map.display[display_pos][0] = value;
+                    signal_map.display[display_pos][1] = dopler;
+
+                }
+                if(signal_map.display[display_pos][2] < signal_map.sled[azi][r_pos])
+                {
+                    signal_map.display[display_pos][2] = signal_map.sled[azi][r_pos];
+                }
+                display_pos++;
+                if(display_pos>=display_pos_next)break;
             }
             if(lastDisplayPos<display_pos_next)lastDisplayPos = display_pos_next;
     }
@@ -421,6 +470,7 @@ void C_radar_data::drawAzi(short azi)
 
             signal_map.display[lastDisplayPos][0] = 0;
             signal_map.display[lastDisplayPos][1] = 0;
+            signal_map.display[lastDisplayPos][2] = 0;
         }
     }
     //smooothing the image
@@ -430,8 +480,9 @@ void C_radar_data::drawAzi(short azi)
     {
         for(short display_pos = 1;display_pos<DISPLAY_RES;display_pos++)
         {
-            drawSgn(azi*2,display_pos);
-            drawSgn(azi*2+1,display_pos);
+            drawSgn(azi*3,display_pos);
+            drawSgn(azi*3+1,display_pos);
+            drawSgn(azi*3+2,display_pos);
         }
 
     }
@@ -441,8 +492,9 @@ void C_radar_data::drawAzi(short azi)
         {
             signal_map.display[display_pos][0] = signal_map.display[display_pos-1][0] + ((float)signal_map.display[display_pos][0]-(float)signal_map.display[display_pos-1][0])/k;
             signal_map.display[display_pos][1] = signal_map.display[display_pos-1][1] + ((float)signal_map.display[display_pos][1]-(float)signal_map.display[display_pos-1][1])/k;
-            drawSgn(azi*2,display_pos);
-            drawSgn(azi*2+1,display_pos);
+            drawSgn(azi*3,display_pos);
+            drawSgn(azi*3+1,display_pos);
+            drawSgn(azi*3+2,display_pos);
 //            if(isDisplayAlpha)
 //            {
 
@@ -501,9 +553,9 @@ void C_radar_data::drawDopler(short azi)
          sumvar += abs(signal_map.level_m[azi][range_max-50]-signal_map.level_m[azi][range_max-100]);
      }
      if(noiseAverage==0)noiseAverage = sum/float(n);else
-     {noiseAverage+=(sum/float(n)-noiseAverage);}
+     {noiseAverage+=(sum/float(n)-noiseAverage)/2;}
      if(noiseVar==0)noiseVar = sumvar/float(n);else
-     {noiseVar+=(sumvar/float(n)-noiseVar);}
+     {noiseVar+=(sumvar/float(n)-noiseVar)/2;}
 
 
 }
@@ -561,7 +613,7 @@ void C_radar_data::GetData(unsigned short azi)
     //return;//!!!!
     //unsigned short r_pos;
     unsigned short i = RADAR_DATA_HEADER;
-    //đọc dữ liệu xung dài
+    //đọc dữ liệu xung d� i
 //    for(r_pos=0; r_pos < range_max;r_pos++)
 //    {
 //        setSnLevel(azi,r_pos,dataBuff[i+r_pos]);
@@ -577,7 +629,7 @@ void C_radar_data::GetData(unsigned short azi)
     memcpy(&signal_map.level_s[azi][0],&dataBuff[i],RAD_S_PULSE_RES);
     i += RAD_S_PULSE_RES;
 
-    // đọc dữ liệu dopler xung dài
+    // đọc dữ liệu dopler xung d� i
 //    for(r_pos=0; r_pos < range_max;r_pos++)
 //    {
 //        short dopler_pos = r_pos/2;
@@ -610,7 +662,7 @@ void C_radar_data::GetData(unsigned short azi)
     memcpy(&signal_map.dopler_s[azi][0],&dataBuff[i],RAD_S_PULSE_RES/2);
     i += RAD_S_PULSE_RES/2;
 
-    // bù phần dữ liệu thiếu của xung dài
+    // bù phần dữ liệu thiếu của xung d� i
     if(range_max < RAD_M_PULSE_RES)
     {
 //        for(r_pos = range_max;r_pos < RAD_M_PULSE_RES-1;++r_pos)
@@ -1056,10 +1108,11 @@ void C_radar_data::resetData()
 {
     terrain_init_time = 20;
 
-    memset(signal_map.level_m,0,RAD_M_PULSE_RES);
-    memset(signal_map.dopler_m,0,RAD_M_PULSE_RES);
-    memset(signal_map.level_s,0,RAD_S_PULSE_RES);
-    memset(signal_map.dopler_s,0,RAD_S_PULSE_RES);
+    memset(signal_map.level_m,0,RAD_M_PULSE_RES*MAX_AZIR);
+    memset(signal_map.dopler_m,0,RAD_M_PULSE_RES*MAX_AZIR);
+    memset(signal_map.level_s,0,RAD_S_PULSE_RES*MAX_AZIR);
+    memset(signal_map.dopler_s,0,RAD_S_PULSE_RES*MAX_AZIR);
+    memset(signal_map.sled,0,RAD_M_PULSE_RES*MAX_AZIR);
 //    for(short azir = 0;azir< MAX_AZIR;azir++)
 //    {
 //        for(short range = 0;range<RAD_M_PULSE_RES;range++)

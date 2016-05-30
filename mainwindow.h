@@ -143,9 +143,9 @@ private slots:
 
     void on_actionSector_Select_triggered();
 
-    void on_toolButton_13_clicked();
+    //void on_toolButton_13_clicked();
 
-    void on_toolButton_14_clicked();
+    //void on_toolButton_14_clicked();
 
     void on_actionRotateStart_toggled(bool arg1);
 
@@ -177,13 +177,24 @@ private slots:
 
     void on_toolButton_alphaView_toggled(bool checked);
 
-    void on_toolButton_replay_2_clicked();
+    //void on_toolButton_replay_2_clicked();
 
     void on_toolButton_centerView_clicked();
 
     void on_comboBox_currentIndexChanged(int index);
 
     void on_comboBox_img_mode_currentIndexChanged(int index);
+
+
+    void on_toolButton_send_command_clicked();
+
+    void on_toolButton_map_toggled(bool checked);
+
+    void on_toolButton_zoom_in_clicked();
+
+    void on_toolButton_zoom_out_clicked();
+
+    void on_toolButton_reset_clicked();
 
 private:
     void initActionsConnections();
