@@ -196,6 +196,8 @@ private slots:
 
     void on_toolButton_reset_clicked();
 
+    void on_toolButton_azi_proc_toggled(bool checked);
+
 private:
     void initActionsConnections();
 };

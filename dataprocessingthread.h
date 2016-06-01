@@ -8,6 +8,8 @@
 #include <QFile>
 #include <QUdpSocket>
 #include <QStringList>
+#define HAVE_REMOTE
+#include "pcap.h"
 #ifndef CONST_NM
 #define CONST_NM 1.825f
 #endif
@@ -45,7 +47,7 @@ public:
        else return true;
     }
 private:
-    short iRec,iRead;
+
     bool isDrawn;
     bool isRecording;
     bool isPlaying;

@@ -2250,3 +2250,8 @@ void MainWindow::on_toolButton_reset_clicked()
 {
     processing->radarData->resetData();
 }
+
+void MainWindow::on_toolButton_azi_proc_toggled(bool checked)
+{
+    processing->radarData->azi_proc = checked;
+}

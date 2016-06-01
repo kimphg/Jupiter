@@ -379,7 +379,7 @@ public:
     signal_map_t            signal_map;
     unsigned char           size_thresh,overload, terrain_init_time, sn_stat, clk_adc;
     float                   viewScale;
-    bool                    avtodetect,xl_nguong,isClkAdcChanged;
+    bool                    avtodetect,xl_nguong,isClkAdcChanged,azi_proc;
     float                   krain,kgain,ksea,brightness;
     float                   temp;
     float                   trueN;
