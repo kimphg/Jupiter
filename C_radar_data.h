@@ -21,12 +21,12 @@
 #define RAD_S_PULSE_RES             256
 #define DISPLAY_RES                 768
 #define RAD_FULL_RES                1792
-#define SIGNAL_SCALE_0      0.1464f//0.094523077
-#define SIGNAL_SCALE_1      0.1172f//0.094523077
-#define SIGNAL_SCALE_2      0.0879f//0.063015385
-#define SIGNAL_SCALE_3      0.0586f//0.031507692
-#define SIGNAL_SCALE_4      0.0293f
-#define SIGNAL_SCALE_5      0.0146f
+#define SIGNAL_SCALE_0      0.16104f//0.1464f//0.094523077
+#define SIGNAL_SCALE_1      0.12892f//0.094523077
+#define SIGNAL_SCALE_2      0.09669f//0.063015385
+#define SIGNAL_SCALE_3      0.06446f//0.031507692
+#define SIGNAL_SCALE_4      0.03278f
+#define SIGNAL_SCALE_5      0.01606f
 #define TERRAIN_GAIN        0.9f
 #define TERRAIN_GAIN_1      0.1f
 #define TERRAIN_THRESH      0.5f
@@ -37,12 +37,12 @@
 #include <QImage>
 #include <QDateTime>
 #include <QDebug> //REMLATER
-#ifdef _WIN32
+/*#ifdef _WIN32
 #include <armadilloWin32/armadillo>
 #else
 #include <armadilloLinux/armadillo>
 #endif
-using namespace arma;
+using namespace arma;*/
 //#include <list>
 using namespace std;
 /*typedef struct {
@@ -101,7 +101,7 @@ public:
 
     }
     qint64 currentTimeMs;
-    fmat q1,q2,h,p,x;
+//    fmat q1,q2,h,p,x;
     objectList suspect_list,object_list;
     float deltaAzi;
     float estX ,estY;
@@ -126,7 +126,7 @@ public:
 
     }
     void init(float mesA,float mesR, char initState)
-    {
+    {/*
 
         currentTimeMs = time.toMSecsSinceEpoch();
         q1<<  0 <<  0 <<  0 <<  0 <<endr
@@ -165,7 +165,7 @@ public:
        if(suspect_list.size())suspect_list.clear();
        isMoving = false;
        tclass = WHITE_OBJ;
-       predict();
+       predict();*/
     }
     void updateTrackParam()
     {
@@ -238,7 +238,7 @@ public:
         }
     }
     void update()
-    {
+    {/*
         float mesA;
         float mesR;
         //dTime = 5;
@@ -317,10 +317,10 @@ public:
             object_list[object_list.size()-1].y = ((cosf(estA)))*estR;
             if(tclass !=WHITE_OBJ)predict();
         }
-        updateTrackParam();
+        updateTrackParam();*/
     }
     void predict()
-    {
+    {/*
         float aa = cos(deltaAzi);
         float bb = sin(deltaAzi);//NIM
         isManeuvering = (deltaAzi>0.001);
@@ -333,7 +333,7 @@ public:
         x = a*x;
         //predict error covariance:
         if(isManeuvering)p = a*p*a.t()+q2;
-        else p = a*p*a.t()+q1;
+        else p = a*p*a.t()+q1;*/
     }
     bool checkProb(object_t* object)
     {
@@ -377,9 +377,10 @@ public:
     trackList               mTrackList;
     markList                mark_list;
     signal_map_t            signal_map;
-    unsigned char           size_thresh,overload, terrain_init_time, sn_stat, clk_adc;
+    unsigned char           size_thresh,overload, terrain_init_time, clk_adc;
     float                   viewScale;
-    bool                    avtodetect,xl_nguong,isClkAdcChanged,azi_proc;
+    unsigned short          sn_stat;
+    bool                    avtodetect,xl_nguong,isClkAdcChanged;
     float                   krain,kgain,ksea,brightness;
     float                   temp;
     float                   trueN;

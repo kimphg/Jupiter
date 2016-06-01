@@ -1,7 +1,9 @@
 #include "dataprocessingthread.h"
-#define MAX_IREC 100
+#define MAX_IREC 400
 
 DataBuff dataB[MAX_IREC];
+short iRec,iRead;
+bool *pIsDrawn;
 dataProcessingThread::~dataProcessingThread()
 {
     delete radarData;
@@ -16,13 +18,20 @@ void dataProcessingThread::ReadDataBuffer()
         iRead++;
         if(iRead>=MAX_IREC)iRead=0;
         radarData->GetDataHR(&dataBuff[iRead].data[0],dataBuff[iRead].len);
+        if(isRecording)
+        {
+            signRecFile.write((char*)&dataBuff[iRec].len,2);
+            signRecFile.write((char*)&dataBuff[iRec].data[0],dataBuff[iRec].len);
+
+        }
     }
-    //printf("\nnread:%d",nread);
+
 }
 dataProcessingThread::dataProcessingThread()
 {
     dataBuff = &dataB[0];
     iRec=0;iRead=0;
+    pIsDrawn=&isDrawn;
 //    udpSendSocket = new QUdpSocket(this);
 //    udpSendSocket->bind(2000);
     playRate = 10;
@@ -131,13 +140,86 @@ void dataProcessingThread::processRadarData()
 {
 
 }
+#define UDP_HEADER_LEN 42
+void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data)
+{
+//    struct tm ltime;
+//    char timestr[16];
+//    time_t local_tv_sec;
+
+    /*
+     * unused variables
+     */
+    (VOID)(param);
+    (VOID)(pkt_data);
+
+    /* convert the timestamp to readable format */
+//    local_tv_sec = header->ts.tv_sec;
+//    localtime_s(&ltime, &local_tv_sec);
+//    strftime( timestr, sizeof timestr, "%H:%M:%S", &ltime);
+
+    //printf("%s,%.6d len:%d\n", timestr, header->ts.tv_usec, header->len);
+    if(header->len<100)return;
+    dataB[iRec].len = header->len - UDP_HEADER_LEN;
+    memcpy(&dataB[iRec].data[0],pkt_data+UDP_HEADER_LEN,dataB[iRec].len);
+    iRec++;
+    if(iRec>=MAX_IREC)iRec = 0;
+    *pIsDrawn = false;
+    return;
+    printf("len:%d\n", header->len);
+    //printf("%.6d len:%d\n", header->ts.tv_usec, header->len);
+    for(short i=0;i<dataB[iRec].len;i++)
+    {
+        printf("%x-",dataB[iRec].data[i]);
+    }
+    printf("\n");
+
+}
 void dataProcessingThread::run()
 {
+    pcap_if_t *alldevs;
+    pcap_if_t *d;
+    pcap_t *adhandle;
+    char errbuf[PCAP_ERRBUF_SIZE];
+    //
+    /* Retrieve the device list on the local machine */
+    if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
+    {
+        printf( errbuf);
+    }
+//    int i = 0;
+    /* Print the list */
+//    for(d=alldevs; d; d=d->next)
+//    {
+//        printf("%d. %s", ++i, d->name);
+//        if (d->description)
+//            printf(" (%s)\n", d->description);
+//        else
+//            printf(" (No description available)\n");
+//    }
+    d=alldevs;
+    if ( (adhandle= pcap_open(d->name,          // name of the device
+                                  65536,            // portion of the packet to capture
+                                                    // 65536 guarantees that the whole packet will be captured on all the link layers
+                                  PCAP_OPENFLAG_PROMISCUOUS,    // promiscuous mode
+                                  1000,             // read timeout
+                                  NULL,             // authentication on the remote machine
+                                  errbuf            // error buffer
+                                  ) ) == NULL)
+        {
+            /* Free the device list */
+            pcap_freealldevs(alldevs);
+            return ;
+        }
+    printf("\nlistening on %s...\n", d->description);
+
+    /* start the capture */
+    pcap_loop(adhandle, 0, packet_handler, NULL);
+    return;
+    //__________
     setPriority(QThread::TimeCriticalPriority);
     while  (true)
     {
-
-
         if(radarDataSocket->hasPendingDatagrams())
         {
             iRec++;

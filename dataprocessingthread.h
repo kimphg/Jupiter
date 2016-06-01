@@ -8,6 +8,9 @@
 #include <QFile>
 #include <QUdpSocket>
 #include <QStringList>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #define HAVE_REMOTE
 #include "pcap.h"
 #ifndef CONST_NM
@@ -22,6 +25,7 @@ class dataProcessingThread:public QThread
 {
     Q_OBJECT
 public:
+    bool isDrawn;
     QMutex  mutex;
     char    playRate;
     DataBuff*   dataBuff;
@@ -48,7 +52,7 @@ public:
     }
 private:
 
-    bool isDrawn;
+
     bool isRecording;
     bool isPlaying;
     QFile signRepFile;

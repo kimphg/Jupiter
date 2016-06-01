@@ -13,7 +13,6 @@
 #run for both 1024 and 2048 data type
 #radar resolution can be changed by the user
 
-
 @CONFIG += debug_and_release@
 QT       += core gui
 QT       += network
@@ -59,6 +58,13 @@ win32:LIBS += -L$$PWD/armadilloWin32/lib_winx86/ -llapack_win32_MT
 unix: LIBS += -larmadillo
 win32:LIBS += -L$$PWD/../WpdPack/Lib/ -lPacket
 win32:LIBS += -L$$PWD/../WpdPack/Lib/ -lwpcap
+INCLUDEPATH += $$PWD/../opencv/build/include
+win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_core249
+win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_highgui249
+win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_imgproc249
+#win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_videoio249
+
+LIBS +=
 #win32:CONFIG(release, debug|release):INCLUDEPATH += $$PWD/armadillo/lib_winx86
 #win32:CONFIG(release, debug|release):DEPENDPATH += $$PWD/armadillo/lib_winx86
 

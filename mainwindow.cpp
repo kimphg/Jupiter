@@ -1349,20 +1349,29 @@ void MainWindow::sync1()//period 1 second
         break;
     case CONNECTED:
         ui->label_status->setText(QString::number(processing->radarData->overload));
-        switch(processing->radarData->sn_stat&0x07)
+        switch((processing->radarData->sn_stat>>8))
         {
         case 0 :
             ui->label_sn_type->setText(QString::fromUtf8("Xung đơn"));
             break;
+        case 1 :
+            ui->label_sn_type->setText(QString::fromUtf8("Mã Baker"));
+            break;
         case 2 :
             ui->label_sn_type->setText(QString::fromUtf8("Mã M"));
             break;
+        case 3 :
+            ui->label_sn_type->setText(QString::fromUtf8("Mã NN"));
+            break;
+
         default:
-            ui->label_sn_type->setText(QString::number(processing->radarData->sn_stat&0x07));
+            ui->label_sn_type->setText(QString::fromUtf8("Mã DTTT"));
+            break;
+            //ui->label_sn_type->setText(QString::number(processing->radarData->sn_stat&0x07));
 
         }
 
-        ui->label_sn_param->setText(QString::number((processing->radarData->sn_stat>>3)&0x07));
+        ui->label_sn_param->setText(QString::number((processing->radarData->sn_stat)&0xff));
         break;
     case CONNECTED_ROTATE12_TXON:
         ui->label_status->setText(QString::fromUtf8("Phát 12v/p"));
@@ -2253,5 +2262,5 @@ void MainWindow::on_toolButton_reset_clicked()
 
 void MainWindow::on_toolButton_azi_proc_toggled(bool checked)
 {
-    processing->radarData->azi_proc = checked;
+    //processing->radarData->azi_proc = checked;
 }
