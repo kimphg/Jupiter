@@ -15,7 +15,9 @@
 #include "pcap.h"
 #ifndef CONST_NM
 #define CONST_NM 1.825f
+
 #endif
+#define HR2D_UDP_PORT 5000
 struct DataBuff
 {
     short len;

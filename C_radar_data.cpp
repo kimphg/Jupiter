@@ -12,6 +12,7 @@ C_radar_data::C_radar_data()
 {
     img_ppi = new QImage(DISPLAY_RES*2+1,DISPLAY_RES*2+1,QImage::Format_ARGB32);
     img_alpha = new QImage(RAD_M_PULSE_RES,256,QImage::Format_Mono);
+    isDisplayAlpha = false;
     size_thresh = 4;
     isProcessing = true;
     imgMode = VALUE_ORANGE_BLUE;

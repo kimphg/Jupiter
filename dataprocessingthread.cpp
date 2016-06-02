@@ -159,7 +159,8 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
 //    strftime( timestr, sizeof timestr, "%H:%M:%S", &ltime);
 
     //printf("%s,%.6d len:%d\n", timestr, header->ts.tv_usec, header->len);
-    if(header->len<100)return;
+    if(header->len<=42)return;
+    if((*(pkt_data+36)<<8)|*(pkt_data+37)!=HR2D_UDP_PORT)return;
     dataB[iRec].len = header->len - UDP_HEADER_LEN;
     memcpy(&dataB[iRec].data[0],pkt_data+UDP_HEADER_LEN,dataB[iRec].len);
     iRec++;
