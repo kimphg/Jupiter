@@ -30,7 +30,8 @@ SOURCES += main.cpp\
     onexitdialog.cpp \
     qcustombutton.cpp \
     qcustomframe.cpp \
-    qcustomcombobox.cpp
+    qcustomcombobox.cpp \
+    qcustomgroupbox.cpp
 HEADERS  += mainwindow.h \
     vnmap.h \
     Config.h \
@@ -41,7 +42,8 @@ HEADERS  += mainwindow.h \
     onexitdialog.h \
     qcustombutton.h \
     qcustomframe.h \
-    qcustomcombobox.h
+    qcustomcombobox.h \
+    qcustomgroupbox.h
 
 FORMS    += mainwindow.ui \
     gpsdialog.ui \

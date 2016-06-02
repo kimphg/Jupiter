@@ -847,7 +847,7 @@ void MainWindow::InitSetting()
     ui->horizontalSlider_signal_scale->setValue(ui->horizontalSlider_sea->minimum());
     setCursor(QCursor(Qt::CrossCursor));
     range = 6; UpdateScale();
-    if(config.m_config.mapEnabled)
+    if(true)
     {
         if(!LoadISMapFile())return;
         if(pMap)delete pMap;
@@ -868,8 +868,8 @@ void MainWindow::InitSetting()
 void MainWindow::ReloadSetting()
 {
 
-    vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 100,NULL);//100km  max range
-    processing->radarData->setTrueN(config.m_config.trueN);
+
+
 
     if(gridOff)
     {
@@ -881,20 +881,7 @@ void MainWindow::ReloadSetting()
         scrCtX = height()/2;//+ ui->toolBar_Main->width()+20;//ENVDEP
         scrCtY = height()/2;
     }
-    //printf("\n width:%d",width());
-    if(config.m_config.mapEnabled)
-    {
-        if(!LoadISMapFile())return;
-        if(pMap)delete pMap;
-        if(gridOff==false)pMap = new QPixmap(height(),height());
-        else pMap = new QPixmap(width(),height());
 
-    }else
-    {
-        vnmap.ClearData();
-        if(pMap)delete  pMap;
-        pMap = NULL;
-    }
     UpdateScale();
     isSettingUp2Date = true;
 
@@ -1120,7 +1107,13 @@ void MainWindow::InitNetwork()
 //            this, SLOT(processFrame()));
 
         udpSendSocket = new QUdpSocket(this);
-        udpSendSocket->bind(8900);
+        if(!udpSendSocket->bind(8900))
+        {
+            if(!udpSendSocket->bind(8901))
+            {
+                udpSendSocket->bind(8902);
+            }
+        }
         udpSendSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 10);
 
 //    udpARPA = new QUdpSocket(this);
@@ -2119,20 +2112,43 @@ void MainWindow::on_toolButton_scan_clicked()
 
 void MainWindow::on_toolButton_tx_toggled(bool checked)
 {
+
     if(checked)
-    {
-        this->on_actionTx_On_triggered();
+
+    {   //0xaa,0xab,0x00,0x01,0x00,0x00,0x00
+        unsigned char        bytes[8] = {0xaa,0xab,0x02,0x01,0x00,0x00,0x00};
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        bytes[2] = 0x00;//{0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        ui->toolButton_tx->setChecked(false);
     }
     else
     {
-        this->on_actionTx_Off_triggered();
+
+        unsigned char        bytes[8] = {0xaa,0xab,0x02,0x00,0x00,0x00,0x00};
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        bytes[2] = 0x00;// = {0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        ui->toolButton_tx->setChecked(true);
     }
 
 }
 
 void MainWindow::on_toolButton_scan_toggled(bool checked)
 {
-    this->on_actionRotateStart_toggled(checked);
+    if(checked)
+    {
+        unsigned char        bytes[8] = {0xaa,0xab,0x03,0x02,0x00,0x00,0x00};
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+
+    }
+    else
+    {
+        unsigned char        bytes[8] = {0xaa,0xab,0x03,0x00,0x00,0x00,0x00};
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+
+    }
+
 }
 
 
@@ -2263,14 +2279,48 @@ void MainWindow::on_toolButton_azi_proc_toggled(bool checked)
 
 void MainWindow::on_toolButton_send_command_2_clicked()
 {
-    unsigned char        bytes[8];
-    bytes[0] = 0xaa;
-    bytes[1] = 0xab;
-    bytes[2] = 0x02;
-    bytes[3] = 0x02;
-    bytes[4] = 0x0a;
-    bytes[5] = 0x00;
-    bytes[6] = 0x00;
-    bytes[7] = 0x00;
+    unsigned char        bytes[8] = {0xaa,0xab,0x02,0x02,0x0a,0,0,0};
     udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+//    bytes[0] = 0xaa;
+//    bytes[1] = 0xab;
+//    bytes[2] = 0x02;
+//    bytes[3] = 0x02;
+//    bytes[4] = 0x0a;
+//    bytes[5] = 0x00;
+//    bytes[6] = 0x00;
+//    bytes[7] = 0x00;
+
+}
+
+void MainWindow::on_toolButton_send_command_3_clicked()
+{
+
+}
+
+void MainWindow::on_toolButton_map_select_clicked()
+{
+    QString filename = QFileDialog::getOpenFileName(this,    QString::fromUtf8("M? file b?n d?"), NULL, tr("ISM file (*.ism)"));
+    if(!filename.size())return;
+    config.m_config.mapFilename =  filename.toStdString();
+    vnmap.ClearData();
+    if(!LoadISMapFile())return;
+    if(pMap)delete pMap;
+
+    pMap = new QPixmap(height(),height());
+    vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 200,NULL);//100km  max range
+    DrawMap();
+}
+
+void MainWindow::on_dial_valueChanged(int value)
+{
+    float heading = value/100.0f;
+    ui->textEdit_heading->setText(QString::number(heading));
+
+}
+
+void MainWindow::on_toolButton_set_heading_clicked()
+{
+    float heading = ui->textEdit_heading->text().toFloat();
+    config.m_config.trueN = heading;
+    processing->radarData->setTrueN(config.m_config.trueN);
 }

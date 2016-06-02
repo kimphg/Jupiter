@@ -200,6 +200,14 @@ private slots:
 
     void on_toolButton_send_command_2_clicked();
 
+    void on_toolButton_send_command_3_clicked();
+
+    void on_toolButton_map_select_clicked();
+
+    void on_dial_valueChanged(int value);
+
+    void on_toolButton_set_heading_clicked();
+
 private:
     void initActionsConnections();
 };

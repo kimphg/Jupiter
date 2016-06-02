@@ -1,5 +1,6 @@
 #ifndef Q_VNMAP_H
 #define Q_VNMAP_H
+
 #define N_LAYER 6
 /*
   map definition

@@ -1,14 +1,14 @@
-#ifndef QCUSTOM_COMBOBOX_H
-#define QCUSTOM_COMBOBOX_H
+#ifndef QCUSTOM_GROUP_BOX_H
+#define QCUSTOM_GROUP_BOX_H
 
 #include <QWidget>
-#include <QComboBox>
+#include <QGroupBox>
 #include <qevent.h>
-class QCustomComboBox: public QComboBox
+class QCustomGroupBox: public QGroupBox
 {
     Q_OBJECT
 public:
-    explicit QCustomComboBox(QWidget *parent = 0);
+    explicit QCustomGroupBox(QWidget *parent = 0);
 
 protected:
     void highLight();
@@ -23,4 +23,4 @@ signals:
 public slots:
 };
 
-#endif // QCUSTOM_FRAME_H
+#endif // QCUSTOM_GROUP_BOX_H
