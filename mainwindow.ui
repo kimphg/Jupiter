@@ -8121,9 +8121,9 @@ color: rgb(0, 128, 0);
     <property name="geometry">
      <rect>
       <x>1330</x>
-      <y>10</y>
-      <width>361</width>
-      <height>371</height>
+      <y>20</y>
+      <width>381</width>
+      <height>411</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -8133,7 +8133,7 @@ color: rgb(0, 128, 0);
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -8738,8 +8738,8 @@ color: rgb(0, 128, 0);
      <widget class="QLineEdit" name="lineEdit_byte_8">
       <property name="geometry">
        <rect>
-        <x>180</x>
-        <y>239</y>
+        <x>90</x>
+        <y>159</y>
         <width>71</width>
         <height>29</height>
        </rect>
@@ -9186,8 +9186,8 @@ color: rgb(0, 128, 0);
      <widget class="QLineEdit" name="lineEdit_byte_3">
       <property name="geometry">
        <rect>
-        <x>103</x>
-        <y>141</y>
+        <x>13</x>
+        <y>61</y>
         <width>71</width>
         <height>29</height>
        </rect>
@@ -9634,8 +9634,8 @@ color: rgb(0, 128, 0);
      <widget class="QLineEdit" name="lineEdit_byte_6">
       <property name="geometry">
        <rect>
-        <x>180</x>
-        <y>190</y>
+        <x>90</x>
+        <y>110</y>
         <width>71</width>
         <height>29</height>
        </rect>
@@ -10082,8 +10082,8 @@ color: rgb(0, 128, 0);
      <widget class="QLineEdit" name="lineEdit_byte_5">
       <property name="geometry">
        <rect>
-        <x>103</x>
-        <y>190</y>
+        <x>13</x>
+        <y>110</y>
         <width>71</width>
         <height>29</height>
        </rect>
@@ -10530,8 +10530,8 @@ color: rgb(0, 128, 0);
      <widget class="QLineEdit" name="lineEdit_byte_7">
       <property name="geometry">
        <rect>
-        <x>103</x>
-        <y>239</y>
+        <x>13</x>
+        <y>159</y>
         <width>71</width>
         <height>29</height>
        </rect>
@@ -10978,8 +10978,8 @@ color: rgb(0, 128, 0);
      <widget class="QLineEdit" name="lineEdit_byte_4">
       <property name="geometry">
        <rect>
-        <x>180</x>
-        <y>141</y>
+        <x>90</x>
+        <y>61</y>
         <width>71</width>
         <height>29</height>
        </rect>
@@ -11426,8 +11426,8 @@ color: rgb(0, 128, 0);
      <widget class="QLineEdit" name="lineEdit_byte_2">
       <property name="geometry">
        <rect>
-        <x>180</x>
-        <y>92</y>
+        <x>90</x>
+        <y>12</y>
         <width>71</width>
         <height>29</height>
        </rect>
@@ -11874,8 +11874,8 @@ color: rgb(0, 128, 0);
      <widget class="QLineEdit" name="lineEdit_byte_1">
       <property name="geometry">
        <rect>
-        <x>103</x>
-        <y>92</y>
+        <x>13</x>
+        <y>12</y>
         <width>71</width>
         <height>29</height>
        </rect>
@@ -12322,14 +12322,27 @@ color: rgb(0, 128, 0);
      <widget class="QCustomButton" name="toolButton_send_command">
       <property name="geometry">
        <rect>
-        <x>100</x>
-        <y>280</y>
+        <x>10</x>
+        <y>200</y>
         <width>151</width>
         <height>31</height>
        </rect>
       </property>
       <property name="text">
        <string>Gửi lệnh</string>
+      </property>
+     </widget>
+     <widget class="QCustomButton" name="toolButton_send_command_2">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>10</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Reset nhiệt</string>
       </property>
      </widget>
     </widget>

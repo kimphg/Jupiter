@@ -28,6 +28,7 @@ class dataProcessingThread:public QThread
     Q_OBJECT
 public:
     bool isDrawn;
+    bool isRunning;
     QMutex  mutex;
     char    playRate;
     DataBuff*   dataBuff;

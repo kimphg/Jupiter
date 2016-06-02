@@ -160,7 +160,7 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
 
     //printf("%s,%.6d len:%d\n", timestr, header->ts.tv_usec, header->len);
     if(header->len<=42)return;
-    if((*(pkt_data+36)<<8)|*(pkt_data+37)!=HR2D_UDP_PORT)return;
+    if(((*(pkt_data+36)<<8)|(*(pkt_data+37)))!=HR2D_UDP_PORT)return;
     dataB[iRec].len = header->len - UDP_HEADER_LEN;
     memcpy(&dataB[iRec].data[0],pkt_data+UDP_HEADER_LEN,dataB[iRec].len);
     iRec++;
@@ -186,8 +186,10 @@ void dataProcessingThread::run()
     /* Retrieve the device list on the local machine */
     if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
     {
-        printf( errbuf);
+        isRunning = false;
+        printf( errbuf); return;
     }
+    isRunning = true;
 //    int i = 0;
     /* Print the list */
 //    for(d=alldevs; d; d=d->next)
@@ -218,7 +220,7 @@ void dataProcessingThread::run()
     pcap_loop(adhandle, 0, packet_handler, NULL);
     return;
     //__________
-    setPriority(QThread::TimeCriticalPriority);
+    /*setPriority(QThread::TimeCriticalPriority);
     while  (true)
     {
         if(radarDataSocket->hasPendingDatagrams())
@@ -237,7 +239,7 @@ void dataProcessingThread::run()
 
         }
         else { usleep(100);}
-    }
+    }*/
 }
 void dataProcessingThread::stopThread()
 {

@@ -1120,7 +1120,7 @@ void MainWindow::InitNetwork()
 //            this, SLOT(processFrame()));
 
         udpSendSocket = new QUdpSocket(this);
-        udpSendSocket->bind(5800);
+        udpSendSocket->bind(8900);
         udpSendSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 10);
 
 //    udpARPA = new QUdpSocket(this);
@@ -2221,10 +2221,6 @@ void MainWindow::on_comboBox_img_mode_currentIndexChanged(int index)
 void MainWindow::on_toolButton_send_command_clicked()
 {
     unsigned char        bytes[8];
-    QUdpSocket      *udpSendSocket;//radar control
-    udpSendSocket = new QUdpSocket(this);
-    udpSendSocket->bind(7777);
-    udpSendSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 10);
     hex2bin(ui->lineEdit_byte_1->text().toStdString().data(),&bytes[0]);
     hex2bin(ui->lineEdit_byte_2->text().toStdString().data(),&bytes[1]);
     hex2bin(ui->lineEdit_byte_3->text().toStdString().data(),&bytes[2]);
@@ -2263,4 +2259,18 @@ void MainWindow::on_toolButton_reset_clicked()
 void MainWindow::on_toolButton_azi_proc_toggled(bool checked)
 {
     //processing->radarData->azi_proc = checked;
+}
+
+void MainWindow::on_toolButton_send_command_2_clicked()
+{
+    unsigned char        bytes[8];
+    bytes[0] = 0xaa;
+    bytes[1] = 0xab;
+    bytes[2] = 0x02;
+    bytes[3] = 0x02;
+    bytes[4] = 0x0a;
+    bytes[5] = 0x00;
+    bytes[6] = 0x00;
+    bytes[7] = 0x00;
+    udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
 }
