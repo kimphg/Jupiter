@@ -33,13 +33,13 @@ class MainWindow;
 //class QPushButton;
 //class QUdpSocket;
 }
-class MainWindow : public QMainWindow
+class RadarGui : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    explicit RadarGui(QWidget *parent = 0);
+    ~RadarGui();
 protected:
     //void contextMenuEvent(QContextMenuEvent *event);
 //    void keyPressEvent(QKeyEvent *event);
@@ -57,7 +57,8 @@ private:
     void CameraControl(int x,int y, int zoom);
     void CameraControl(int direction);
     void InitSetting();
-
+    void sendToRadar(const char *hexdata);
+    void sendToRadar(unsigned char* hexdata);
     void SetSnScale(short value);
     Ui::MainWindow* ui;
 //    QMenu   *       m_fileMenu;
@@ -93,11 +94,12 @@ private:
     void DrawMap();
     void ReloadSetting();
     void SendCommandControl();
+    void SetGPS(float mlat,float mlong);
 public slots:
     void UpdateSetting();
     void UpdateSignScale();
     void UpdateScale();
-    void updateCodeType();
+    void setCodeType(short index);
 private:
     void setRadarState(radarSate radarState);
 public:
@@ -135,7 +137,7 @@ private slots:
 
     void on_comboBox_temp_type_currentIndexChanged(int index);
 
-    void on_horizontalSlider_brightness_actionTriggered(int action);
+//    void on_horizontalSlider_brightness_actionTriggered(int action);
 
     void on_horizontalSlider_brightness_valueChanged(int value);
 
@@ -147,7 +149,7 @@ private slots:
 
     //void on_toolButton_14_clicked();
 
-    void on_actionRotateStart_toggled(bool arg1);
+//    void on_actionRotateStart_toggled(bool arg1);
 
     void on_horizontalSlider_gain_valueChanged(int value);
 
@@ -196,17 +198,21 @@ private slots:
 
     void on_toolButton_reset_clicked();
 
-    void on_toolButton_azi_proc_toggled(bool checked);
 
     void on_toolButton_send_command_2_clicked();
 
-    void on_toolButton_send_command_3_clicked();
 
     void on_toolButton_map_select_clicked();
 
     void on_dial_valueChanged(int value);
 
     void on_toolButton_set_heading_clicked();
+
+    void on_toolButton_gps_update_clicked();
+
+    void on_comboBox_code_type_currentIndexChanged(const QString &arg1);
+
+    void on_comboBox_code_type_currentIndexChanged(int index);
 
 private:
     void initActionsConnections();

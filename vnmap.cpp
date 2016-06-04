@@ -68,10 +68,10 @@ void Q_vnmap::setUp(float ctLat, float ctLong, unsigned short size, const char* 
     brPos.m_Long = currPos.m_Long + degSize;
 	
 	if(fileName){
-		//CString filePlaceName;
+        //CString filePlaceName;
 		//LoadPlaces(filePlaceName);
 		
-        //LoadBinFile(fileName);
+        LoadBinFile(fileName);
         //LoadPlaces(fileName);
 	}
 }

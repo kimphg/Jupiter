@@ -27,7 +27,7 @@ static C_ARPA_data          arpa_data;
 //static short                curAzir=-1;//,drawAzir=0;
 static float                signsize,sn_scale;
 static short                scrCtX, scrCtY, dx =0,dy=0,dxMap=0,dyMap=0;//mouseX,mouseY;
-static short                mouseX,mouseY;
+static short                mousePointerX,mousePointerY;
 static char                 gridOff = false;
 static char                 udpFailure = 0;//config file !!!
 static bool                 isScreenUp2Date,isSettingUp2Date,isDraging = false;
@@ -38,19 +38,160 @@ enum drawModes{
 }drawMode = SGN_IMG_DRAW;
 short range = 1;
 
-typedef struct {
-    unsigned char        bytes[8];
-}
-Command_Control;
-typedef std::queue<Command_Control> CommandList;
-static CommandList command_queue;
+//typedef struct {
+//    unsigned char        bytes[8];
+//}
+//Command_Control;
+//typedef std::queue<Command_Control> CommandList;
+//static CommandList command_queue;
 bool isDrawSubTg = true;
-//static short     gridRangeNM;
-//static FILE *pSignRecFile;
-//static RadarControlDialog *radarControlDlg=NULL;
-//static drawingBuff drBuff[DRAW_BUFF_SIZE];
+//static unsigned short cur_object_index = 0;
+int char2int( char input)
+{
+  if(input >= '0' && input <= '9')
+    return input - '0';
+  if(input >= 'A' && input <= 'F')
+    return input - 'A' + 10;
+  if(input >= 'a' && input <= 'f')
+    return input - 'a' + 10;
+  return 0;
+}
+void hex2bin(const char* src,unsigned char* target)
+{
+  while(*src && src[1])
+  {
+    *(target++) = char2int(*src)*16 + char2int(src[1]);
+    src += 2;
+  }
+  *(target++)=0;
+}
+void bin2hex(unsigned char byte, char* str)
+{
+    switch (byte>>4) {
+    case 0:
+        *str = '0';
+        break;
+    case 1:
+        *str = '1';
+        break;
+    case 2:
+        *str = '2';
+        break;
+    case 3:
+        *str = '3';
+        break;
+    case 4:
+        *str = '4';
+        break;
+    case 5:
+        *str = '5';
+        break;
+    case 6:
+        *str = '6';
+        break;
+    case 7:
+        *str = '7';
+        break;
+    case 8:
+        *str = '8';
+        break;
+    case 9:
+        *str = '9';
+        break;
+    case 10:
+        *str = 'A';
+        break;
+    case 11:
+        *str = 'B';
+        break;
+    case 12:
+        *str = 'C';
+        break;
+    case 13:
+        *str = 'D';
+        break;
+    case 14:
+        *str = 'E';
+        break;
+    case 15:
+        *str = 'F';
+        break;
+    default:
+        break;
+    }
+    switch (byte&(0x0F)) {
+    case 0:
+        *(str+1) = '0';
+        break;
+    case 1:
+        *(str+1) = '1';
+        break;
+    case 2:
+        *(str+1) = '2';
+        break;
+    case 3:
+        *(str+1) = '3';
+        break;
+    case 4:
+        *(str+1) = '4';
+        break;
+    case 5:
+        *(str+1) = '5';
+        break;
+    case 6:
+        *(str+1) = '6';
+        break;
+    case 7:
+        *(str+1) = '7';
+        break;
+    case 8:
+        *(str+1) = '8';
+        break;
+    case 9:
+        *(str+1) = '9';
+        break;
+    case 10:
+        *(str+1) = 'A';
+        break;
+    case 11:
+        *(str+1) = 'B';
+        break;
+    case 12:
+        *(str+1) = 'C';
+        break;
+    case 13:
+        *(str+1) = 'D';
+        break;
+    case 14:
+        *(str+1) = 'E';
+        break;
+    case 15:
+        *(str+1) = 'F';
+        break;
+    default:
+        break;
+    }
 
-void MainWindow::mouseReleaseEvent(QMouseEvent *event)
+}
+
+void RadarGui::sendToRadar(const char* hexdata)
+{
+    short len = strlen(hexdata)/2+1;
+    unsigned char* sendBuff = new unsigned char[len];
+    hex2bin(hexdata,sendBuff);
+    udpSendSocket->writeDatagram((char*)sendBuff,8,QHostAddress("192.168.0.44"),2572);
+    delete[] sendBuff;
+
+}
+void RadarGui::sendToRadar(unsigned char* hexdata)
+{
+
+    udpSendSocket->writeDatagram((char*)hexdata,8,QHostAddress("192.168.0.44"),2572);
+    //delete[] sendBuff;
+
+}
+
+void RadarGui::mouseReleaseEvent(QMouseEvent *event)
 {
 
 //    if(isAddingTarget)
@@ -90,12 +231,12 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
         currMinAzi = 0;
     }*/
 }
-void MainWindow::wheelEvent(QWheelEvent *event)
+void RadarGui::wheelEvent(QWheelEvent *event)
 {
     //if(event->delta()>0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()+1);
     //if(event->delta()<0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()-1);
 }
-void MainWindow::mouseMoveEvent(QMouseEvent *event) {
+void RadarGui::mouseMoveEvent(QMouseEvent *event) {
     //if(!isDraging)return;
     //mouseX = (event->x());
     //mouseY = (event->y());
@@ -111,32 +252,32 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event) {
                 if(dy>0){dy--;dyMap--;}else {dy++;dyMap++;}
             }
         }
-        dx+= mouseX-event->x();
-        dy+= mouseY-event->y();
-        dxMap += mouseX-event->x();
-        dyMap += mouseY-event->y();
-        mouseX=event->x();
-        mouseY=event->y();
+        dx+= mousePointerX-event->x();
+        dy+= mousePointerY-event->y();
+        dxMap += mousePointerX-event->x();
+        dyMap += mousePointerY-event->y();
+        mousePointerX=event->x();
+        mousePointerY=event->y();
         isScreenUp2Date = false;
     }
 }
-void MainWindow::mousePressEvent(QMouseEvent *event)
+void RadarGui::mousePressEvent(QMouseEvent *event)
 {
     if(event->x()>height())return;
-    mouseX = (event->x());
-    mouseY = (event->y());
+    mousePointerX = (event->x());
+    mousePointerY = (event->y());
     //ui->frame_RadarViewOptions->hide();
     if(event->buttons() & Qt::LeftButton) {
         isDraging = true;
-        mouseX=event->x();
-        mouseY=event->y();
+        mousePointerX=event->x();
+        mousePointerY=event->y();
         //printf("mouseX %d\n",mouseX);
     }
     else if(event->buttons() & Qt::RightButton)
     {
 
-        float xRadar = (mouseX - scrCtX+dx)/signsize ;//coordinates in  radar xy system
-        float yRadar = -(mouseY - scrCtY+dy)/signsize;
+        float xRadar = (mousePointerX - scrCtX+dx)/signsize ;//coordinates in  radar xy system
+        float yRadar = -(mousePointerY - scrCtY+dy)/signsize;
         processing->radarData->addTrackManual(xRadar,yRadar);
         isScreenUp2Date = false;
         return;
@@ -158,7 +299,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 //    DrawMap();
 //    update();
 }*/
-MainWindow::MainWindow(QWidget *parent) :
+RadarGui::RadarGui(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
@@ -187,7 +328,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
-void MainWindow::DrawSignal(QPainter *p)
+void RadarGui::DrawSignal(QPainter *p)
 {
     //QRectF signRect(RAD_M_PULSE_RES-(scrCtX-dx),RAD_M_PULSE_RES-(scrCtY-dy),width(),height());
     //QRectF screen(0,0,width(),height());
@@ -252,13 +393,13 @@ void MainWindow::DrawSignal(QPainter *p)
 //    m_connectionMenu = menuBar()->addMenu(tr("&Connect"));
 //    m_connectionMenu->addAction(a_gpsOption);
 //}
-void MainWindow::gpsOption()
+void RadarGui::gpsOption()
 {
     //GPSDialog *dlg = new GPSDialog;
     //dlg->show();
 }
 
-void MainWindow::PlaybackRecFile()//
+void RadarGui::PlaybackRecFile()//
 {
 
 
@@ -310,14 +451,14 @@ void MainWindow::openShpFile()
 
 }*/
 
-MainWindow::~MainWindow()
+RadarGui::~RadarGui()
 {
     delete ui;
 
     if(pMap)delete pMap;
 }
 
-void MainWindow::DrawMap()
+void RadarGui::DrawMap()
 {
 
     if(!pMap) return;
@@ -412,10 +553,10 @@ void MainWindow::DrawMap()
     }
 
 }
-void MainWindow::DrawGrid(QPainter* p,short centerX,short centerY)
+void RadarGui::DrawGrid(QPainter* p,short centerX,short centerY)
 {
     //return;
-    QPen pen(QColor(0x7f,0x7f,0x7f,0x7f));
+    QPen pen(QColor(0x7f,0x7f,0x7f,0xff));
     pen.setWidth(3);
     pen.setStyle(Qt::SolidLine);
     p->setBrush(QBrush(Qt::NoBrush));
@@ -504,7 +645,7 @@ void MainWindow::DrawGrid(QPainter* p,short centerX,short centerY)
 
 }
 
-void MainWindow::DrawTarget(QPainter* p)
+void RadarGui::DrawTarget(QPainter* p)
 {
     //draw radar  target:
     QPen penTargetRed(Qt::red);
@@ -710,7 +851,7 @@ void MainWindow::DrawTarget(QPainter* p)
     }*/
 
 }
-void MainWindow::drawAisTarget(QPainter *p)
+void RadarGui::drawAisTarget(QPainter *p)
 {
 
     //draw radar  target:
@@ -733,7 +874,7 @@ void MainWindow::drawAisTarget(QPainter *p)
             }
     }
 }
-void MainWindow::paintEvent(QPaintEvent *event)
+void RadarGui::paintEvent(QPaintEvent *event)
 {
     event = event;
     isScreenUp2Date = true;
@@ -762,16 +903,16 @@ void MainWindow::paintEvent(QPaintEvent *event)
     }*/
     pencurPos.setWidth(2);
     p.setPen(pencurPos);
-    p.drawLine(mouseX-15,mouseY,mouseX-10,mouseY);
-    p.drawLine(mouseX+15,mouseY,mouseX+10,mouseY);
-    p.drawLine(mouseX,mouseY-10,mouseX,mouseY-15);
-    p.drawLine(mouseX,mouseY+10,mouseX,mouseY+15);
+    p.drawLine(mousePointerX-15,mousePointerY,mousePointerX-10,mousePointerY);
+    p.drawLine(mousePointerX+15,mousePointerY,mousePointerX+10,mousePointerY);
+    p.drawLine(mousePointerX,mousePointerY-10,mousePointerX,mousePointerY-15);
+    p.drawLine(mousePointerX,mousePointerY+10,mousePointerX,mousePointerY+15);
     float azi,range;
-    processing->radarData->getPolar((mouseX - scrCtX+dx)/signsize,-(mouseY - scrCtY+dy)/signsize,&azi,&range);
+    processing->radarData->getPolar((mousePointerX - scrCtX+dx)/signsize,-(mousePointerY - scrCtY+dy)/signsize,&azi,&range);
     if(azi<0)azi+=PI_NHAN2;
     azi = azi/CONST_PI*180.0;
     range = range*signsize/scale/CONST_NM;
-    p.drawText(mouseX+5,mouseY+5,100,20,0,QString::number(range,'g',4)+"|"+QString::number(azi,'g',4),0);
+    p.drawText(mousePointerX+5,mousePointerY+5,100,20,0,QString::number(range,'g',4)+"|"+QString::number(azi,'g',4),0);
 
     //draw frame
 
@@ -798,7 +939,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
 //}
 
 
-bool MainWindow::LoadISMapFile()
+bool RadarGui::LoadISMapFile()
 {
     if(config.m_config.mapFilename.size())
     {
@@ -806,12 +947,12 @@ bool MainWindow::LoadISMapFile()
     }else return false;
     return true;
 }
-void MainWindow::SaveBinFile()
+void RadarGui::SaveBinFile()
 {
     //vnmap.SaveBinFile();
 
 }
-void MainWindow::InitSetting()
+void RadarGui::InitSetting()
 {
     QRect rec = QApplication::desktop()->screenGeometry(0);
     setFixedSize(1920, 1080);
@@ -833,8 +974,8 @@ void MainWindow::InitSetting()
         }
 
     }
-    mouseX = width()/2;
-    mouseY = height()/2;
+    mousePointerX = width()/2;
+    mousePointerY = height()/2;
     dxMax = height()/4-10;
     dyMax = height()/4-10;
     processing->radarData->setTrueN(config.m_config.trueN);
@@ -849,7 +990,8 @@ void MainWindow::InitSetting()
     range = 6; UpdateScale();
     if(true)
     {
-        if(!LoadISMapFile())return;
+        SetGPS(config.m_config.m_lat, config.m_config.m_long);
+        //vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 200,config.m_config.mapFilename.data());
         if(pMap)delete pMap;
         if(gridOff==false)pMap = new QPixmap(height(),height());
         else pMap = new QPixmap(width(),height());
@@ -865,7 +1007,7 @@ void MainWindow::InitSetting()
 
     update();
 }
-void MainWindow::ReloadSetting()
+void RadarGui::ReloadSetting()
 {
 
 
@@ -886,12 +1028,12 @@ void MainWindow::ReloadSetting()
     isSettingUp2Date = true;
 
 }
-void MainWindow::UpdateSetting()
+void RadarGui::UpdateSetting()
 {
     isSettingUp2Date = false;
 }
 
-void MainWindow::DrawViewFrame(QPainter* p)
+void RadarGui::DrawViewFrame(QPainter* p)
 {
     //draw grid
 
@@ -1010,7 +1152,7 @@ void MainWindow::DrawViewFrame(QPainter* p)
 
     //HDC dc = ui->tabWidget->getDC();
 }
-void MainWindow::setScaleNM(unsigned short rangeNM)
+void RadarGui::setScaleNM(unsigned short rangeNM)
 {
     float oldScale = scale;
     scale = (float)height()/((float)rangeNM*CONST_NM)*0.7f;
@@ -1026,10 +1168,10 @@ void MainWindow::setScaleNM(unsigned short rangeNM)
     if(currMaxRange>RADAR_MAX_RESOLUTION)currMaxRange = RADAR_MAX_RESOLUTION;*/
     isScreenUp2Date = false;
 }
-void MainWindow::UpdateRadarData()
+void RadarGui::UpdateRadarData()
 {
     processing->ReadDataBuffer();
-    SendCommandControl();
+    //SendCommandControl();
     if(!isSettingUp2Date)
     {
         ReloadSetting();
@@ -1070,7 +1212,7 @@ void MainWindow::UpdateRadarData()
     }
     ui->tableTargetList->setModel(model);*/
 }
-void MainWindow::InitTimer()
+void RadarGui::InitTimer()
 {
     scrUpdateTimer = new QTimer();
     syncTimer1s = new QTimer();
@@ -1093,7 +1235,7 @@ void MainWindow::InitTimer()
     connect(t,SIGNAL(finished()),t,SLOT(deleteLater()));
     t->start();
 }
-void MainWindow::InitNetwork()
+void RadarGui::InitNetwork()
 {
     //connect(&playbackTimer, SIGNAL(timeout()), this, SLOT(drawSign()));
 
@@ -1122,7 +1264,7 @@ void MainWindow::InitNetwork()
 //            this, SLOT(processARPA()));
 
 }
-void MainWindow::processARPA()
+void RadarGui::processARPA()
 {
     /*
     while (udpARPA->hasPendingDatagrams())
@@ -1143,7 +1285,7 @@ void MainWindow::processARPA()
     }
     */
 }
-void MainWindow::processFrame()
+void RadarGui::processFrame()
 {
 //    while (udpSocket->hasPendingDatagrams()) {
 //        unsigned short len = udpSocket->pendingDatagramSize();
@@ -1227,7 +1369,7 @@ void MainWindow::sendFrame(const char* hexdata,QHostAddress host,int port )
     delete[] sendBuff;
 }
 */
-void MainWindow::on_actionExit_triggered()
+void RadarGui::on_actionExit_triggered()
 {
 //    OnExitDialog *dlg = new OnExitDialog(this);
 //    dlg->setModal(true);
@@ -1241,7 +1383,7 @@ void MainWindow::on_actionExit_triggered()
     processing->wait();
     ExitProgram();
 }
-void MainWindow::ExitProgram()
+void RadarGui::ExitProgram()
 {
     config.SaveToFile();
     QApplication::quit();
@@ -1252,18 +1394,19 @@ void MainWindow::ExitProgram()
 #endif
 }
 
-void MainWindow::on_actionConnect_triggered()
+void RadarGui::on_actionConnect_triggered()
 {
 
 }
-void MainWindow::sync1()//period 1 second
+void RadarGui::sync1()//period 1 second
 {
     // display radar temperature:
     ui->label_temp->setText(QString::number(processing->radarData->tempType)+"|"+QString::number(processing->radarData->temp)+"\260C");
 //    int n = 32*256.0f/((processing->radarData->noise_level[0]*256 + processing->radarData->noise_level[1]));
 //    int m = 256.0f*((processing->radarData->noise_level[2]*256 + processing->radarData->noise_level[3]))
 //            /((processing->radarData->noise_level[4]*256 + processing->radarData->noise_level[5]));
-//    ui->label_command_2->setText(QString::number(n)+"|"+QString::number(m));
+    QByteArray array(processing->radarData->getFeedback(), 8);
+    ui->label_command->setText(QString(array.toHex()));
     //display target list:
     /*for(uint i=0;i<processing->radarData->mTrackList.size();i++)
     {
@@ -1323,16 +1466,17 @@ void MainWindow::sync1()//period 1 second
     // require temperature
     if(radar_state!=DISCONNECTED)
     {
-        Command_Control new_com;
-        new_com.bytes[0] = 0xaa;
-        new_com.bytes[1] = 0xab;
-        new_com.bytes[2] = ui->comboBox_temp_type->currentIndex();
-        new_com.bytes[3] = 0xaa;
-        new_com.bytes[4] = 0x00;
-        new_com.bytes[5] = 0x00;
-        new_com.bytes[6] = 0x00;
-        new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
-        command_queue.push(new_com);
+        unsigned char bytes[8];
+        bytes[0] = 0xaa;
+        bytes[1] = 0xab;
+        bytes[2] = ui->comboBox_temp_type->currentIndex();
+        bytes[3] = 0xaa;
+        bytes[4] = 0x00;
+        bytes[5] = 0x00;
+        bytes[6] = 0x00;
+        bytes[7] = 0;
+        sendToRadar(&bytes[0]);
+        //udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
     }
     //display radar state
     switch(radar_state)
@@ -1345,6 +1489,7 @@ void MainWindow::sync1()//period 1 second
         if(processing->radarData->rotation_speed)
         {
             ui->toolButton_scan->setChecked(true);
+
             if(processing->radarData->rotation_speed==1)ui->label_speed->setText("9 v/p");
             else if(processing->radarData->rotation_speed==2)ui->label_speed->setText("12 v/p");
         }
@@ -1385,7 +1530,7 @@ void MainWindow::sync1()//period 1 second
         break;
     }
 }
-void MainWindow::setRadarState(radarSate radarState)
+void RadarGui::setRadarState(radarSate radarState)
 {
     if(radarState != radar_state)
     {
@@ -1414,57 +1559,57 @@ void MainWindow::setRadarState(radarSate radarState)
     }
 }
 
-void MainWindow::on_actionTx_On_triggered()
+void RadarGui::on_actionTx_On_triggered()
 {
     //sendFrame("aaab030200000000", QHostAddress("192.168.0.44"),2573);
     //on_actionRotateStart_toggled(true);
-    Command_Control new_com;
-    new_com.bytes[0] = 0xaa;
-    new_com.bytes[1] = 0xab;
-    new_com.bytes[2] = 0x02;
-    new_com.bytes[3] = 0x01;
-    new_com.bytes[4] = 0x00;
-    new_com.bytes[5] = 0x00;
-    new_com.bytes[6] = 0x00;
-    new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
-    command_queue.push(new_com);
-    new_com.bytes[0] = 0xaa;
-    new_com.bytes[1] = 0xab;
-    new_com.bytes[2] = 0x00;
-    new_com.bytes[3] = 0x01;
-    new_com.bytes[4] = 0x00;
-    new_com.bytes[5] = 0x00;
-    new_com.bytes[6] = 0x00;
-    new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
-    command_queue.push(new_com);
+//    Command_Control new_com;
+//    new_com.bytes[0] = 0xaa;
+//    new_com.bytes[1] = 0xab;
+//    new_com.bytes[2] = 0x02;
+//    new_com.bytes[3] = 0x01;
+//    new_com.bytes[4] = 0x00;
+//    new_com.bytes[5] = 0x00;
+//    new_com.bytes[6] = 0x00;
+//    new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
+//    command_queue.push(new_com);
+//    new_com.bytes[0] = 0xaa;
+//    new_com.bytes[1] = 0xab;
+//    new_com.bytes[2] = 0x00;
+//    new_com.bytes[3] = 0x01;
+//    new_com.bytes[4] = 0x00;
+//    new_com.bytes[5] = 0x00;
+//    new_com.bytes[6] = 0x00;
+//    new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
+//    command_queue.push(new_com);
 
 }
 
-void MainWindow::on_actionTx_Off_triggered()
+void RadarGui::on_actionTx_Off_triggered()
 {
-    //on_actionRotateStart_toggled(false);
-    Command_Control new_com;
-    new_com.bytes[0] = 0xaa;
-    new_com.bytes[1] = 0xab;
-    new_com.bytes[2] = 0x00;
-    new_com.bytes[3] = 0x00;
-    new_com.bytes[4] = 0x00;
-    new_com.bytes[5] = 0x00;
-    new_com.bytes[6] = 0x00;
-    new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
-    command_queue.push(new_com);
-    new_com.bytes[0] = 0xaa;
-    new_com.bytes[1] = 0xab;
-    new_com.bytes[2] = 0x02;
-    new_com.bytes[3] = 0x00;
-    new_com.bytes[4] = 0x00;
-    new_com.bytes[5] = 0x00;
-    new_com.bytes[6] = 0x00;
-    new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
-    command_queue.push(new_com);
+//    //on_actionRotateStart_toggled(false);
+//    Command_Control new_com;
+//    new_com.bytes[0] = 0xaa;
+//    new_com.bytes[1] = 0xab;
+//    new_com.bytes[2] = 0x00;
+//    new_com.bytes[3] = 0x00;
+//    new_com.bytes[4] = 0x00;
+//    new_com.bytes[5] = 0x00;
+//    new_com.bytes[6] = 0x00;
+//    new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
+//    command_queue.push(new_com);
+//    new_com.bytes[0] = 0xaa;
+//    new_com.bytes[1] = 0xab;
+//    new_com.bytes[2] = 0x02;
+//    new_com.bytes[3] = 0x00;
+//    new_com.bytes[4] = 0x00;
+//    new_com.bytes[5] = 0x00;
+//    new_com.bytes[6] = 0x00;
+//    new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
+//    command_queue.push(new_com);
 }
 
-void MainWindow::on_actionRecording_toggled(bool arg1)
+void RadarGui::on_actionRecording_toggled(bool arg1)
 {
     if(arg1)
     {
@@ -1477,7 +1622,7 @@ void MainWindow::on_actionRecording_toggled(bool arg1)
     }
 }
 
-void MainWindow::on_actionOpen_rec_file_triggered()
+void RadarGui::on_actionOpen_rec_file_triggered()
 {
     QString filename = QFileDialog::getOpenFileName(this,    tr("Open signal file"), NULL, tr("HR signal record files (*.r2d)"));
     if(!filename.size())return;
@@ -1486,11 +1631,11 @@ void MainWindow::on_actionOpen_rec_file_triggered()
 
 
 
-void MainWindow::on_actionOpen_map_triggered()
+void RadarGui::on_actionOpen_map_triggered()
 {
     //openShpFile();
 }
-void MainWindow::showTime()
+void RadarGui::showTime()
 {
     /*QDateTime time = QDateTime::currentDateTime();
     QString text = time.toString("hh:mm:ss");
@@ -1499,12 +1644,12 @@ void MainWindow::showTime()
     ui->label_time->setText(text);*/
 }
 
-void MainWindow::on_actionSaveMap_triggered()
+void RadarGui::on_actionSaveMap_triggered()
 {
     //vnmap.SaveBinFile();
 }
 
-void MainWindow::on_actionSetting_triggered()
+void RadarGui::on_actionSetting_triggered()
 {
     GPSDialog *dlg = new GPSDialog(this);
     dlg->setModal(false);
@@ -1512,9 +1657,9 @@ void MainWindow::on_actionSetting_triggered()
     dlg->show();
     dlg->setAttribute(Qt::WA_DeleteOnClose);
     connect(dlg, SIGNAL(destroyed(QObject*)), SLOT(UpdateSetting()));
-    connect(dlg, SIGNAL(destroyed(QObject*)), SLOT(updateCodeType()));
+    connect(dlg, SIGNAL(destroyed(QObject*)), SLOT(setCodeType()));
 }
-void MainWindow::on_actionAddTarget_toggled(bool arg1)
+void RadarGui::on_actionAddTarget_toggled(bool arg1)
 {
     //isAddingTarget=arg1;
 
@@ -1523,13 +1668,13 @@ void MainWindow::on_actionAddTarget_toggled(bool arg1)
 
 
 
-void MainWindow::on_actionClear_data_triggered()
+void RadarGui::on_actionClear_data_triggered()
 {
     processing->radarData->resetData();
     isScreenUp2Date = false;
 }
 
-void MainWindow::on_actionView_grid_triggered(bool checked)
+void RadarGui::on_actionView_grid_triggered(bool checked)
 {
     gridOff = checked;
     dx=0;dy=0;
@@ -1538,7 +1683,7 @@ void MainWindow::on_actionView_grid_triggered(bool checked)
 }
 
 
-void MainWindow::on_actionPlayPause_toggled(bool arg1)
+void RadarGui::on_actionPlayPause_toggled(bool arg1)
 {
     processing->togglePlayPause(arg1);
     if(arg1)dataPlaybackTimer->start(25);else dataPlaybackTimer->stop();
@@ -1562,152 +1707,16 @@ void MainWindow::on_pushButton_clicked()
     command_queue.push(new_com);
 }
 */
-int char2int( char input)
-{
-  if(input >= '0' && input <= '9')
-    return input - '0';
-  if(input >= 'A' && input <= 'F')
-    return input - 'A' + 10;
-  if(input >= 'a' && input <= 'f')
-    return input - 'a' + 10;
-  return 0;
-}
-void hex2bin(const char* src,unsigned char* target)
-{
-  while(*src && src[1])
-  {
-    *(target++) = char2int(*src)*16 + char2int(src[1]);
-    src += 2;
-  }
-  *(target++)=0;
-}
-void bin2hex(unsigned char byte, char* str)
-{
-    switch (byte>>4) {
-    case 0:
-        *str = '0';
-        break;
-    case 1:
-        *str = '1';
-        break;
-    case 2:
-        *str = '2';
-        break;
-    case 3:
-        *str = '3';
-        break;
-    case 4:
-        *str = '4';
-        break;
-    case 5:
-        *str = '5';
-        break;
-    case 6:
-        *str = '6';
-        break;
-    case 7:
-        *str = '7';
-        break;
-    case 8:
-        *str = '8';
-        break;
-    case 9:
-        *str = '9';
-        break;
-    case 10:
-        *str = 'A';
-        break;
-    case 11:
-        *str = 'B';
-        break;
-    case 12:
-        *str = 'C';
-        break;
-    case 13:
-        *str = 'D';
-        break;
-    case 14:
-        *str = 'E';
-        break;
-    case 15:
-        *str = 'F';
-        break;
-    default:
-        break;
-    }
-    switch (byte&(0x0F)) {
-    case 0:
-        *(str+1) = '0';
-        break;
-    case 1:
-        *(str+1) = '1';
-        break;
-    case 2:
-        *(str+1) = '2';
-        break;
-    case 3:
-        *(str+1) = '3';
-        break;
-    case 4:
-        *(str+1) = '4';
-        break;
-    case 5:
-        *(str+1) = '5';
-        break;
-    case 6:
-        *(str+1) = '6';
-        break;
-    case 7:
-        *(str+1) = '7';
-        break;
-    case 8:
-        *(str+1) = '8';
-        break;
-    case 9:
-        *(str+1) = '9';
-        break;
-    case 10:
-        *(str+1) = 'A';
-        break;
-    case 11:
-        *(str+1) = 'B';
-        break;
-    case 12:
-        *(str+1) = 'C';
-        break;
-    case 13:
-        *(str+1) = 'D';
-        break;
-    case 14:
-        *(str+1) = 'E';
-        break;
-    case 15:
-        *(str+1) = 'F';
-        break;
-    default:
-        break;
-    }
 
-}
-void MainWindow::SendCommandControl()
-{
+void RadarGui::SendCommandControl()
+{/*
       if(command_queue.size())
       {
 
           if(processing->radarData->checkFeedback(&command_queue.front().bytes[0]))// check if the radar has already recieved the command
           {
 
-              /*char xx[2];
-              QString str;
-              for(short i =0;i<8;i++)
-              {
-                  bin2hex(command_queue.front().bytes[i],&xx[0]);
-                  str.append(xx);
-                  str.append(" ");
-              }
 
-
-              ui->label_status->setText(str);*/
               command_queue.pop();
               udpFailure = 0;
 
@@ -1738,27 +1747,28 @@ void MainWindow::SendCommandControl()
 
           }
 
-      }
+      }*/
 
 }
 
-void MainWindow::on_actionRecording_triggered()
+void RadarGui::on_actionRecording_triggered()
 {
 
 }
 
 
-void MainWindow::on_comboBox_temp_type_currentIndexChanged(int index)
+void RadarGui::on_comboBox_temp_type_currentIndexChanged(int index)
 {
 
+ //!!!
 }
 
-void MainWindow::on_horizontalSlider_brightness_actionTriggered(int action)
-{
+//void RadarGui::on_horizontalSlider_brightness_actionTriggered(int action)
+//{
 
-}
+//}
 
-void MainWindow::on_horizontalSlider_brightness_valueChanged(int value)
+void RadarGui::on_horizontalSlider_brightness_valueChanged(int value)
 {
     processing->radarData->brightness = 0.5f+(float)value/ ui->horizontalSlider_brightness->maximum()*4.0f;
 }
@@ -1789,12 +1799,12 @@ void MainWindow::on_horizontalSlider_brightness_valueChanged(int value)
     }
 }*/
 
-void MainWindow::on_horizontalSlider_signal_scale_valueChanged(int value)
+void RadarGui::on_horizontalSlider_signal_scale_valueChanged(int value)
 {
     SetSnScale(value);
 
 }
-void MainWindow::SetSnScale(short value)
+void RadarGui::SetSnScale(short value)
 {
 
     switch(value)
@@ -1830,7 +1840,7 @@ void MainWindow::SetSnScale(short value)
 //    //else ui->toolBar_Main->hide();
 //}
 
-void MainWindow::on_actionSector_Select_triggered()
+void RadarGui::on_actionSector_Select_triggered()
 {
 
 }
@@ -1856,7 +1866,7 @@ void MainWindow::on_toolButton_13_clicked()
     //if(event->delta()<0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()-1);
 }
 */
-void MainWindow::UpdateScale()
+void RadarGui::UpdateScale()
 {
     //float oldScale = scale;
     switch(range)
@@ -1906,7 +1916,7 @@ void MainWindow::UpdateScale()
     //dy /=short(scale/oldScale);
 }
 
-void MainWindow::UpdateSignScale()
+void RadarGui::UpdateSignScale()
 {
     signsize = sn_scale*scale;
     processing->radarData->setViewScale(signsize);
@@ -1918,36 +1928,36 @@ void MainWindow::UpdateSignScale()
 
 //}
 
-void MainWindow::on_actionRotateStart_toggled(bool arg1)
-{
-    if(arg1)
-    {
-        Command_Control new_com;
-        new_com.bytes[0] = 0xaa;
-        new_com.bytes[1] = 0xab;
-        new_com.bytes[2] = 0x03;
-        new_com.bytes[3] = 0x02;
-        new_com.bytes[4] = 0x00;
-        new_com.bytes[5] = 0x00;
-        new_com.bytes[6] = 0x00;
-        new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
-        command_queue.push(new_com);
-    }
-    else
-    {
+//void MainWindow::on_actionRotateStart_toggled(bool arg1)
+//{
+//    if(arg1)
+//    {
+//        Command_Control new_com;
+//        new_com.bytes[0] = 0xaa;
+//        new_com.bytes[1] = 0xab;
+//        new_com.bytes[2] = 0x03;
+//        new_com.bytes[3] = 0x02;
+//        new_com.bytes[4] = 0x00;
+//        new_com.bytes[5] = 0x00;
+//        new_com.bytes[6] = 0x00;
+//        new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
+//        command_queue.push(new_com);
+//    }
+//    else
+//    {
 
-        Command_Control new_com;
-        new_com.bytes[0] = 0xaa;
-        new_com.bytes[1] = 0xab;
-        new_com.bytes[2] = 0x03;
-        new_com.bytes[3] = 0x00;
-        new_com.bytes[4] = 0x00;
-        new_com.bytes[5] = 0x00;
-        new_com.bytes[6] = 0x00;
-        new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
-        command_queue.push(new_com);
-    }
-}
+//        Command_Control new_com;
+//        new_com.bytes[0] = 0xaa;
+//        new_com.bytes[1] = 0xab;
+//        new_com.bytes[2] = 0x03;
+//        new_com.bytes[3] = 0x00;
+//        new_com.bytes[4] = 0x00;
+//        new_com.bytes[5] = 0x00;
+//        new_com.bytes[6] = 0x00;
+//        new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
+//        command_queue.push(new_com);
+//    }
+//}
 
 
 //void MainWindow::on_comboBox_temp_type_2_currentIndexChanged(int index)
@@ -1981,63 +1991,63 @@ void MainWindow::on_actionRotateStart_toggled(bool arg1)
 //}
 
 
-void MainWindow::updateCodeType()// chuyen ma
+void RadarGui::setCodeType(short index)// chuyen ma
 {
-    Command_Control new_com;
-    new_com.bytes[0] = 1;
-    new_com.bytes[1] = 0xab;
-    short index = config.m_config.codeType;// = index;
+    unsigned char bytes[8];
+    bytes[0] = 1;
+    bytes[1] = 0xab;
+
     //printf("\n code:%d",index);
     switch (index)
     {
     case 0://M32
-        new_com.bytes[2] = 2;
-        new_com.bytes[3] = 0;
+        bytes[2] = 2;
+        bytes[3] = 0;
         break;
     case 1://M64
-        new_com.bytes[2] = 2;
-        new_com.bytes[3] = 1;
+        bytes[2] = 2;
+        bytes[3] = 1;
         break;
     case 2://M128
-        new_com.bytes[2] = 2;
-        new_com.bytes[3] = 2;
+        bytes[2] = 2;
+        bytes[3] = 2;
         break;
     case 3://M255
-        new_com.bytes[2] = 2;
-        new_com.bytes[3] = 3;
+        bytes[2] = 2;
+        bytes[3] = 3;
         break;
     case 4://M32x2
-        new_com.bytes[2] = 2;
-        new_com.bytes[3] = 4;
+        bytes[2] = 2;
+        bytes[3] = 4;
         break;
     case 5://M64x2
-        new_com.bytes[2] = 2;
-        new_com.bytes[3] = 5;
+        bytes[2] = 2;
+        bytes[3] = 5;
         break;
     case 6://M128x2
-        new_com.bytes[2] = 2;
-        new_com.bytes[3] = 6;
+        bytes[2] = 2;
+        bytes[3] = 6;
         break;
     case 7://baker
-        new_com.bytes[2] = 1;
-        new_com.bytes[3] = 1;
+        bytes[2] = 1;
+        bytes[3] = 1;
         break;
     case 8://single pulse
-        new_com.bytes[2] = 0;
-        new_com.bytes[3] = 1;
+        bytes[2] = 0;
+        bytes[3] = 1;
 
         break;
     default:
-        new_com.bytes[2] = 0;
-        new_com.bytes[3] = 0;
+        bytes[2] = 0;
+        bytes[3] = 0;
         break;
     }
-    new_com.bytes[4] = 0;
-    new_com.bytes[5] = 0;
-    new_com.bytes[6] = 0;
-    new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
-    command_queue.push(new_com);
-    //isMcodeChanged = false;
+    bytes[4] = 0;
+    bytes[5] = 0;
+    bytes[6] = 0;
+    bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
+    sendToRadar(&bytes[0]);
+
 }
 //void MainWindow::on_toolButton_4_toggled(bool checked)
 //{
@@ -2054,18 +2064,18 @@ void MainWindow::updateCodeType()// chuyen ma
 
 
 
-void MainWindow::on_horizontalSlider_gain_valueChanged(int value)
+void RadarGui::on_horizontalSlider_gain_valueChanged(int value)
 {
     processing->radarData->kgain = 7-(float)value/(ui->horizontalSlider_gain->maximum())*10;
     //printf("processing->radarData->kgain %f \n",processing->radarData->kgain);
 }
 
-void MainWindow::on_horizontalSlider_rain_valueChanged(int value)
+void RadarGui::on_horizontalSlider_rain_valueChanged(int value)
 {
     processing->radarData->krain = (float)value/(ui->horizontalSlider_rain->maximum()+ui->horizontalSlider_rain->maximum()/3);
 }
 
-void MainWindow::on_horizontalSlider_sea_valueChanged(int value)
+void RadarGui::on_horizontalSlider_sea_valueChanged(int value)
 {
     processing->radarData->ksea = (float)value/(ui->horizontalSlider_sea->maximum());
 }
@@ -2106,22 +2116,22 @@ void MainWindow::on_pushButton_loadAis_clicked()
 */
 
 
-void MainWindow::on_toolButton_exit_clicked()
+void RadarGui::on_toolButton_exit_clicked()
 {
     on_actionExit_triggered();
 }
 
-void MainWindow::on_toolButton_setting_clicked()
+void RadarGui::on_toolButton_setting_clicked()
 {
     this->on_actionSetting_triggered();
 }
 
-void MainWindow::on_toolButton_scan_clicked()
+void RadarGui::on_toolButton_scan_clicked()
 {
 
 }
 
-void MainWindow::on_toolButton_tx_toggled(bool checked)
+void RadarGui::on_toolButton_tx_toggled(bool checked)
 {
 
     if(checked)
@@ -2145,7 +2155,7 @@ void MainWindow::on_toolButton_tx_toggled(bool checked)
 
 }
 
-void MainWindow::on_toolButton_scan_toggled(bool checked)
+void RadarGui::on_toolButton_scan_toggled(bool checked)
 {
     if(checked)
     {
@@ -2163,18 +2173,18 @@ void MainWindow::on_toolButton_scan_toggled(bool checked)
 }
 
 
-void MainWindow::on_toolButton_xl_nguong_toggled(bool checked)
+void RadarGui::on_toolButton_xl_nguong_toggled(bool checked)
 {
     processing->radarData->xl_nguong = checked;
 }
 
-void MainWindow::on_toolButton_replay_toggled(bool checked)
+void RadarGui::on_toolButton_replay_toggled(bool checked)
 {
     this->on_actionPlayPause_toggled(checked);
 }
 
 
-void MainWindow::on_toolButton_replay_fast_toggled(bool checked)
+void RadarGui::on_toolButton_replay_fast_toggled(bool checked)
 {
     if(checked)
     {
@@ -2185,19 +2195,19 @@ void MainWindow::on_toolButton_replay_fast_toggled(bool checked)
     }
 }
 
-void MainWindow::on_toolButton_record_toggled(bool checked)
+void RadarGui::on_toolButton_record_toggled(bool checked)
 {
     this->on_actionRecording_toggled(checked);
 }
 
-void MainWindow::on_toolButton_open_record_clicked()
+void RadarGui::on_toolButton_open_record_clicked()
 {
     this->on_actionOpen_rec_file_triggered();
 }
 
 
 
-void MainWindow::on_toolButton_alphaView_toggled(bool checked)
+void RadarGui::on_toolButton_alphaView_toggled(bool checked)
 {
     displayAlpha = checked;
     processing->radarData->isDisplayAlpha = checked;
@@ -2206,7 +2216,7 @@ void MainWindow::on_toolButton_alphaView_toggled(bool checked)
 
 
 
-void MainWindow::on_toolButton_centerView_clicked()
+void RadarGui::on_toolButton_centerView_clicked()
 {
     dx = 0;
     dy = 0;
@@ -2214,7 +2224,7 @@ void MainWindow::on_toolButton_centerView_clicked()
     isScreenUp2Date = false;
 }
 
-void MainWindow::on_comboBox_currentIndexChanged(int index)
+void RadarGui::on_comboBox_currentIndexChanged(int index)
 {
     switch (index)
     {
@@ -2239,13 +2249,13 @@ void MainWindow::on_comboBox_currentIndexChanged(int index)
 
 }
 
-void MainWindow::on_comboBox_img_mode_currentIndexChanged(int index)
+void RadarGui::on_comboBox_img_mode_currentIndexChanged(int index)
 {
     processing->radarData->imgMode = imgDrawMode(index) ;
 }
 
 
-void MainWindow::on_toolButton_send_command_clicked()
+void RadarGui::on_toolButton_send_command_clicked()
 {
     unsigned char        bytes[8];
     hex2bin(ui->lineEdit_byte_1->text().toStdString().data(),&bytes[0]);
@@ -2259,36 +2269,31 @@ void MainWindow::on_toolButton_send_command_clicked()
     udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
 }
 
-void MainWindow::on_toolButton_map_toggled(bool checked)
+void RadarGui::on_toolButton_map_toggled(bool checked)
 {
     DrawMap();
 }
 
-void MainWindow::on_toolButton_zoom_in_clicked()
+void RadarGui::on_toolButton_zoom_in_clicked()
 {
     if(range>0)range--;
     UpdateScale();
     DrawMap();
 }
 
-void MainWindow::on_toolButton_zoom_out_clicked()
+void RadarGui::on_toolButton_zoom_out_clicked()
 {
     if(range<7)range++;
     UpdateScale();
     DrawMap();
 }
 
-void MainWindow::on_toolButton_reset_clicked()
+void RadarGui::on_toolButton_reset_clicked()
 {
     processing->radarData->resetData();
 }
 
-void MainWindow::on_toolButton_azi_proc_toggled(bool checked)
-{
-    //processing->radarData->azi_proc = checked;
-}
-
-void MainWindow::on_toolButton_send_command_2_clicked()
+void RadarGui::on_toolButton_send_command_2_clicked()
 {
     unsigned char        bytes[8] = {0xaa,0xab,0x02,0x02,0x0a,0,0,0};
     udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
@@ -2303,35 +2308,54 @@ void MainWindow::on_toolButton_send_command_2_clicked()
 
 }
 
-void MainWindow::on_toolButton_send_command_3_clicked()
+void RadarGui::SetGPS(float mlat,float mlong)
 {
-
+    config.m_config.m_lat = mlat;
+    config.m_config.m_long = mlong;
+    ui->text_latInput_2->setText(QString::number(mlat));
+    ui->text_longInput_2->setText(QString::number(mlong));
+    vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 200,config.m_config.mapFilename.data());
+    DrawMap();
+    update();
 }
-
-void MainWindow::on_toolButton_map_select_clicked()
+void RadarGui::on_toolButton_map_select_clicked()
 {
-    QString filename = QFileDialog::getOpenFileName(this,    QString::fromUtf8("M? file b?n d?"), NULL, tr("ISM file (*.ism)"));
+    QString filename = QFileDialog::getOpenFileName(this,    QString::fromUtf8("Open Map"), NULL, tr("ISM file (*.ism)"));
     if(!filename.size())return;
     config.m_config.mapFilename =  filename.toStdString();
     vnmap.ClearData();
-    if(!LoadISMapFile())return;
     if(pMap)delete pMap;
-
     pMap = new QPixmap(height(),height());
-    vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 200,NULL);//100km  max range
+    vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 200,config.m_config.mapFilename.data());//100km  max range
     DrawMap();
 }
 
-void MainWindow::on_dial_valueChanged(int value)
+void RadarGui::on_dial_valueChanged(int value)
 {
     float heading = value/100.0f;
     ui->textEdit_heading->setText(QString::number(heading));
 
 }
 
-void MainWindow::on_toolButton_set_heading_clicked()
+void RadarGui::on_toolButton_set_heading_clicked()
 {
     float heading = ui->textEdit_heading->text().toFloat();
     config.m_config.trueN = heading;
     processing->radarData->setTrueN(config.m_config.trueN);
+}
+
+void RadarGui::on_toolButton_gps_update_clicked()
+{
+    SetGPS(ui->text_latInput_2->text().toFloat(),ui->text_longInput_2->text().toFloat());
+}
+
+void RadarGui::on_comboBox_code_type_currentIndexChanged(const QString &arg1)
+{
+
+}
+
+void RadarGui::on_comboBox_code_type_currentIndexChanged(int index)
+{
+    config.m_config.codeType = index;
+    setCodeType(config.m_config.codeType);
 }

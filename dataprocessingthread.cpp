@@ -16,8 +16,7 @@ void dataProcessingThread::ReadDataBuffer()
     while(iRec!=iRead)
     {
         //nread++;
-        iRead++;
-        if(iRead>=MAX_IREC)iRead=0;
+
         radarData->GetDataHR(&dataBuff[iRead].data[0],dataBuff[iRead].len);
         if(isRecording)
         {
@@ -25,6 +24,8 @@ void dataProcessingThread::ReadDataBuffer()
             signRecFile.write((char*)&dataBuff[iRec].data[0],dataBuff[iRec].len);
 
         }
+        iRead++;
+        if(iRead>=MAX_IREC)iRead=0;
     }
     //printf("\nnread:%d",nread);
 

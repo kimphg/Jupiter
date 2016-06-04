@@ -26,7 +26,9 @@ void QCustomButton::hoverMove(QHoverEvent *)
 }
 void QCustomButton::highLight()
 {
-    this->setStyleSheet("background-color: rgb(16, 32, 64);color:rgb(255, 255, 255);font: bold 12pt \"MS Shell Dlg 2\";");
+    this->setStyleSheet("background-color: rgb(40, 60, 80);color:rgb(255, 255, 255);font: bold 12pt \"MS Shell Dlg 2\";");
+
+    //this->setStyleSheet("color: blue;background-color: yellow;selection-color: yellow;selection-background-color: blue;");
     repaint();
 }
 void QCustomButton::resetView()

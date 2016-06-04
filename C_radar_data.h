@@ -416,13 +416,18 @@ public:
     void        resetData();
     void        setProcessing(bool onOff);
     //bool        getDataOverload(){if(isDataTooLarge) {isDataTooLarge =false;return true;} else return false;}
-    bool        checkFeedback(unsigned char* command)
-    {
-        for (short i=0;i<8;i++)
-        {if(command[i]!=command_feedback[i])return false;}
-        memset(&command_feedback[0],0,8);
-        return true;
-    }
+//    bool        checkFeedback(unsigned char* command)
+//    {
+//        for (short i=0;i<8;i++)
+//        {if(command[i]!=command_feedback[i])return false;}
+//        memset(&command_feedback[0],0,8);
+//        return true;
+//    }
+     char* getFeedback()
+        {
+
+            return (char*)&command_feedback[0];
+        }
     void resetTrack();
 private:
     void        setSnLevel(unsigned short azi, unsigned  short range, unsigned char level);

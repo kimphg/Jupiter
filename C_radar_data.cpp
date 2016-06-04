@@ -6,8 +6,6 @@
 //static period_t                curPeriod;
 //static std::queue<period_t>    period_cache;
 //static unsigned short cur_mark_index = 0;
-//static unsigned short cur_object_index = 0;
-
 C_radar_data::C_radar_data()
 {
     img_ppi = new QImage(DISPLAY_RES*2+1,DISPLAY_RES*2+1,QImage::Format_ARGB32);
