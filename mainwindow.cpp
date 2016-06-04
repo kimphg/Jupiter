@@ -1260,10 +1260,10 @@ void MainWindow::sync1()//period 1 second
 {
     // display radar temperature:
     ui->label_temp->setText(QString::number(processing->radarData->tempType)+"|"+QString::number(processing->radarData->temp)+"\260C");
-    int n = 32*256.0f/((processing->radarData->noise_level[0]*256 + processing->radarData->noise_level[1]));
-    int m = 256.0f*((processing->radarData->noise_level[2]*256 + processing->radarData->noise_level[3]))
-            /((processing->radarData->noise_level[4]*256 + processing->radarData->noise_level[5]));
-    ui->label_command_2->setText(QString::number(n)+"|"+QString::number(m));
+//    int n = 32*256.0f/((processing->radarData->noise_level[0]*256 + processing->radarData->noise_level[1]));
+//    int m = 256.0f*((processing->radarData->noise_level[2]*256 + processing->radarData->noise_level[3]))
+//            /((processing->radarData->noise_level[4]*256 + processing->radarData->noise_level[5]));
+//    ui->label_command_2->setText(QString::number(n)+"|"+QString::number(m));
     //display target list:
     /*for(uint i=0;i<processing->radarData->mTrackList.size();i++)
     {
@@ -1342,6 +1342,17 @@ void MainWindow::sync1()//period 1 second
         break;
     case CONNECTED:
         ui->label_status->setText(QString::number(processing->radarData->overload));
+        if(processing->radarData->rotation_speed)
+        {
+            ui->toolButton_scan->setChecked(true);
+            if(processing->radarData->rotation_speed==1)ui->label_speed->setText("9 v/p");
+            else if(processing->radarData->rotation_speed==2)ui->label_speed->setText("12 v/p");
+        }
+        else
+        {
+            ui->toolButton_scan->setChecked(false);
+            ui->label_speed->setText("0 v/p");
+        }
         switch((processing->radarData->sn_stat>>8))
         {
         case 0 :
@@ -2120,7 +2131,7 @@ void MainWindow::on_toolButton_tx_toggled(bool checked)
         udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
         bytes[2] = 0x00;//{0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
         udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        ui->toolButton_tx->setChecked(false);
+        //ui->toolButton_tx->setChecked(false);
     }
     else
     {
@@ -2129,7 +2140,7 @@ void MainWindow::on_toolButton_tx_toggled(bool checked)
         udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
         bytes[2] = 0x00;// = {0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
         udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        ui->toolButton_tx->setChecked(true);
+        //ui->toolButton_tx->setChecked(true);
     }
 
 }

@@ -387,7 +387,7 @@ public:
     DataOverLay             dataOver;
     bool                    isDisplayAlpha;
     unsigned char           noise_level[8];
-    unsigned char           tempType;
+    unsigned char           tempType,rotation_speed;
     unsigned short          range_max;
     QImage                  *img_ppi,*img_alpha;
     imgDrawMode             imgMode;

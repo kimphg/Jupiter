@@ -647,12 +647,21 @@ void C_radar_data::GetData(unsigned short azi)
     return ;
 
 }
-
+//int testAzi = 0;
+//int oldAzi =0;
 void C_radar_data::ProcessDataFrame()
 {
+
     short azi = (0xfff & (dataBuff[4] << 8 | dataBuff[5]))/2;
-    if(azi==curAzir)return;
+//    testAzi = (0xfff & (dataBuff[4] << 8 | dataBuff[5]));
+//    if(oldAzi!=testAzi-1)
+//    {
+//        printf("\nMat PV:%d\n",testAzi);
+//    }
+//    oldAzi = testAzi;
+    //if(azi==curAzir)return;
     //printf("azi:%d\n",azi);
+    rotation_speed = dataBuff[1];
     overload = dataBuff[4]>>7;
     unsigned char n_clk_adc = (dataBuff[4]&(0xe0))>>5;
     if(clk_adc != n_clk_adc)
@@ -679,21 +688,24 @@ void C_radar_data::ProcessDataFrame()
 
     short lastazi=azi-1;//,nextazi=azi+1;
     if(lastazi<0)lastazi+=MAX_AZIR;
-    if(lastazi!=curAzir)
+    if((lastazi!=curAzir)&&(azi!=curAzir))
     {
         GetData(lastazi);
+        //printf("Data lost:%d at azi = %d\n",lastazi-curAzir,curAzir);
         lastazi-=1;
+
         if(lastazi<0)lastazi+=MAX_AZIR;
         if(lastazi!=curAzir)
         {
             GetData(lastazi);
-            lastazi-=1;
+            printf("Data lost:%d at azi = %d\n",lastazi-curAzir,curAzir);
+            /*lastazi-=1;
             if(lastazi<0)lastazi+=MAX_AZIR;
             if(lastazi!=curAzir)
             {
                 GetData(lastazi);
                 printf("Data lost:%d at azi = %d\n",lastazi-curAzir,curAzir);
-            }
+            }*/
         }
     }
     curAzir = azi;
@@ -722,15 +734,16 @@ void C_radar_data::redrawImg()
 void C_radar_data::GetDataHR(unsigned char* data,unsigned short dataLen)
 {
 
-    if((dataLen<RADAR_DATA_HEADER))return;
+    if((dataLen<RADAR_DATA_HEADER)){printf("Wrong data.1\n");return;}
     char dataId = data[0]&0x0f;
-
     if(dataId==1)
     {
-        curFrameId = data[0]&0xf0;
+        //printf("%x-",data[0]);
+        curFrameId = (data[0]&0xf0)>>4;
         range_max = (dataLen - RADAR_DATA_HEADER)*4/3 - RAD_S_PULSE_RES;
         //printf("range_max:%d\n",range_max);
-        if(range_max > RAD_M_PULSE_RES)return;
+        if(range_max < RAD_S_PULSE_RES){printf("Wrong data.2\n");return;}
+        if(range_max > RAD_M_PULSE_RES){printf("Wrong data.3\n");return;}
         memcpy(dataBuff,data,dataLen);
         waitForData = dataLen;
 
@@ -738,18 +751,25 @@ void C_radar_data::GetDataHR(unsigned char* data,unsigned short dataLen)
     else if(dataId==2)
     {
         //check if we are waiting for second half data frame
-        if(!waitForData)return;
+        if(!waitForData){printf("Wrong data.4\n");return;}
         //check if frame ID is the one that we are expecting
-        short secondFrameId = data[0]&0xf0;
-        if(curFrameId!=secondFrameId)return;
+        short secondFrameId = (data[0]&0xf0)>>4;
+        if(curFrameId!=secondFrameId){
+            printf("\nWrong data.-%d-%d-%d",secondFrameId,curFrameId,dataLen);
+            printf("\nWrong:%x\n",data[0]);
+            //return;
+        }
         // check if the data size is correct
-        if(dataLen!=waitForData)return;
+        if(dataLen!=waitForData){printf("Wrong data.6\n");return;}
         //load data to buffer
         memcpy(dataBuff + waitForData,data + RADAR_DATA_HEADER,dataLen-RADAR_DATA_HEADER);
         //process data
         ProcessDataFrame();
         waitForData = 0;
 
+    }
+    else{
+        printf("\nWrong data id. ID = %d",dataId);
     }
     //if(!dopler){frameId = data[0]>>4; }else {if(frameId =! (data[0]>>4))return;}//check id of dopler data
 
