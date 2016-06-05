@@ -33,13 +33,13 @@ class MainWindow;
 //class QPushButton;
 //class QUdpSocket;
 }
-class RadarGui : public QMainWindow
+class Mainwindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit RadarGui(QWidget *parent = 0);
-    ~RadarGui();
+    explicit Mainwindow(QWidget *parent = 0);
+    ~Mainwindow();
 protected:
     //void contextMenuEvent(QContextMenuEvent *event);
 //    void keyPressEvent(QKeyEvent *event);
@@ -59,7 +59,7 @@ private:
     void InitSetting();
     void sendToRadar(const char *hexdata);
     void sendToRadar(unsigned char* hexdata);
-    void SetSnScale(short value);
+//    void SetSnScale(short value);
     Ui::MainWindow* ui;
 //    QMenu   *       m_fileMenu;
 //    QMenu   *       m_connectionMenu;
@@ -97,7 +97,7 @@ private:
     void SetGPS(float mlat,float mlong);
 public slots:
     void UpdateSetting();
-    void UpdateSignScale();
+//    void UpdateSignScale();
     void UpdateScale();
     void setCodeType(short index);
 private:
@@ -141,7 +141,7 @@ private slots:
 
     void on_horizontalSlider_brightness_valueChanged(int value);
 
-    void on_horizontalSlider_signal_scale_valueChanged(int value);
+//    void on_horizontalSlider_signal_scale_valueChanged(int value);
 
     void on_actionSector_Select_triggered();
 

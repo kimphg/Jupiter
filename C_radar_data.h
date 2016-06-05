@@ -412,7 +412,7 @@ public:
         trueN =(trueN_deg/360.0f*PI_NHAN2);
         raw_map_init();
     }
-    void        setViewScale(float sprding);
+    void        setViewScale(float scale);
     void        resetData();
     void        setProcessing(bool onOff);
     //bool        getDataOverload(){if(isDataTooLarge) {isDataTooLarge =false;return true;} else return false;}

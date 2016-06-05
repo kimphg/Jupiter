@@ -10,6 +10,9 @@ C_radar_data::C_radar_data()
 {
     img_ppi = new QImage(DISPLAY_RES*2+1,DISPLAY_RES*2+1,QImage::Format_ARGB32);
     img_alpha = new QImage(RAD_M_PULSE_RES,256,QImage::Format_Mono);
+    img_zoom_ppi = new QImage(ZOOM_SIZE,ZOOM_SIZE,QImage::Format_ARGB32);
+    centerZoomX = 0;
+    centerZoomY = 0;
     isDisplayAlpha = false;
     size_thresh = 4;
     isProcessing = true;
@@ -27,7 +30,7 @@ C_radar_data::C_radar_data()
     dataOver = max_s_m_200;
     raw_map_init();
     setTrueN(0);
-    setViewScale(1);
+    setScalePPI(1);
     resetData();
 }
 C_radar_data::~C_radar_data()
@@ -447,8 +450,8 @@ void C_radar_data::drawAzi(short azi)
                     img_alpha->setPixel(r_pos,255-thresh,1);
                 }
             }
-            short display_pos = r_pos*viewScale;
-            short display_pos_next = (r_pos+1)*viewScale;
+            short display_pos = r_pos*scale_ppi;
+            short display_pos_next = (r_pos+1)*scale_ppi;
             for(;;)
             {
                 if(display_pos>=DISPLAY_RES)break;
@@ -478,7 +481,7 @@ void C_radar_data::drawAzi(short azi)
         }
     }
     //smooothing the image
-    float k  = viewScale/2;
+    float k  = scale_ppi/2;
     //printf("\nviewScale:%f",viewScale);
     if(k<=2)
     {
@@ -1114,26 +1117,76 @@ void C_radar_data::resetData()
 //    }
 
 }
-void C_radar_data::setViewScale(float sprding)
+void C_radar_data::setScalePPI(float scale)
 {
-    if(viewScale!=sprding)
+    float sn_scale;
+    switch(clk_adc)
     {
-        viewScale = sprding;
+    case 0:
+        sn_scale = SIGNAL_SCALE_0;
 
+        break;
+    case 1:
+        sn_scale = SIGNAL_SCALE_1;//printf("1");
+        break;
 
-        //printf("sprding:%f",spreading);//!!!!
+    case 2:
+        sn_scale = SIGNAL_SCALE_2;//printf("2");
+        break;
+    case 3:
+        sn_scale = SIGNAL_SCALE_3;//printf("2");
+        break;
+    case 4:
+        sn_scale = SIGNAL_SCALE_4;//printf("2");
+        break;
+    case 5:
+        sn_scale = SIGNAL_SCALE_5;//printf("2");
+        break;
+    default:
+        sn_scale = SIGNAL_SCALE_0;
     }
-        /*for(short azir = 0;azir< MAX_AZIR;azir++)
+    scale_ppi = sn_scale*scale;
+}
+void C_radar_data::setScaleZoom(float scale)
+{
+    float sn_scale;
+    switch(clk_adc)
     {
-        for(short range = 0;range<RADAR_MAX_RESOLUTION;range++)
-        {
-            //signal_map.frame[azir].raw_map[range].displaylevel  = 0;
-            //signal_map.frame[azir].raw_map[range].level  = 0;
-            signal_map.frame[azir].raw_map[range].vet = 0;//NGUONG_DIA_VAT/2;
-            //signal_map.frame[azir].raw_map[range].terrain = TERRAIN_THRESH/2.0f;
-        }
-    }*/
-    //sgn_img->fill(Qt::transparent);
+    case 0:
+        sn_scale = SIGNAL_SCALE_0;
+
+        break;
+    case 1:
+        sn_scale = SIGNAL_SCALE_1;//printf("1");
+        break;
+
+    case 2:
+        sn_scale = SIGNAL_SCALE_2;//printf("2");
+        break;
+    case 3:
+        sn_scale = SIGNAL_SCALE_3;//printf("2");
+        break;
+    case 4:
+        sn_scale = SIGNAL_SCALE_4;//printf("2");
+        break;
+    case 5:
+        sn_scale = SIGNAL_SCALE_5;//printf("2");
+        break;
+    default:
+        sn_scale = SIGNAL_SCALE_0;
+    }
+    scale_zoom = sn_scale*scale;
+    updateZoomRect();
+}
+short zoomX,zoomY,zoomW,zoomH;
+void C_radar_data::updateZoomRect()
+{
+    zoomW = zoomH = ZOOM_SIZE/scale_zoom;
+    zoomX = zoomCenterX - zoomW/2;
+    zoomY = zoomCenterY - zoomH/2;
+}
+void C_radar_data::checkInsideZoom()
+{
 }
 void C_radar_data::resetTrack()
 {

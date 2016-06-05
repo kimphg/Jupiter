@@ -31,7 +31,7 @@ static short                mousePointerX,mousePointerY;
 static char                 gridOff = false;
 static char                 udpFailure = 0;//config file !!!
 static bool                 isScreenUp2Date,isSettingUp2Date,isDraging = false;
-static bool                 isSignScaleChanged =true;
+static bool                 isScaleChanged =true;
 static QStandardItemModel   modelTargetList;
 enum drawModes{
     SGN_DIRECT_DRAW,SGN_IMG_DRAW,NOTERR_DRAW
@@ -174,7 +174,7 @@ void bin2hex(unsigned char byte, char* str)
 
 }
 
-void RadarGui::sendToRadar(const char* hexdata)
+void Mainwindow::sendToRadar(const char* hexdata)
 {
     short len = strlen(hexdata)/2+1;
     unsigned char* sendBuff = new unsigned char[len];
@@ -183,7 +183,7 @@ void RadarGui::sendToRadar(const char* hexdata)
     delete[] sendBuff;
 
 }
-void RadarGui::sendToRadar(unsigned char* hexdata)
+void Mainwindow::sendToRadar(unsigned char* hexdata)
 {
 
     udpSendSocket->writeDatagram((char*)hexdata,8,QHostAddress("192.168.0.44"),2572);
@@ -191,7 +191,7 @@ void RadarGui::sendToRadar(unsigned char* hexdata)
 
 }
 
-void RadarGui::mouseReleaseEvent(QMouseEvent *event)
+void Mainwindow::mouseReleaseEvent(QMouseEvent *event)
 {
 
 //    if(isAddingTarget)
@@ -231,12 +231,12 @@ void RadarGui::mouseReleaseEvent(QMouseEvent *event)
         currMinAzi = 0;
     }*/
 }
-void RadarGui::wheelEvent(QWheelEvent *event)
+void Mainwindow::wheelEvent(QWheelEvent *event)
 {
     //if(event->delta()>0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()+1);
     //if(event->delta()<0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()-1);
 }
-void RadarGui::mouseMoveEvent(QMouseEvent *event) {
+void Mainwindow::mouseMoveEvent(QMouseEvent *event) {
     //if(!isDraging)return;
     //mouseX = (event->x());
     //mouseY = (event->y());
@@ -261,7 +261,7 @@ void RadarGui::mouseMoveEvent(QMouseEvent *event) {
         isScreenUp2Date = false;
     }
 }
-void RadarGui::mousePressEvent(QMouseEvent *event)
+void Mainwindow::mousePressEvent(QMouseEvent *event)
 {
     if(event->x()>height())return;
     mousePointerX = (event->x());
@@ -299,7 +299,7 @@ void RadarGui::mousePressEvent(QMouseEvent *event)
 //    DrawMap();
 //    update();
 }*/
-RadarGui::RadarGui(QWidget *parent) :
+Mainwindow::Mainwindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
@@ -328,7 +328,7 @@ RadarGui::RadarGui(QWidget *parent) :
 
 }
 
-void RadarGui::DrawSignal(QPainter *p)
+void Mainwindow::DrawSignal(QPainter *p)
 {
     //QRectF signRect(RAD_M_PULSE_RES-(scrCtX-dx),RAD_M_PULSE_RES-(scrCtY-dy),width(),height());
     //QRectF screen(0,0,width(),height());
@@ -393,13 +393,13 @@ void RadarGui::DrawSignal(QPainter *p)
 //    m_connectionMenu = menuBar()->addMenu(tr("&Connect"));
 //    m_connectionMenu->addAction(a_gpsOption);
 //}
-void RadarGui::gpsOption()
+void Mainwindow::gpsOption()
 {
     //GPSDialog *dlg = new GPSDialog;
     //dlg->show();
 }
 
-void RadarGui::PlaybackRecFile()//
+void Mainwindow::PlaybackRecFile()//
 {
 
 
@@ -451,14 +451,14 @@ void MainWindow::openShpFile()
 
 }*/
 
-RadarGui::~RadarGui()
+Mainwindow::~Mainwindow()
 {
     delete ui;
 
     if(pMap)delete pMap;
 }
 
-void RadarGui::DrawMap()
+void Mainwindow::DrawMap()
 {
 
     if(!pMap) return;
@@ -553,7 +553,7 @@ void RadarGui::DrawMap()
     }
 
 }
-void RadarGui::DrawGrid(QPainter* p,short centerX,short centerY)
+void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
 {
     //return;
     QPen pen(QColor(0x7f,0x7f,0x7f,0xff));
@@ -645,7 +645,7 @@ void RadarGui::DrawGrid(QPainter* p,short centerX,short centerY)
 
 }
 
-void RadarGui::DrawTarget(QPainter* p)
+void Mainwindow::DrawTarget(QPainter* p)
 {
     //draw radar  target:
     QPen penTargetRed(Qt::red);
@@ -851,7 +851,7 @@ void RadarGui::DrawTarget(QPainter* p)
     }*/
 
 }
-void RadarGui::drawAisTarget(QPainter *p)
+void Mainwindow::drawAisTarget(QPainter *p)
 {
 
     //draw radar  target:
@@ -874,7 +874,7 @@ void RadarGui::drawAisTarget(QPainter *p)
             }
     }
 }
-void RadarGui::paintEvent(QPaintEvent *event)
+void Mainwindow::paintEvent(QPaintEvent *event)
 {
     event = event;
     isScreenUp2Date = true;
@@ -890,10 +890,11 @@ void RadarGui::paintEvent(QPaintEvent *event)
     }
     //draw signal
     DrawSignal(&p);
+
     DrawTarget(&p);
     //drawAisTarget(&p);
     //draw cursor
-    QPen pencurPos(QColor(0x50ffffff));
+    QPen penmousePointer(QColor(0x50ffffff));
     /*if(!isDraging)
     {
         pencurPos.setWidth(1);
@@ -901,8 +902,8 @@ void RadarGui::paintEvent(QPaintEvent *event)
         p.drawLine(mouseX-10,mouseY,mouseX+10,mouseY);
         p.drawLine(mouseX,mouseY-10,mouseX,mouseY+10);
     }*/
-    pencurPos.setWidth(2);
-    p.setPen(pencurPos);
+    penmousePointer.setWidth(2);
+    p.setPen(penmousePointer);
     p.drawLine(mousePointerX-15,mousePointerY,mousePointerX-10,mousePointerY);
     p.drawLine(mousePointerX+15,mousePointerY,mousePointerX+10,mousePointerY);
     p.drawLine(mousePointerX,mousePointerY-10,mousePointerX,mousePointerY-15);
@@ -913,10 +914,18 @@ void RadarGui::paintEvent(QPaintEvent *event)
     azi = azi/CONST_PI*180.0;
     range = range*signsize/scale/CONST_NM;
     p.drawText(mousePointerX+5,mousePointerY+5,100,20,0,QString::number(range,'g',4)+"|"+QString::number(azi,'g',4),0);
+    //draw zooom
 
     //draw frame
 
     DrawViewFrame(&p);
+    if(ui->tabWidget_2->currentIndex()==2)
+    {
+        QRect rect = ui->tabWidget_2->geometry();
+        rect.adjust(4,30,-5,-5);
+        p.setBrush(Qt::blue);
+        p.drawRect(rect);
+    }
 }
 //void MainWindow::keyPressEvent(QKeyEvent *event)
 //{
@@ -939,7 +948,7 @@ void RadarGui::paintEvent(QPaintEvent *event)
 //}
 
 
-bool RadarGui::LoadISMapFile()
+bool Mainwindow::LoadISMapFile()
 {
     if(config.m_config.mapFilename.size())
     {
@@ -947,12 +956,12 @@ bool RadarGui::LoadISMapFile()
     }else return false;
     return true;
 }
-void RadarGui::SaveBinFile()
+void Mainwindow::SaveBinFile()
 {
     //vnmap.SaveBinFile();
 
 }
-void RadarGui::InitSetting()
+void Mainwindow::InitSetting()
 {
     QRect rec = QApplication::desktop()->screenGeometry(0);
     setFixedSize(1920, 1080);
@@ -985,7 +994,9 @@ void RadarGui::InitSetting()
     ui->horizontalSlider_gain->setValue(ui->horizontalSlider_gain->maximum());
     ui->horizontalSlider_rain->setValue(ui->horizontalSlider_rain->minimum());
     ui->horizontalSlider_sea->setValue(ui->horizontalSlider_sea->minimum());
-    ui->horizontalSlider_signal_scale->setValue(ui->horizontalSlider_sea->minimum());
+    //ui->tabWidget_2->processing = processing;
+    //ui->horizontalSlider_signal_scale->setValue(ui->horizontalSlider_sea->minimum());
+    ui->comboBox_radar_resolution->setCurrentIndex(0);
     setCursor(QCursor(Qt::CrossCursor));
     range = 6; UpdateScale();
     if(true)
@@ -1007,33 +1018,27 @@ void RadarGui::InitSetting()
 
     update();
 }
-void RadarGui::ReloadSetting()
+void Mainwindow::ReloadSetting()
 {
 
 
 
 
-    if(gridOff)
-    {
-        scrCtX = width()/2;
+
+        scrCtX = height()/2+50;//+ ui->toolBar_Main->width()+20;//ENVDEP
         scrCtY = height()/2;
-    }
-    else
-    {
-        scrCtX = height()/2;//+ ui->toolBar_Main->width()+20;//ENVDEP
-        scrCtY = height()/2;
-    }
+
 
     UpdateScale();
     isSettingUp2Date = true;
 
 }
-void RadarGui::UpdateSetting()
+void Mainwindow::UpdateSetting()
 {
     isSettingUp2Date = false;
 }
 
-void RadarGui::DrawViewFrame(QPainter* p)
+void Mainwindow::DrawViewFrame(QPainter* p)
 {
     //draw grid
 
@@ -1152,12 +1157,12 @@ void RadarGui::DrawViewFrame(QPainter* p)
 
     //HDC dc = ui->tabWidget->getDC();
 }
-void RadarGui::setScaleNM(unsigned short rangeNM)
+void Mainwindow::setScaleNM(unsigned short rangeNM)
 {
     float oldScale = scale;
     scale = (float)height()/((float)rangeNM*CONST_NM)*0.7f;
     //printf("scale:%f- %d",scale,rangeNM);
-    isSignScaleChanged = true;// scale*SIGNAL_RANGE_KM/2048.0f;
+    isScaleChanged = true;// scale*SIGNAL_RANGE_KM/2048.0f;
 
     dyMax = MAX_VIEW_RANGE_KM*scale;
     dxMax = dyMax;
@@ -1168,7 +1173,7 @@ void RadarGui::setScaleNM(unsigned short rangeNM)
     if(currMaxRange>RADAR_MAX_RESOLUTION)currMaxRange = RADAR_MAX_RESOLUTION;*/
     isScreenUp2Date = false;
 }
-void RadarGui::UpdateRadarData()
+void Mainwindow::UpdateRadarData()
 {
     processing->ReadDataBuffer();
     //SendCommandControl();
@@ -1181,8 +1186,8 @@ void RadarGui::UpdateRadarData()
     {
         if(processing->radarData->isClkAdcChanged)
         {
-            ui->horizontalSlider_signal_scale->setValue(processing->radarData->clk_adc);
-            SetSnScale(processing->radarData->clk_adc);
+            ui->comboBox_radar_resolution->setCurrentIndex(processing->radarData->clk_adc);
+            processing->radarData->setViewScale(scale);
             this->UpdateScale();
             printf("\nsetScale:%d",processing->radarData->clk_adc);
             processing->radarData->isClkAdcChanged = false;
@@ -1212,7 +1217,7 @@ void RadarGui::UpdateRadarData()
     }
     ui->tableTargetList->setModel(model);*/
 }
-void RadarGui::InitTimer()
+void Mainwindow::InitTimer()
 {
     scrUpdateTimer = new QTimer();
     syncTimer1s = new QTimer();
@@ -1235,7 +1240,7 @@ void RadarGui::InitTimer()
     connect(t,SIGNAL(finished()),t,SLOT(deleteLater()));
     t->start();
 }
-void RadarGui::InitNetwork()
+void Mainwindow::InitNetwork()
 {
     //connect(&playbackTimer, SIGNAL(timeout()), this, SLOT(drawSign()));
 
@@ -1264,7 +1269,7 @@ void RadarGui::InitNetwork()
 //            this, SLOT(processARPA()));
 
 }
-void RadarGui::processARPA()
+void Mainwindow::processARPA()
 {
     /*
     while (udpARPA->hasPendingDatagrams())
@@ -1285,7 +1290,7 @@ void RadarGui::processARPA()
     }
     */
 }
-void RadarGui::processFrame()
+void Mainwindow::processFrame()
 {
 //    while (udpSocket->hasPendingDatagrams()) {
 //        unsigned short len = udpSocket->pendingDatagramSize();
@@ -1369,7 +1374,7 @@ void MainWindow::sendFrame(const char* hexdata,QHostAddress host,int port )
     delete[] sendBuff;
 }
 */
-void RadarGui::on_actionExit_triggered()
+void Mainwindow::on_actionExit_triggered()
 {
 //    OnExitDialog *dlg = new OnExitDialog(this);
 //    dlg->setModal(true);
@@ -1383,7 +1388,7 @@ void RadarGui::on_actionExit_triggered()
     processing->wait();
     ExitProgram();
 }
-void RadarGui::ExitProgram()
+void Mainwindow::ExitProgram()
 {
     config.SaveToFile();
     QApplication::quit();
@@ -1394,11 +1399,11 @@ void RadarGui::ExitProgram()
 #endif
 }
 
-void RadarGui::on_actionConnect_triggered()
+void Mainwindow::on_actionConnect_triggered()
 {
 
 }
-void RadarGui::sync1()//period 1 second
+void Mainwindow::sync1()//period 1 second
 {
     // display radar temperature:
     ui->label_temp->setText(QString::number(processing->radarData->tempType)+"|"+QString::number(processing->radarData->temp)+"\260C");
@@ -1453,11 +1458,10 @@ void RadarGui::sync1()//period 1 second
     //update cfar thresh value:
 
     //update signsize
-    if(isSignScaleChanged)
-    {
+    if(isScaleChanged ) {
 
-        UpdateSignScale();
-        isSignScaleChanged = false;
+        processing->radarData->setViewScale(scale);
+        isScaleChanged = false;
     }
     //update signal code:
 
@@ -1530,7 +1534,7 @@ void RadarGui::sync1()//period 1 second
         break;
     }
 }
-void RadarGui::setRadarState(radarSate radarState)
+void Mainwindow::setRadarState(radarSate radarState)
 {
     if(radarState != radar_state)
     {
@@ -1559,7 +1563,7 @@ void RadarGui::setRadarState(radarSate radarState)
     }
 }
 
-void RadarGui::on_actionTx_On_triggered()
+void Mainwindow::on_actionTx_On_triggered()
 {
     //sendFrame("aaab030200000000", QHostAddress("192.168.0.44"),2573);
     //on_actionRotateStart_toggled(true);
@@ -1585,7 +1589,7 @@ void RadarGui::on_actionTx_On_triggered()
 
 }
 
-void RadarGui::on_actionTx_Off_triggered()
+void Mainwindow::on_actionTx_Off_triggered()
 {
 //    //on_actionRotateStart_toggled(false);
 //    Command_Control new_com;
@@ -1609,7 +1613,7 @@ void RadarGui::on_actionTx_Off_triggered()
 //    command_queue.push(new_com);
 }
 
-void RadarGui::on_actionRecording_toggled(bool arg1)
+void Mainwindow::on_actionRecording_toggled(bool arg1)
 {
     if(arg1)
     {
@@ -1622,7 +1626,7 @@ void RadarGui::on_actionRecording_toggled(bool arg1)
     }
 }
 
-void RadarGui::on_actionOpen_rec_file_triggered()
+void Mainwindow::on_actionOpen_rec_file_triggered()
 {
     QString filename = QFileDialog::getOpenFileName(this,    tr("Open signal file"), NULL, tr("HR signal record files (*.r2d)"));
     if(!filename.size())return;
@@ -1631,11 +1635,11 @@ void RadarGui::on_actionOpen_rec_file_triggered()
 
 
 
-void RadarGui::on_actionOpen_map_triggered()
+void Mainwindow::on_actionOpen_map_triggered()
 {
     //openShpFile();
 }
-void RadarGui::showTime()
+void Mainwindow::showTime()
 {
     /*QDateTime time = QDateTime::currentDateTime();
     QString text = time.toString("hh:mm:ss");
@@ -1644,12 +1648,12 @@ void RadarGui::showTime()
     ui->label_time->setText(text);*/
 }
 
-void RadarGui::on_actionSaveMap_triggered()
+void Mainwindow::on_actionSaveMap_triggered()
 {
     //vnmap.SaveBinFile();
 }
 
-void RadarGui::on_actionSetting_triggered()
+void Mainwindow::on_actionSetting_triggered()
 {
     GPSDialog *dlg = new GPSDialog(this);
     dlg->setModal(false);
@@ -1659,7 +1663,7 @@ void RadarGui::on_actionSetting_triggered()
     connect(dlg, SIGNAL(destroyed(QObject*)), SLOT(UpdateSetting()));
     connect(dlg, SIGNAL(destroyed(QObject*)), SLOT(setCodeType()));
 }
-void RadarGui::on_actionAddTarget_toggled(bool arg1)
+void Mainwindow::on_actionAddTarget_toggled(bool arg1)
 {
     //isAddingTarget=arg1;
 
@@ -1668,13 +1672,13 @@ void RadarGui::on_actionAddTarget_toggled(bool arg1)
 
 
 
-void RadarGui::on_actionClear_data_triggered()
+void Mainwindow::on_actionClear_data_triggered()
 {
     processing->radarData->resetData();
     isScreenUp2Date = false;
 }
 
-void RadarGui::on_actionView_grid_triggered(bool checked)
+void Mainwindow::on_actionView_grid_triggered(bool checked)
 {
     gridOff = checked;
     dx=0;dy=0;
@@ -1683,7 +1687,7 @@ void RadarGui::on_actionView_grid_triggered(bool checked)
 }
 
 
-void RadarGui::on_actionPlayPause_toggled(bool arg1)
+void Mainwindow::on_actionPlayPause_toggled(bool arg1)
 {
     processing->togglePlayPause(arg1);
     if(arg1)dataPlaybackTimer->start(25);else dataPlaybackTimer->stop();
@@ -1708,7 +1712,7 @@ void MainWindow::on_pushButton_clicked()
 }
 */
 
-void RadarGui::SendCommandControl()
+void Mainwindow::SendCommandControl()
 {/*
       if(command_queue.size())
       {
@@ -1751,13 +1755,13 @@ void RadarGui::SendCommandControl()
 
 }
 
-void RadarGui::on_actionRecording_triggered()
+void Mainwindow::on_actionRecording_triggered()
 {
 
 }
 
 
-void RadarGui::on_comboBox_temp_type_currentIndexChanged(int index)
+void Mainwindow::on_comboBox_temp_type_currentIndexChanged(int index)
 {
 
  //!!!
@@ -1768,7 +1772,7 @@ void RadarGui::on_comboBox_temp_type_currentIndexChanged(int index)
 
 //}
 
-void RadarGui::on_horizontalSlider_brightness_valueChanged(int value)
+void Mainwindow::on_horizontalSlider_brightness_valueChanged(int value)
 {
     processing->radarData->brightness = 0.5f+(float)value/ ui->horizontalSlider_brightness->maximum()*4.0f;
 }
@@ -1799,48 +1803,15 @@ void RadarGui::on_horizontalSlider_brightness_valueChanged(int value)
     }
 }*/
 
-void RadarGui::on_horizontalSlider_signal_scale_valueChanged(int value)
-{
-    SetSnScale(value);
 
-}
-void RadarGui::SetSnScale(short value)
-{
 
-    switch(value)
-    {
-    case 0:
-        sn_scale = SIGNAL_SCALE_0;
-
-        break;
-    case 1:
-        sn_scale = SIGNAL_SCALE_1;//printf("1");
-        break;
-
-    case 2:
-        sn_scale = SIGNAL_SCALE_2;//printf("2");
-        break;
-    case 3:
-        sn_scale = SIGNAL_SCALE_3;//printf("2");
-        break;
-    case 4:
-        sn_scale = SIGNAL_SCALE_4;//printf("2");
-        break;
-    case 5:
-        sn_scale = SIGNAL_SCALE_5;//printf("2");
-        break;
-    default:
-        sn_scale = SIGNAL_SCALE_0;
-    }
-    isSignScaleChanged = true;
-}
 //void MainWindow::on_toolButton_toggled(bool checked)
 //{
 //    //if(checked)ui->toolBar_Main->show();
 //    //else ui->toolBar_Main->hide();
 //}
 
-void RadarGui::on_actionSector_Select_triggered()
+void Mainwindow::on_actionSector_Select_triggered()
 {
 
 }
@@ -1866,7 +1837,7 @@ void MainWindow::on_toolButton_13_clicked()
     //if(event->delta()<0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()-1);
 }
 */
-void RadarGui::UpdateScale()
+void Mainwindow::UpdateScale()
 {
     //float oldScale = scale;
     switch(range)
@@ -1909,18 +1880,14 @@ void RadarGui::UpdateScale()
         ui->label_range->setText("48 NM");
         break;
     }
-    isSignScaleChanged = true;
+    isScaleChanged = true;
     isScreenUp2Date = false;
 
     //dx /=short(scale/oldScale);
     //dy /=short(scale/oldScale);
 }
 
-void RadarGui::UpdateSignScale()
-{
-    signsize = sn_scale*scale;
-    processing->radarData->setViewScale(signsize);
-}
+
 
 
 //void MainWindow::on_toolButton_10_toggled(bool checked)
@@ -1991,7 +1958,7 @@ void RadarGui::UpdateSignScale()
 //}
 
 
-void RadarGui::setCodeType(short index)// chuyen ma
+void Mainwindow::setCodeType(short index)// chuyen ma
 {
     unsigned char bytes[8];
     bytes[0] = 1;
@@ -2064,18 +2031,18 @@ void RadarGui::setCodeType(short index)// chuyen ma
 
 
 
-void RadarGui::on_horizontalSlider_gain_valueChanged(int value)
+void Mainwindow::on_horizontalSlider_gain_valueChanged(int value)
 {
     processing->radarData->kgain = 7-(float)value/(ui->horizontalSlider_gain->maximum())*10;
     //printf("processing->radarData->kgain %f \n",processing->radarData->kgain);
 }
 
-void RadarGui::on_horizontalSlider_rain_valueChanged(int value)
+void Mainwindow::on_horizontalSlider_rain_valueChanged(int value)
 {
     processing->radarData->krain = (float)value/(ui->horizontalSlider_rain->maximum()+ui->horizontalSlider_rain->maximum()/3);
 }
 
-void RadarGui::on_horizontalSlider_sea_valueChanged(int value)
+void Mainwindow::on_horizontalSlider_sea_valueChanged(int value)
 {
     processing->radarData->ksea = (float)value/(ui->horizontalSlider_sea->maximum());
 }
@@ -2116,22 +2083,22 @@ void MainWindow::on_pushButton_loadAis_clicked()
 */
 
 
-void RadarGui::on_toolButton_exit_clicked()
+void Mainwindow::on_toolButton_exit_clicked()
 {
     on_actionExit_triggered();
 }
 
-void RadarGui::on_toolButton_setting_clicked()
+void Mainwindow::on_toolButton_setting_clicked()
 {
     this->on_actionSetting_triggered();
 }
 
-void RadarGui::on_toolButton_scan_clicked()
+void Mainwindow::on_toolButton_scan_clicked()
 {
 
 }
 
-void RadarGui::on_toolButton_tx_toggled(bool checked)
+void Mainwindow::on_toolButton_tx_toggled(bool checked)
 {
 
     if(checked)
@@ -2155,7 +2122,7 @@ void RadarGui::on_toolButton_tx_toggled(bool checked)
 
 }
 
-void RadarGui::on_toolButton_scan_toggled(bool checked)
+void Mainwindow::on_toolButton_scan_toggled(bool checked)
 {
     if(checked)
     {
@@ -2173,18 +2140,18 @@ void RadarGui::on_toolButton_scan_toggled(bool checked)
 }
 
 
-void RadarGui::on_toolButton_xl_nguong_toggled(bool checked)
+void Mainwindow::on_toolButton_xl_nguong_toggled(bool checked)
 {
     processing->radarData->xl_nguong = checked;
 }
 
-void RadarGui::on_toolButton_replay_toggled(bool checked)
+void Mainwindow::on_toolButton_replay_toggled(bool checked)
 {
     this->on_actionPlayPause_toggled(checked);
 }
 
 
-void RadarGui::on_toolButton_replay_fast_toggled(bool checked)
+void Mainwindow::on_toolButton_replay_fast_toggled(bool checked)
 {
     if(checked)
     {
@@ -2195,19 +2162,19 @@ void RadarGui::on_toolButton_replay_fast_toggled(bool checked)
     }
 }
 
-void RadarGui::on_toolButton_record_toggled(bool checked)
+void Mainwindow::on_toolButton_record_toggled(bool checked)
 {
     this->on_actionRecording_toggled(checked);
 }
 
-void RadarGui::on_toolButton_open_record_clicked()
+void Mainwindow::on_toolButton_open_record_clicked()
 {
     this->on_actionOpen_rec_file_triggered();
 }
 
 
 
-void RadarGui::on_toolButton_alphaView_toggled(bool checked)
+void Mainwindow::on_toolButton_alphaView_toggled(bool checked)
 {
     displayAlpha = checked;
     processing->radarData->isDisplayAlpha = checked;
@@ -2216,7 +2183,7 @@ void RadarGui::on_toolButton_alphaView_toggled(bool checked)
 
 
 
-void RadarGui::on_toolButton_centerView_clicked()
+void Mainwindow::on_toolButton_centerView_clicked()
 {
     dx = 0;
     dy = 0;
@@ -2224,7 +2191,7 @@ void RadarGui::on_toolButton_centerView_clicked()
     isScreenUp2Date = false;
 }
 
-void RadarGui::on_comboBox_currentIndexChanged(int index)
+void Mainwindow::on_comboBox_currentIndexChanged(int index)
 {
     switch (index)
     {
@@ -2249,13 +2216,13 @@ void RadarGui::on_comboBox_currentIndexChanged(int index)
 
 }
 
-void RadarGui::on_comboBox_img_mode_currentIndexChanged(int index)
+void Mainwindow::on_comboBox_img_mode_currentIndexChanged(int index)
 {
     processing->radarData->imgMode = imgDrawMode(index) ;
 }
 
 
-void RadarGui::on_toolButton_send_command_clicked()
+void Mainwindow::on_toolButton_send_command_clicked()
 {
     unsigned char        bytes[8];
     hex2bin(ui->lineEdit_byte_1->text().toStdString().data(),&bytes[0]);
@@ -2269,31 +2236,31 @@ void RadarGui::on_toolButton_send_command_clicked()
     udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
 }
 
-void RadarGui::on_toolButton_map_toggled(bool checked)
+void Mainwindow::on_toolButton_map_toggled(bool checked)
 {
     DrawMap();
 }
 
-void RadarGui::on_toolButton_zoom_in_clicked()
+void Mainwindow::on_toolButton_zoom_in_clicked()
 {
     if(range>0)range--;
     UpdateScale();
     DrawMap();
 }
 
-void RadarGui::on_toolButton_zoom_out_clicked()
+void Mainwindow::on_toolButton_zoom_out_clicked()
 {
     if(range<7)range++;
     UpdateScale();
     DrawMap();
 }
 
-void RadarGui::on_toolButton_reset_clicked()
+void Mainwindow::on_toolButton_reset_clicked()
 {
     processing->radarData->resetData();
 }
 
-void RadarGui::on_toolButton_send_command_2_clicked()
+void Mainwindow::on_toolButton_send_command_2_clicked()
 {
     unsigned char        bytes[8] = {0xaa,0xab,0x02,0x02,0x0a,0,0,0};
     udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
@@ -2308,7 +2275,7 @@ void RadarGui::on_toolButton_send_command_2_clicked()
 
 }
 
-void RadarGui::SetGPS(float mlat,float mlong)
+void Mainwindow::SetGPS(float mlat,float mlong)
 {
     config.m_config.m_lat = mlat;
     config.m_config.m_long = mlong;
@@ -2318,7 +2285,7 @@ void RadarGui::SetGPS(float mlat,float mlong)
     DrawMap();
     update();
 }
-void RadarGui::on_toolButton_map_select_clicked()
+void Mainwindow::on_toolButton_map_select_clicked()
 {
     QString filename = QFileDialog::getOpenFileName(this,    QString::fromUtf8("Open Map"), NULL, tr("ISM file (*.ism)"));
     if(!filename.size())return;
@@ -2330,31 +2297,31 @@ void RadarGui::on_toolButton_map_select_clicked()
     DrawMap();
 }
 
-void RadarGui::on_dial_valueChanged(int value)
+void Mainwindow::on_dial_valueChanged(int value)
 {
     float heading = value/100.0f;
     ui->textEdit_heading->setText(QString::number(heading));
 
 }
 
-void RadarGui::on_toolButton_set_heading_clicked()
+void Mainwindow::on_toolButton_set_heading_clicked()
 {
     float heading = ui->textEdit_heading->text().toFloat();
     config.m_config.trueN = heading;
     processing->radarData->setTrueN(config.m_config.trueN);
 }
 
-void RadarGui::on_toolButton_gps_update_clicked()
+void Mainwindow::on_toolButton_gps_update_clicked()
 {
     SetGPS(ui->text_latInput_2->text().toFloat(),ui->text_longInput_2->text().toFloat());
 }
 
-void RadarGui::on_comboBox_code_type_currentIndexChanged(const QString &arg1)
+void Mainwindow::on_comboBox_code_type_currentIndexChanged(const QString &arg1)
 {
 
 }
 
-void RadarGui::on_comboBox_code_type_currentIndexChanged(int index)
+void Mainwindow::on_comboBox_code_type_currentIndexChanged(int index)
 {
     config.m_config.codeType = index;
     setCodeType(config.m_config.codeType);
