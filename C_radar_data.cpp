@@ -11,8 +11,7 @@ C_radar_data::C_radar_data()
     img_ppi = new QImage(DISPLAY_RES*2+1,DISPLAY_RES*2+1,QImage::Format_ARGB32);
     img_alpha = new QImage(RAD_M_PULSE_RES,256,QImage::Format_Mono);
     img_zoom_ppi = new QImage(ZOOM_SIZE,ZOOM_SIZE,QImage::Format_ARGB32);
-    centerZoomX = 0;
-    centerZoomY = 0;
+
     isDisplayAlpha = false;
     size_thresh = 4;
     isProcessing = true;
@@ -32,6 +31,7 @@ C_radar_data::C_radar_data()
     setTrueN(0);
     setScalePPI(1);
     resetData();
+    setScaleZoom(4);
 }
 C_radar_data::~C_radar_data()
 {
@@ -244,6 +244,7 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
             {
                 signal_map.display_mask[px+x][py+y] = pvalue;
                 img_ppi->setPixel(px+x,py+y,color);
+                //DrawZoom(px,py,pvalue);
             }
         }
     }
@@ -450,6 +451,7 @@ void C_radar_data::drawAzi(short azi)
                     img_alpha->setPixel(r_pos,255-thresh,1);
                 }
             }
+            //zoom to view scale
             short display_pos = r_pos*scale_ppi;
             short display_pos_next = (r_pos+1)*scale_ppi;
             for(;;)
@@ -469,6 +471,22 @@ void C_radar_data::drawAzi(short azi)
                 if(display_pos>=display_pos_next)break;
             }
             if(lastDisplayPos<display_pos_next)lastDisplayPos = display_pos_next;
+            //zoom to zoom scale !!!!
+            short display_pos_zoom = r_pos*ZOOM_SCALE;
+            short display_pos_next_zoom  = (r_pos+1)*ZOOM_SCALE;
+            for(;;)
+            {
+                if(display_pos_zoom>=ZOOM_SCALE*RAD_M_PULSE_RES)break;
+                if(signal_map.display_zoom[display_pos_zoom]<value)
+                {
+                    signal_map.display_zoom[display_pos_zoom] = value;
+
+
+                }
+                display_pos_zoom++;
+                if(display_pos_zoom>=display_pos_next_zoom)break;
+            }
+
     }
     if (lastDisplayPos<DISPLAY_RES)
     {
@@ -524,31 +542,7 @@ void C_radar_data::drawAzi(short azi)
     //drawingDone = true;
 
 }
-void C_radar_data::drawDopler(short azi)
-{
-    /*short prev_azi =azi +50;
-    if(prev_azi>=MAX_AZIR)prev_azi -= MAX_AZIR;
-    blackLine(signal_map.frame[prev_azi].raw_map[1].x,signal_map.frame[prev_azi].raw_map[1].y,signal_map.frame[prev_azi].raw_map[RAD_M_PULSE_RES-1].x,signal_map.frame[prev_azi].raw_map[RAD_M_PULSE_RES-1].y);
-    for (short r_pos = 1;r_pos<RAD_M_PULSE_RES-1;r_pos++)
-    {
 
-            unsigned short value;
-            if(isPulse&&(r_pos<RAD_S_PULSE_RES))
-            {
-                value = signal_map.frame[azi].raw_map[r_pos+RAD_M_PULSE_RES].displaylevel*brightness;
-            }else
-            {
-                value = signal_map.frame[azi].raw_map[r_pos].displaylevel*brightness;
-            }
-
-            if(value>0xff)
-            {
-                value = 0xff;
-            }
-
-            drawSgn(azi,r_pos,value,dopler);
-    }*/
-}
  void  C_radar_data::getNoiseLevel()
 {
 //     float var = signal_map.level_m[azi][range_max-50]-noiseAverage;
@@ -879,6 +873,7 @@ void C_radar_data::procTracks(unsigned short curA)
 }
 void C_radar_data::getPolar(float x,float y,float *azi,float *range)
 {
+    //x*=scale_ppi
     *azi = atanf(x/y);//tinh azi theo chuan bac thuan kim dong ho
     if(y<0)*azi+=PI;
     if(azi<0)*azi += PI_NHAN2;
@@ -1071,6 +1066,14 @@ void C_radar_data::polarToXY(float *x, float *y, float azi, float range)
     *x = ((sinf(azi)))*range;
     *y = ((cosf(azi)))*range;
 }
+short zoomX,zoomY,zoomW,zoomH;
+short zoomCenterX=DISPLAY_RES,zoomCenterY=DISPLAY_RES;
+void C_radar_data::updateZoomRect()
+{
+    zoomW = zoomH = ZOOM_SIZE;///scale_zoom;
+    zoomX = zoomCenterX-(zoomW/2)/scale_zoom;
+    zoomY = zoomCenterY -(zoomH/2)/scale_zoom;
+}
 void C_radar_data::raw_map_init()
 {
     img_ppi->fill(Qt::transparent);
@@ -1146,6 +1149,7 @@ void C_radar_data::setScalePPI(float scale)
         sn_scale = SIGNAL_SCALE_0;
     }
     scale_ppi = sn_scale*scale;
+    updateZoomRect();
 }
 void C_radar_data::setScaleZoom(float scale)
 {
@@ -1175,18 +1179,19 @@ void C_radar_data::setScaleZoom(float scale)
     default:
         sn_scale = SIGNAL_SCALE_0;
     }
-    scale_zoom = sn_scale*scale;
+    sn_scale = SIGNAL_SCALE_0;
+    scale_zoom = sn_scale*scale/scale_ppi;
     updateZoomRect();
 }
-short zoomX,zoomY,zoomW,zoomH;
-void C_radar_data::updateZoomRect()
+
+void C_radar_data::DrawZoom(short azi_draw, short r_pos)
 {
-    zoomW = zoomH = ZOOM_SIZE/scale_zoom;
-    zoomX = zoomCenterX - zoomW/2;
-    zoomY = zoomCenterY - zoomH/2;
-}
-void C_radar_data::checkInsideZoom()
-{
+//    x = (x-zoomX)*scale_zoom;
+//    y = (y-zoomY)*scale_zoom;
+//    if(x<0||y<0||x>zoomW||y>zoomH)return;
+//    uint color = val<<24|0xff<<16|0xff<<8;
+//    img_zoom_ppi->setPixel(x,y,color);
+//    img_zoom_ppi->setPixel(x,y,color);
 }
 void C_radar_data::resetTrack()
 {

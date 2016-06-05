@@ -32,6 +32,8 @@
 #define TERRAIN_THRESH      0.5f
 #define TARGET_MIN_SPEED      3
 #define TARGET_MAX_SPEED      50
+#define ZOOM_SIZE           550
+#define ZOOM_SCALE          3
 #include <vector>
 #include <math.h>
 #include <QImage>
@@ -67,9 +69,12 @@ typedef struct  {
     unsigned char level_s [MAX_AZIR][RAD_S_PULSE_RES];
     unsigned char dopler_s[MAX_AZIR][RAD_S_PULSE_RES];
     unsigned char display [DISPLAY_RES][3];//0 - signal, 1- dopler, 2 - sled;
+    unsigned char display_zoom [RAD_M_PULSE_RES*ZOOM_SCALE];
     unsigned char display_mask [DISPLAY_RES*2+1][DISPLAY_RES*2+1];
     short x[MAX_AZIR_DRAW][DISPLAY_RES+1];
     short y[MAX_AZIR_DRAW][DISPLAY_RES+1];
+    short xzoom[MAX_AZIR_DRAW][DISPLAY_RES+1];
+    short yzoom[MAX_AZIR_DRAW][DISPLAY_RES+1];
 } signal_map_t;
 
 typedef struct  {
@@ -378,7 +383,9 @@ public:
     markList                mark_list;
     signal_map_t            signal_map;
     unsigned char           size_thresh,overload, terrain_init_time, clk_adc;
-    float                   viewScale;
+    float                   scale_ppi,scale_zoom;
+
+    void                    updateZoomRect();
     unsigned short          sn_stat;
     bool                    avtodetect,xl_nguong,isClkAdcChanged;
     float                   krain,kgain,ksea,brightness;
@@ -389,7 +396,7 @@ public:
     unsigned char           noise_level[8];
     unsigned char           tempType,rotation_speed;
     unsigned short          range_max;
-    QImage                  *img_ppi,*img_alpha;
+    QImage                  *img_ppi,*img_alpha,*img_zoom_ppi;
     imgDrawMode             imgMode;
     void deleteTrack(short trackNum);
     //______________________________________//
@@ -400,7 +407,7 @@ public:
     void        raw_map_init();
     void        drawAzi(short azi);
     void        drawBlackAzi(short azi_draw);
-    void        drawDopler(short azi);
+    void        DrawZoom(short azi_draw, short r_pos);
     void        blackLine(short x0, short y0, short x1, short y1);
     void        addTrackManual(float x, float y);
     void        addTrack(float azi, float range, short state);
@@ -412,7 +419,8 @@ public:
         trueN =(trueN_deg/360.0f*PI_NHAN2);
         raw_map_init();
     }
-    void        setViewScale(float scale);
+    void        setScalePPI(float scale);
+    void        setScaleZoom(float scale);
     void        resetData();
     void        setProcessing(bool onOff);
     //bool        getDataOverload(){if(isDataTooLarge) {isDataTooLarge =false;return true;} else return false;}

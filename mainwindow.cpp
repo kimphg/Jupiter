@@ -909,10 +909,10 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     p.drawLine(mousePointerX,mousePointerY-10,mousePointerX,mousePointerY-15);
     p.drawLine(mousePointerX,mousePointerY+10,mousePointerX,mousePointerY+15);
     float azi,range;
-    processing->radarData->getPolar((mousePointerX - scrCtX+dx)/signsize,-(mousePointerY - scrCtY+dy)/signsize,&azi,&range);
+    processing->radarData->getPolar((mousePointerX - scrCtX+dx)/scale,-(mousePointerY - scrCtY+dy)/scale,&azi,&range);
     if(azi<0)azi+=PI_NHAN2;
     azi = azi/CONST_PI*180.0;
-    range = range*signsize/scale/CONST_NM;
+    range = range/CONST_NM;
     p.drawText(mousePointerX+5,mousePointerY+5,100,20,0,QString::number(range,'g',4)+"|"+QString::number(azi,'g',4),0);
     //draw zooom
 
@@ -922,9 +922,9 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     if(ui->tabWidget_2->currentIndex()==2)
     {
         QRect rect = ui->tabWidget_2->geometry();
+        //QRect zoomRect(DISPLAY_RES-100,DISPLAY_RES-100,200,200);
         rect.adjust(4,30,-5,-5);
-        p.setBrush(Qt::blue);
-        p.drawRect(rect);
+        p.drawImage(rect,*processing->radarData->img_ppi);
     }
 }
 //void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -1187,7 +1187,7 @@ void Mainwindow::UpdateRadarData()
         if(processing->radarData->isClkAdcChanged)
         {
             ui->comboBox_radar_resolution->setCurrentIndex(processing->radarData->clk_adc);
-            processing->radarData->setViewScale(scale);
+            processing->radarData->setScalePPI(scale);
             this->UpdateScale();
             printf("\nsetScale:%d",processing->radarData->clk_adc);
             processing->radarData->isClkAdcChanged = false;
@@ -1460,7 +1460,7 @@ void Mainwindow::sync1()//period 1 second
     //update signsize
     if(isScaleChanged ) {
 
-        processing->radarData->setViewScale(scale);
+        processing->radarData->setScalePPI(scale);
         isScaleChanged = false;
     }
     //update signal code:
