@@ -266,6 +266,7 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
     if(event->x()>height())return;
     mousePointerX = (event->x());
     mousePointerY = (event->y());
+
     //ui->frame_RadarViewOptions->hide();
     if(event->buttons() & Qt::LeftButton) {
         isDraging = true;
@@ -276,8 +277,8 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
     else if(event->buttons() & Qt::RightButton)
     {
 
-        float xRadar = (mousePointerX - scrCtX+dx)/signsize ;//coordinates in  radar xy system
-        float yRadar = -(mousePointerY - scrCtY+dy)/signsize;
+        float xRadar = (mousePointerX - scrCtX+dx)/scale ;//coordinates in  radar xy system
+        float yRadar = -(mousePointerY - scrCtY+dy)/scale;
         processing->radarData->addTrackManual(xRadar,yRadar);
         isScreenUp2Date = false;
         return;
@@ -924,7 +925,10 @@ void Mainwindow::paintEvent(QPaintEvent *event)
         QRect rect = ui->tabWidget_2->geometry();
         //QRect zoomRect(DISPLAY_RES-100,DISPLAY_RES-100,200,200);
         rect.adjust(4,30,-5,-5);
-        p.drawImage(rect,*processing->radarData->img_ppi);
+        p.setPen(QPen(Qt::black));
+        p.setBrush(QBrush(Qt::black));
+        p.drawRect(rect);
+        p.drawImage(rect,*processing->radarData->img_zoom_ppi,processing->radarData->img_zoom_ppi->rect());
     }
 }
 //void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -2325,4 +2329,9 @@ void Mainwindow::on_comboBox_code_type_currentIndexChanged(int index)
 {
     config.m_config.codeType = index;
     setCodeType(config.m_config.codeType);
+}
+
+void Mainwindow::on_toolButton_centerZoom_clicked()
+{
+    processing->radarData->updateZoomRect(mousePointerX - scrCtX+dx,mousePointerY - scrCtY+dy);
 }

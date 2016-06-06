@@ -31,7 +31,7 @@ void QCustomGroupBox::highLight()
 }
 void QCustomGroupBox::resetView()
 {
-    //this->setStyleSheet("background-color: rgb(16, 32, 64);color:rgb(255, 255, 255);");
+    //this->setStyleSheet("border: none;background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,stop: 0.39999 #717171, stop: 0.4 #626262,stop: 0.9 #4c4c4c, stop: 1 #333333);");
     this->setStyleSheet("background-color: rgb(30, 50, 70);color:rgb(255, 255, 255);font: 12pt \"MS Shell Dlg 2\";");
     repaint();
 

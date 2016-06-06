@@ -10,7 +10,7 @@ C_radar_data::C_radar_data()
 {
     img_ppi = new QImage(DISPLAY_RES*2+1,DISPLAY_RES*2+1,QImage::Format_ARGB32);
     img_alpha = new QImage(RAD_M_PULSE_RES,256,QImage::Format_Mono);
-    img_zoom_ppi = new QImage(ZOOM_SIZE,ZOOM_SIZE,QImage::Format_ARGB32);
+    img_zoom_ppi = new QImage(ZOOM_SIZE+1,ZOOM_SIZE+1,QImage::Format_ARGB32);
 
     isDisplayAlpha = false;
     size_thresh = 4;
@@ -28,10 +28,12 @@ C_radar_data::C_radar_data()
     isClkAdcChanged = true;
     dataOver = max_s_m_200;
     raw_map_init();
+    raw_map_init_zoom();
     setTrueN(0);
     setScalePPI(1);
     resetData();
     setScaleZoom(4);
+    updateZoomRect(0,0);
 }
 C_radar_data::~C_radar_data()
 {
@@ -57,72 +59,17 @@ void C_radar_data::setProcessing(bool onOff)
         printf("\nSecondary processing mode - off.");
     }
 }
-void C_radar_data::drawVet(short azi, short r_pos)
-{
-    /*if(!signal_map.frame[azi].raw_map[r_pos].vet)return;
-    signal_map.frame[azi].raw_map[r_pos].vet -= 15;//vet*0.75
-    if(signal_map.frame[azi].raw_map[r_pos].vet < 50)
-    {
-        signal_map.frame[azi].raw_map[r_pos].vet = 0;
-    }
 
-    switch(imgMode)
-    {
-    case DRAW_NO_TERR:
-    {
-        signal_map.frame[azi].raw_map[r_pos].vet = 0;
-        uint color = 0;//0x00004060|((signal_map.frame[azi].raw_map[r_pos].vet)<<24);
-        sgn_img->setPixel(signal_map.frame[azi].raw_map[r_pos].x,signal_map.frame[azi].raw_map[r_pos].y,color);
-        if(spreading)
-        {
-            sgn_img->setPixel(signal_map.frame[azi].raw_map[r_pos].x+1,signal_map.frame[azi].raw_map[r_pos].y,color);
-            sgn_img->setPixel(signal_map.frame[azi].raw_map[r_pos].x-1,signal_map.frame[azi].raw_map[r_pos].y,color);
-            sgn_img->setPixel(signal_map.frame[azi].raw_map[r_pos].x,signal_map.frame[azi].raw_map[r_pos].y+1,color);
-            sgn_img->setPixel(signal_map.frame[azi].raw_map[r_pos].x,signal_map.frame[azi].raw_map[r_pos].y-1,color);
-        }
-        break;
-    }
-    case DRAW_NULL:
-        break;
-    case DRAW_SNG_N_VET:
-    {
-
-        uint color = 0x00004060|((signal_map.frame[azi].raw_map[r_pos].vet)<<24);
-        sgn_img->setPixel(signal_map.frame[azi].raw_map[r_pos].x,signal_map.frame[azi].raw_map[r_pos].y,color);
-        if(spreading)
-        {
-            sgn_img->setPixel(signal_map.frame[azi].raw_map[r_pos].x+1,signal_map.frame[azi].raw_map[r_pos].y,color);
-            sgn_img->setPixel(signal_map.frame[azi].raw_map[r_pos].x-1,signal_map.frame[azi].raw_map[r_pos].y,color);
-            sgn_img->setPixel(signal_map.frame[azi].raw_map[r_pos].x,signal_map.frame[azi].raw_map[r_pos].y+1,color);
-            sgn_img->setPixel(signal_map.frame[azi].raw_map[r_pos].x,signal_map.frame[azi].raw_map[r_pos].y-1,color);
-        }
-
-    }
-        break;
-    }
-
-*/
-}
 
 void C_radar_data::drawSgn(short azi_draw, short r_pos)
 {
-
-    unsigned short value = signal_map.display[r_pos][0];
+    unsigned char value = signal_map.display[r_pos][0];
     unsigned char dopler    = signal_map.display[r_pos][1];
-    unsigned short sled     = signal_map.display[r_pos][2];
-    value*=brightness;
-    if(value>0xff)
-    {
-        value = 0xff;
-    }
-    sled*=brightness*4;
-    if(sled>0xff)
-    {
-        sled = 0xff;
-    }
+    unsigned char sled     = signal_map.display[r_pos][2];
+
     short px = signal_map.x[azi_draw][r_pos];
     short py = signal_map.y[azi_draw][r_pos];
-    if(px<0||py<0)return;
+    if(px<=0||py<=0)return;
     short pSize = 1;
 
     //if(pSize>2)pSize = 2;
@@ -152,99 +99,12 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
                 k=0.7f;
                 break;
             }
-            unsigned char alpha;
-            unsigned char red =0;
-            unsigned char green =0;
-            unsigned char blue = 0;
             unsigned char pvalue = value*k;
-            unsigned char gradation = pvalue<<2;
-            uint color;
-            switch(imgMode)
-            {
-            case DOPLER_3_COLOR:
-                if(dopler==0||dopler==1||dopler==15)
-                {
-
-                    color = 0xffff00;
-                }else
-                    if(dopler==2||dopler==3||dopler==13||dopler==14)
-                    {
-                        color = 0x00ff00;
-                    }
-                    else if(dopler==4||dopler==5||dopler==11||dopler==12)
-                    {
-                        color = 0x00ffff;
-                    }
-                    else
-                    {
-                        color = 0x00ffff;
-                    }
-                alpha = 0xff - ((0xff - pvalue)*0.75);
-                color = color|(alpha<<24);
-                break;
-            case DOPLER_4_COLOR:
-                if(dopler==0||dopler==1||dopler==15)
-                {
-                    color = 0xffff00;
-                }else
-                    if(dopler==2||dopler==3||dopler==13||dopler==14)
-                    {
-                        color = 0x00ff7f;
-                    }
-                    else if(dopler==4||dopler==5||dopler==11||dopler==12)
-                    {
-                        color = 0x007fff;
-                    }
-                    else
-                    {
-                        color = 0x0000ff;
-                    }
-                alpha = 0xff - ((0xff - pvalue)*0.75);
-                color = color|(alpha<<24);
-                break;
-            case VALUE_ORANGE_BLUE:
-                alpha = 0xff - ((0xff - pvalue)*0.75);
-                //pvalue-=(pvalue/10);
-                switch(pvalue>>6)
-                {
-                case 3:
-                    red = 0xff;
-                    green = 0xff - gradation;
-                    break;
-                case 2:
-                    red = gradation;
-                    green = 0xff;
-                    break;
-                case 1:
-                    green = 0xff ;
-                    blue = 0xff - gradation;
-                    break;
-                case 0:
-                    green = gradation ;
-                    blue = 0xff;
-                    break;
-                }
-                color = (alpha<<24)|(red<<16)|(green<<8)|blue;
-                break;
-            case VALUE_YELLOW_SHADES:
-                if(signal_map.display[r_pos][0]>1)
-                {
-                alpha = pvalue;//0xff - ((0xff - pvalue)*0.75);
-                color = (pvalue<<24)|(0xff<<16)|(0xff<<8);
-                }
-                else
-                {
-                    color = (sled<<24)|(0xff);
-                }
-                break;
-            default:
-                return;
-            }
             if( signal_map.display_mask[px+x][py+y] <= pvalue)
             {
                 signal_map.display_mask[px+x][py+y] = pvalue;
-                img_ppi->setPixel(px+x,py+y,color);
-                //DrawZoom(px,py,pvalue);
+                img_ppi->setPixel(px+x,py+y,getColor(pvalue,dopler,sled));
+
             }
         }
     }
@@ -252,40 +112,40 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
 
 
 }
-void C_radar_data::blackLine(short x0, short y0, short x1, short y1)
-{
+//void C_radar_data::blackLine(short x0, short y0, short x1, short y1)
+//{
 
-    short dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
-    short dy = abs(y1-y0), sy = y0<y1 ? 1 : -1;
-    short err = (dx>dy ? dx : -dy)/2, e2;
-    unsigned short len=0;
-    for(;;){
-        len++;
-        if((x0<1)||(y0<1)||(x0>=img_ppi->width())||(y0>=img_ppi->height()))break;
-      img_ppi->setPixel(x0,y0,0);
+//    short dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
+//    short dy = abs(y1-y0), sy = y0<y1 ? 1 : -1;
+//    short err = (dx>dy ? dx : -dy)/2, e2;
+//    unsigned short len=0;
+//    for(;;){
+//        len++;
+//        if((x0<1)||(y0<1)||(x0>=img_ppi->width())||(y0>=img_ppi->height()))break;
+//      img_ppi->setPixel(x0,y0,0);
 
-      //sgn_img->setPixel(x0-1,y0-1,0xff000000);
-      if(len>=30)
-      {
-          img_ppi->setPixel(x0-1,y0,0);
-          img_ppi->setPixel(x0,y0-1,0);
-      }
-      //sgn_img->setPixel(x0,y0,0xff000000);
-      if (x0==x1 && y0==y1) break;
-      e2 = err;
-      if (e2 >-dx) { err -= dy; x0 += sx; }
-      if (e2 < dy) { err += dx; y0 += sy; }
-    }
-}
+//      //sgn_img->setPixel(x0-1,y0-1,0xff000000);
+//      if(len>=30)
+//      {
+//          img_ppi->setPixel(x0-1,y0,0);
+//          img_ppi->setPixel(x0,y0-1,0);
+//      }
+//      //sgn_img->setPixel(x0,y0,0xff000000);
+//      if (x0==x1 && y0==y1) break;
+//      e2 = err;
+//      if (e2 >-dx) { err -= dy; x0 += sx; }
+//      if (e2 < dy) { err += dx; y0 += sy; }
+//    }
+//}
 void C_radar_data::drawBlackAzi(short azi_draw)
 {
-    for (short r_pos = 1;r_pos<DISPLAY_RES-1;r_pos++)
+    for (short r_pos = 1;r_pos<DISPLAY_RES;r_pos++)
     {
 
         short px = signal_map.x[azi_draw][r_pos];
         short py = signal_map.y[azi_draw][r_pos];
         short pSize = 1;
-        if((px<pSize)||(py<pSize)||(px>=img_ppi->width()-pSize)||(py>=img_ppi->height()-pSize))return;
+        if((px<pSize)||(py<pSize)||(px>=img_ppi->width()-pSize)||(py>=img_ppi->height()-pSize))continue;
 
         for(short x = -pSize;x <= pSize;x++)
         {
@@ -296,19 +156,38 @@ void C_radar_data::drawBlackAzi(short azi_draw)
             }
         }
     }
+    for (short r_pos = 1;r_pos<DISPLAY_RES_ZOOM;r_pos++)
+    {
+
+        short px = signal_map.xzoom[azi_draw][r_pos];
+        short py = signal_map.yzoom[azi_draw][r_pos];
+        short pSize = 1;
+        if((px<pSize)||(py<pSize)||(px>=img_zoom_ppi->width()-pSize)||(py>=img_zoom_ppi->height()-pSize))continue;
+
+        for(short x = -pSize;x <= pSize;x++)
+        {
+            for(short y = -pSize;y <= pSize;y++)
+            {
+
+                signal_map.display_mask_zoom[px+x][py+y] = 0;
+            }
+        }
+    }
 
 }
 void C_radar_data::drawAzi(short azi)
 {
     img_alpha->fill(0);
+    //reset the display masks
     short prev_azi = azi + 200;
     if(prev_azi>=MAX_AZIR)prev_azi -= MAX_AZIR;
     drawBlackAzi(prev_azi*3);
     drawBlackAzi(prev_azi*3+1);
     drawBlackAzi(prev_azi*3+2);
-//    drawBlackAzi(prev_azi*2);
-//    drawBlackAzi(prev_azi*2+1);
+    //reset the drawing ray
     memset(&signal_map.display[0][0],0,DISPLAY_RES*3);
+    memset(&signal_map.display_zoom[0][0],0,DISPLAY_RES_ZOOM*3);
+    //set data to the drawing ray
     unsigned short thresh = 0;
     unsigned short  lastDisplayPos =0;
     for (short r_pos = 0;r_pos<range_max-1;r_pos++)
@@ -428,9 +307,9 @@ void C_radar_data::drawAzi(short azi)
                 }
 
             }
-            signal_map.sled[azi][r_pos]+= (value - signal_map.sled[azi][r_pos])/5.0f;
-            //________________________________///////////////////////
-            //alpha graph display
+            //get value of the track
+            signal_map.sled[azi][r_pos]+= (value - signal_map.sled[azi][r_pos])/4.0f;
+            //display alpha graph
             if(isDisplayAlpha)
             {
                 if(imgMode==DOPLER_3_COLOR||imgMode==DOPLER_4_COLOR)
@@ -471,17 +350,21 @@ void C_radar_data::drawAzi(short azi)
                 if(display_pos>=display_pos_next)break;
             }
             if(lastDisplayPos<display_pos_next)lastDisplayPos = display_pos_next;
-            //zoom to zoom scale !!!!
-            short display_pos_zoom = r_pos*ZOOM_SCALE;
-            short display_pos_next_zoom  = (r_pos+1)*ZOOM_SCALE;
+            //zoom to zoom scale !
+            short display_pos_zoom = r_pos*DISPLAY_SCALE_ZOOM;
+            short display_pos_next_zoom  = (r_pos+1)*DISPLAY_SCALE_ZOOM;
             for(;;)
             {
-                if(display_pos_zoom>=ZOOM_SCALE*RAD_M_PULSE_RES)break;
-                if(signal_map.display_zoom[display_pos_zoom]<value)
+                if(display_pos_zoom>=DISPLAY_RES_ZOOM)break;
+                if(signal_map.display_zoom[display_pos_zoom][0]<value)
                 {
-                    signal_map.display_zoom[display_pos_zoom] = value;
+                    signal_map.display_zoom[display_pos_zoom][0] = value;
+                    signal_map.display_zoom[display_pos_zoom][1] = dopler;
 
-
+                }
+                if(signal_map.display_zoom[display_pos_zoom][2] < signal_map.sled[azi][r_pos])
+                {
+                    signal_map.display_zoom[display_pos_zoom][2] = signal_map.sled[azi][r_pos];
                 }
                 display_pos_zoom++;
                 if(display_pos_zoom>=display_pos_next_zoom)break;
@@ -501,6 +384,14 @@ void C_radar_data::drawAzi(short azi)
     //smooothing the image
     float k  = scale_ppi/2;
     //printf("\nviewScale:%f",viewScale);
+    for(short display_pos = 1;display_pos<DISPLAY_RES_ZOOM; display_pos++)
+    {
+        signal_map.display_zoom[display_pos][0] = signal_map.display_zoom[display_pos-1][0] + ((float)signal_map.display_zoom[display_pos][0]-(float)signal_map.display_zoom[display_pos-1][0])/2;
+        //signal_map.display_zoom[display_pos][1] = signal_map.display_zoom[display_pos-1][1] + ((float)signal_map.display_zoom[display_pos][1]-(float)signal_map.display_zoom[display_pos-1][1])/3;
+        drawSgnZoom(azi*3,display_pos);
+        drawSgnZoom(azi*3+1,display_pos);
+        drawSgnZoom(azi*3+2,display_pos);
+    }
     if(k<=2)
     {
         for(short display_pos = 1;display_pos<DISPLAY_RES;display_pos++)
@@ -513,13 +404,14 @@ void C_radar_data::drawAzi(short azi)
 
         }
 
+
     }
     else
     {
         for(short display_pos = 1;display_pos<DISPLAY_RES;display_pos++)
         {
             signal_map.display[display_pos][0] = signal_map.display[display_pos-1][0] + ((float)signal_map.display[display_pos][0]-(float)signal_map.display[display_pos-1][0])/k;
-            signal_map.display[display_pos][1] = signal_map.display[display_pos-1][1] + ((float)signal_map.display[display_pos][1]-(float)signal_map.display[display_pos-1][1])/k;
+            //signal_map.display[display_pos][1] = signal_map.display[display_pos-1][1] + ((float)signal_map.display[display_pos][1]-(float)signal_map.display[display_pos-1][1])/k;
                         drawSgn(azi*3,display_pos);
                         drawSgn(azi*3+1,display_pos);
                         drawSgn(azi*3+2,display_pos);
@@ -565,43 +457,7 @@ void C_radar_data::drawAzi(short azi)
 
 
 }
- void  C_radar_data::setSnLevel(unsigned short azi,unsigned  short range, unsigned char level)
- {/*
-     signal_map.frame[azi].raw_map[range].level = level;
-     signal_map.frame[azi].raw_map[range].displaylevel  = 0;
-     if(!xl_nguong)
-     {
-         signal_map.frame[azi].raw_map[range].displaylevel  = level;return;
-     }
-     if(range<4)
-     {
-         rainLevel = noiseAverage;
-     }
-     else
 
-        rainLevel = rainLevel+krain*(level-rainLevel);
-
-     unsigned short thresh = rainLevel+ noiseVar*kgain;
-     if(level>thresh)
-     {
-         signal_map.frame[azi].raw_map[range].displaylevel  = level;
-
-         //signal_map.frame[azi].raw_map[r_pos].terrain*=TERRAIN_GAIN;
-         //signal_map.frame[azi].raw_map[r_pos].terrain+=TERRAIN_GAIN_1;
-         // !!!!
-         //if(k_vet>0)signal_map.frame[azi].raw_map[r_pos].vet = 0xff;//(0xff-signal_map.frame[azi].raw_map[r_pos].vet)>>2;
-         //if(!dataOverflow)procPix(azi,r_pos);
-     }
-     else
-     {
-         signal_map.frame[azi].raw_map[range].displaylevel  = 0;
-
-         //signal_map.frame[azi].raw_map[r_pos].displaylevel     = 0;
-         //signal_map.frame[azi].raw_map[r_pos].terrain *= TERRAIN_GAIN;
-         //drawVet(azi,r_pos);
-     }
-     //drawSgn(azi,range);*/
- }
  void  C_radar_data::setDoplerLevel(unsigned short azi,unsigned  short range, unsigned char level)
  {/*
      signal_map.frame[azi].raw_map[range].dopler = level;
@@ -1066,38 +922,65 @@ void C_radar_data::polarToXY(float *x, float *y, float azi, float range)
     *x = ((sinf(azi)))*range;
     *y = ((cosf(azi)))*range;
 }
-short zoomX,zoomY,zoomW,zoomH;
+short zoomXmax,zoomYmax,zoomXmin,zoomYmin;
 short zoomCenterX=DISPLAY_RES,zoomCenterY=DISPLAY_RES;
-void C_radar_data::updateZoomRect()
+void C_radar_data::updateZoomRect(float ctx, float cty)
 {
-    zoomW = zoomH = ZOOM_SIZE;///scale_zoom;
-    zoomX = zoomCenterX-(zoomW/2)/scale_zoom;
-    zoomY = zoomCenterY -(zoomH/2)/scale_zoom;
+    ctx*=4/scale_ppi;
+    cty*=4/scale_ppi;
+    zoomXmax = ctx+ZOOM_SIZE/2;
+    zoomYmax = cty+ZOOM_SIZE/2;
+    zoomXmin = ctx-ZOOM_SIZE/2;
+    zoomYmin = cty-ZOOM_SIZE/2;
+    raw_map_init_zoom();
+
 }
 void C_radar_data::raw_map_init()
 {
-    img_ppi->fill(Qt::transparent);
-    img_alpha->fill(0);
     float theta=trueN;
     float dTheta = 2*PI/MAX_AZIR_DRAW;
     for(short azir = 0; azir < MAX_AZIR_DRAW; azir++)
 	{
-
 		float cost = cosf(theta);
 		float sint = sinf(theta);
-
         for(short range = 0;range<DISPLAY_RES;range++)
 		{
             signal_map.x[azir][range]     =  short(sint*(range+1))+DISPLAY_RES;
             signal_map.y[azir][range]    =  -short(cost*(range+1))+DISPLAY_RES;
             if(signal_map.x[azir][range]<0||signal_map.x[azir][range]>=img_ppi->width()||signal_map.y[azir][range]<0||signal_map.y[azir][range]>=img_ppi->height())
             {
-                signal_map.x[azir][range] = -1;
-                signal_map.y[azir][range] = -1;
+                signal_map.x[azir][range] = 0;
+                signal_map.y[azir][range] = 0;
             }
-		}
+        }
 		theta+=dTheta;
 	}
+}
+void C_radar_data::raw_map_init_zoom()
+{
+    img_zoom_ppi->fill(Qt::black);
+    float theta=trueN;
+    float dTheta = 2*PI/MAX_AZIR_DRAW;
+    for(short azir = 0; azir < MAX_AZIR_DRAW; azir++)
+    {
+
+        float cost = cosf(theta);
+        float sint = sinf(theta);
+        for(short range = 0;range<DISPLAY_RES_ZOOM;range++)
+        {
+            signal_map.xzoom[azir][range]     =  short(sint*(range+1)) - zoomXmin;
+            signal_map.yzoom[azir][range]    =  -short(cost*(range+1)) - zoomYmin;
+            if(signal_map.xzoom[azir][range]<0||
+                    signal_map.yzoom[azir][range]<0||
+                    signal_map.xzoom[azir][range]>ZOOM_SIZE||
+                    signal_map.yzoom[azir][range]>ZOOM_SIZE)
+            {
+                signal_map.xzoom[azir][range] = 0;
+                signal_map.yzoom[azir][range] = 0;
+            }
+        }
+        theta+=dTheta;
+    }
 }
 void C_radar_data::resetData()
 {
@@ -1127,12 +1010,10 @@ void C_radar_data::setScalePPI(float scale)
     {
     case 0:
         sn_scale = SIGNAL_SCALE_0;
-
         break;
     case 1:
         sn_scale = SIGNAL_SCALE_1;//printf("1");
         break;
-
     case 2:
         sn_scale = SIGNAL_SCALE_2;//printf("2");
         break;
@@ -1149,7 +1030,7 @@ void C_radar_data::setScalePPI(float scale)
         sn_scale = SIGNAL_SCALE_0;
     }
     scale_ppi = sn_scale*scale;
-    updateZoomRect();
+    //updateZoomRect();
 }
 void C_radar_data::setScaleZoom(float scale)
 {
@@ -1163,7 +1044,6 @@ void C_radar_data::setScaleZoom(float scale)
     case 1:
         sn_scale = SIGNAL_SCALE_1;//printf("1");
         break;
-
     case 2:
         sn_scale = SIGNAL_SCALE_2;//printf("2");
         break;
@@ -1181,17 +1061,158 @@ void C_radar_data::setScaleZoom(float scale)
     }
     sn_scale = SIGNAL_SCALE_0;
     scale_zoom = sn_scale*scale/scale_ppi;
-    updateZoomRect();
+    //updateZoomRect();
 }
 
-void C_radar_data::DrawZoom(short azi_draw, short r_pos)
+void C_radar_data::drawSgnZoom(short azi_draw, short r_pos)
 {
-//    x = (x-zoomX)*scale_zoom;
-//    y = (y-zoomY)*scale_zoom;
-//    if(x<0||y<0||x>zoomW||y>zoomH)return;
-//    uint color = val<<24|0xff<<16|0xff<<8;
-//    img_zoom_ppi->setPixel(x,y,color);
-//    img_zoom_ppi->setPixel(x,y,color);
+    unsigned char value    = signal_map.display_zoom[r_pos][0];
+    unsigned char dopler    = signal_map.display_zoom[r_pos][1];
+    unsigned char sled     = signal_map.display_zoom[r_pos][2];
+
+    short px = signal_map.xzoom[azi_draw][r_pos];
+    short py = signal_map.yzoom[azi_draw][r_pos];
+    if(px<=0||py<=0)return;
+    short pSize = 1;
+
+    //if(pSize>2)pSize = 2;
+    if((px<pSize)||(py<pSize)||(px>=img_zoom_ppi->width()-pSize)||(py>=img_zoom_ppi->height()-pSize))return;
+    for(short x = -pSize;x <= pSize;x++)
+    {
+        for(short y = -pSize;y <= pSize;y++)
+        {
+            float k ;
+            switch(short(x*x+y*y))
+            {
+            case 0:
+                k=1;
+                break;
+            case 1:
+                if(signal_map.display_mask_zoom[px+x][py+y])k=0.95f;
+                else k=1;
+                break;
+            case 2:
+                if(signal_map.display_mask_zoom[px+x][py+y])k=0.7f;
+                else k=1;
+
+            default:
+                if(signal_map.display_mask_zoom[px+x][py+y])continue;
+                k=0.7f;
+                break;
+            }
+            unsigned char pvalue = value*k;
+            if( signal_map.display_mask_zoom[px+x][py+y] <= pvalue)
+            {
+                signal_map.display_mask_zoom[px+x][py+y] = pvalue;
+                img_zoom_ppi->setPixel(px+x,py+y,getColor(pvalue,dopler,sled));
+                //DrawZoom(px,py,pvalue);
+            }
+        }
+    }
+
+}
+uint C_radar_data::getColor(unsigned char pvalue,unsigned char dopler,unsigned char psled)
+{
+
+    unsigned short value = ((unsigned short)pvalue)*brightness;
+
+    if(value>0xff)
+    {
+        value = 0xff;
+    }
+    unsigned short sled = psled*brightness*4;
+    if(sled>0xff)
+    {
+        sled = 0xff;
+    }
+    unsigned char alpha;
+    unsigned char red   = 0;
+    unsigned char green = 0;
+    unsigned char blue  = 0;
+    unsigned char gradation = value<<2;
+    uint color;
+    switch(imgMode)
+    {
+    case DOPLER_3_COLOR:
+        if(dopler==0||dopler==1||dopler==15)
+        {
+
+            color = 0xffff00;
+        }else
+            if(dopler==2||dopler==3||dopler==13||dopler==14)
+            {
+                color = 0x00ff00;
+            }
+            else if(dopler==4||dopler==5||dopler==11||dopler==12)
+            {
+                color = 0x00ffff;
+            }
+            else
+            {
+                color = 0x00ffff;
+            }
+        alpha = 0xff - ((0xff - value)*0.75);
+        color = color|(alpha<<24);
+        break;
+    case DOPLER_4_COLOR:
+        if(dopler==0||dopler==1||dopler==15)
+        {
+            color = 0xffff00;
+        }else
+            if(dopler==2||dopler==3||dopler==13||dopler==14)
+            {
+                color = 0x00ff7f;
+            }
+            else if(dopler==4||dopler==5||dopler==11||dopler==12)
+            {
+                color = 0x007fff;
+            }
+            else
+            {
+                color = 0x0000ff;
+            }
+        alpha = 0xff - ((0xff - value)*0.75);
+        color = color|(alpha<<24);
+        break;
+    case VALUE_ORANGE_BLUE:
+        alpha = 0xff - ((0xff - value)*0.75);
+        //pvalue-=(pvalue/10);
+        switch(value>>6)
+        {
+        case 3:
+            red = 0xff;
+            green = 0xff - gradation;
+            break;
+        case 2:
+            red = gradation;
+            green = 0xff;
+            break;
+        case 1:
+            green = 0xff ;
+            blue = 0xff - gradation;
+            break;
+        case 0:
+            green = gradation ;
+            blue = 0xff;
+            break;
+        }
+        color = (alpha<<24)|(red<<16)|(green<<8)|blue;
+        break;
+    case VALUE_YELLOW_SHADES:
+        if(pvalue>1)
+        {
+        alpha = value;//0xff - ((0xff - pvalue)*0.75);
+        color = (value<<24)|(0xff<<16)|(0xff<<8);
+        }
+        else
+        {
+            color = (sled<<24)|(0xff);
+        }
+        break;
+    default:
+        break;
+    }
+    return color;
 }
 void C_radar_data::resetTrack()
 {

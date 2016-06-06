@@ -214,6 +214,8 @@ private slots:
 
     void on_comboBox_code_type_currentIndexChanged(int index);
 
+    void on_toolButton_centerZoom_clicked();
+
 private:
     void initActionsConnections();
 };

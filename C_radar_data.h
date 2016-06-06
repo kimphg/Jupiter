@@ -33,7 +33,8 @@
 #define TARGET_MIN_SPEED      3
 #define TARGET_MAX_SPEED      50
 #define ZOOM_SIZE           550
-#define ZOOM_SCALE          3
+#define DISPLAY_RES_ZOOM            4096
+#define DISPLAY_SCALE_ZOOM           4
 #include <vector>
 #include <math.h>
 #include <QImage>
@@ -69,12 +70,13 @@ typedef struct  {
     unsigned char level_s [MAX_AZIR][RAD_S_PULSE_RES];
     unsigned char dopler_s[MAX_AZIR][RAD_S_PULSE_RES];
     unsigned char display [DISPLAY_RES][3];//0 - signal, 1- dopler, 2 - sled;
-    unsigned char display_zoom [RAD_M_PULSE_RES*ZOOM_SCALE];
+    unsigned char display_zoom [DISPLAY_RES_ZOOM][3];
     unsigned char display_mask [DISPLAY_RES*2+1][DISPLAY_RES*2+1];
+    unsigned char display_mask_zoom [DISPLAY_RES_ZOOM*2+1][DISPLAY_RES_ZOOM*2+1];
     short x[MAX_AZIR_DRAW][DISPLAY_RES+1];
     short y[MAX_AZIR_DRAW][DISPLAY_RES+1];
-    short xzoom[MAX_AZIR_DRAW][DISPLAY_RES+1];
-    short yzoom[MAX_AZIR_DRAW][DISPLAY_RES+1];
+    short xzoom[MAX_AZIR_DRAW][DISPLAY_RES_ZOOM];
+    short yzoom[MAX_AZIR_DRAW][DISPLAY_RES_ZOOM];
 } signal_map_t;
 
 typedef struct  {
@@ -385,7 +387,7 @@ public:
     unsigned char           size_thresh,overload, terrain_init_time, clk_adc;
     float                   scale_ppi,scale_zoom;
 
-    void                    updateZoomRect();
+    void                    updateZoomRect(float ctx, float cty);
     unsigned short          sn_stat;
     bool                    avtodetect,xl_nguong,isClkAdcChanged;
     float                   krain,kgain,ksea,brightness;
@@ -405,10 +407,11 @@ public:
     void        ProcessDataFrame();
     void        GetData(unsigned short azi);
     void        raw_map_init();
+    void        raw_map_init_zoom();
     void        drawAzi(short azi);
     void        drawBlackAzi(short azi_draw);
     void        DrawZoom(short azi_draw, short r_pos);
-    void        blackLine(short x0, short y0, short x1, short y1);
+//    void        blackLine(short x0, short y0, short x1, short y1);
     void        addTrackManual(float x, float y);
     void        addTrack(float azi, float range, short state);
     void        getPolar(float x,float y,float *azi,float *range);
@@ -438,10 +441,11 @@ public:
         }
     void resetTrack();
 private:
-    void        setSnLevel(unsigned short azi, unsigned  short range, unsigned char level);
+
     void        setDoplerLevel(unsigned short azi, unsigned  short range, unsigned char level);
-    void        drawVet(short azi, short r_pos);
+    uint        getColor(unsigned char pvalue, unsigned char dopler, unsigned char psled);
     void        drawSgn(short azi_draw, short r_pos);
+    void        drawSgnZoom(short azi_draw, short r_pos);
     //void        drawZero(short azi, short r_pos);
     //void        fadeSignPix(short px, short py);
     unsigned char command_feedback[8];
