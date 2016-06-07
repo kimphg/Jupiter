@@ -1005,33 +1005,6 @@
        <property name="currentIndex">
         <number>0</number>
        </property>
-       <widget class="QWidget" name="page">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>235</width>
-          <height>126</height>
-         </rect>
-        </property>
-        <attribute name="label">
-         <string>La bàn điện</string>
-        </attribute>
-        <layout class="QGridLayout" name="gridLayout_2"/>
-       </widget>
-       <widget class="QWidget" name="page_2">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>235</width>
-          <height>126</height>
-         </rect>
-        </property>
-        <attribute name="label">
-         <string>Hành trình</string>
-        </attribute>
-       </widget>
        <widget class="QWidget" name="GPS">
         <property name="geometry">
          <rect>
@@ -1133,6 +1106,33 @@
           </widget>
          </item>
         </layout>
+       </widget>
+       <widget class="QWidget" name="page">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>235</width>
+          <height>126</height>
+         </rect>
+        </property>
+        <attribute name="label">
+         <string>La bàn điện</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_2"/>
+       </widget>
+       <widget class="QWidget" name="page_2">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>100</width>
+          <height>30</height>
+         </rect>
+        </property>
+        <attribute name="label">
+         <string>Hành trình</string>
+        </attribute>
        </widget>
       </widget>
      </item>
@@ -19278,6 +19278,27 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QCustomButton" name="toolButton_centerZoom">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Lấy tâm zoom</string>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
    <widget class="QCustomGroupBox" name="groupBox_10">
@@ -23530,33 +23551,6 @@
      <attribute name="title">
       <string>PPI</string>
      </attribute>
-     <widget class="QCustomButton" name="toolButton_centerZoom">
-      <property name="geometry">
-       <rect>
-        <x>390</x>
-        <y>10</y>
-        <width>131</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>12</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Lấy tâm HT</string>
-      </property>
-      <property name="checkable">
-       <bool>false</bool>
-      </property>
-     </widget>
     </widget>
    </widget>
   </widget>

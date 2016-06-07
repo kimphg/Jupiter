@@ -186,7 +186,7 @@ void C_radar_data::drawAzi(short azi)
     drawBlackAzi(prev_azi*3+2);
     //reset the drawing ray
     memset(&signal_map.display[0][0],0,DISPLAY_RES*3);
-    memset(&signal_map.display_zoom[0][0],0,DISPLAY_RES_ZOOM*3);
+    //memset(&signal_map.display_zoom[0][0],0,DISPLAY_RES_ZOOM*3);
     //set data to the drawing ray
     unsigned short thresh = 0;
     unsigned short  lastDisplayPos =0;
@@ -356,9 +356,9 @@ void C_radar_data::drawAzi(short azi)
             for(;;)
             {
                 if(display_pos_zoom>=DISPLAY_RES_ZOOM)break;
-                if(signal_map.display_zoom[display_pos_zoom][0]<value)
+                if(true)
                 {
-                    signal_map.display_zoom[display_pos_zoom][0] = value;
+                    signal_map.display_zoom[display_pos_zoom][0] += (value-signal_map.display_zoom[display_pos_zoom][0])/1.4;
                     signal_map.display_zoom[display_pos_zoom][1] = dopler;
 
                 }

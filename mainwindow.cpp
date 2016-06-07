@@ -203,6 +203,7 @@ void Mainwindow::mouseReleaseEvent(QMouseEvent *event)
 //        isScreenUp2Date = false;
 //        return;
 //    }
+    processing->radarData->updateZoomRect(mousePointerX - scrCtX+dx,mousePointerY - scrCtY+dy);
     DrawMap();
     isScreenUp2Date = false;
     isDraging = false;
