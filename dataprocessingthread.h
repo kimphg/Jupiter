@@ -1,6 +1,7 @@
 #ifndef DATAPROCESSINGTHREAD_H
 #define DATAPROCESSINGTHREAD_H
 #include <QThread>
+
 #include "C_radar_data.h"
 #include "c_arpa_data.h"
 #include <vector>

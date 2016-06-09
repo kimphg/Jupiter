@@ -15,10 +15,10 @@ static QPixmap              *pMap=NULL;
 //static QImage               *sgn_img = new QImage(RADAR_MAX_RESOLUTION*2,RADAR_MAX_RESOLUTION*2,QImage::Format_RGB32);
 dataProcessingThread *processing;
 static Q_vnmap              vnmap;
-QTimer*                     scrUpdateTimer ;
+QTimer*                     scrUpdateTimer,*readBuffTimer ;
 QTimer*                     syncTimer1s ;
 QTimer*                     dataPlaybackTimer ;
-QThread*                    t ;
+QThread*                    t,*t1 ;
 bool displayAlpha = false;
 //static short                currMaxRange = RADAR_MAX_RESOLUTION;
 static short                currMaxAzi = MAX_AZIR,currMinAzi = 0;
@@ -1180,7 +1180,7 @@ void Mainwindow::setScaleNM(unsigned short rangeNM)
 }
 void Mainwindow::UpdateRadarData()
 {
-    processing->ReadDataBuffer();
+
     //SendCommandControl();
     if(!isSettingUp2Date)
     {
@@ -1222,28 +1222,41 @@ void Mainwindow::UpdateRadarData()
     }
     ui->tableTargetList->setModel(model);*/
 }
+void Mainwindow::readBuffer()
+{
+    processing->ReadDataBuffer();
+}
 void Mainwindow::InitTimer()
 {
     scrUpdateTimer = new QTimer();
     syncTimer1s = new QTimer();
+    readBuffTimer = new QTimer();
     dataPlaybackTimer = new QTimer();
     t = new QThread();
+    t1 = new QThread();
 //    connect(fullScreenTimer, SIGNAL(timeout()), this, SLOT(UpdateSetting()));
 //    fullScreenTimer->setSingleShot(true);
 //    fullScreenTimer->start(1000);
     connect(syncTimer1s, SIGNAL(timeout()), this, SLOT(sync1()));
     syncTimer1s->start(1000);
     syncTimer1s->moveToThread(t);
+    //
+    connect(readBuffTimer,SIGNAL(timeout()),this,SLOT(readBuffer()));
+    readBuffTimer->start(50);
+    readBuffTimer->moveToThread(t1);
+    //
     connect(scrUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadarData()));
-    //scrUpdateTimer->moveToThread(t);
-    scrUpdateTimer->start(25);//ENVDEP
+
+    scrUpdateTimer->start(30);//ENVDEP
+    scrUpdateTimer->moveToThread(t);
     processing = new dataProcessingThread();
-    processing->start(QThread::TimeCriticalPriority);
+    processing->start();
     connect(this,SIGNAL(destroyed()),processing,SLOT(deleteLater()));
     connect(dataPlaybackTimer,SIGNAL(timeout()),processing,SLOT(playbackRadarData()));
     //dataPlaybackTimer->moveToThread(t);
     connect(t,SIGNAL(finished()),t,SLOT(deleteLater()));
-    t->start();
+    t->start(QThread::TimeCriticalPriority);
+    t1->start(QThread::TimeCriticalPriority);
 }
 void Mainwindow::InitNetwork()
 {
@@ -2093,10 +2106,10 @@ void Mainwindow::on_toolButton_exit_clicked()
     on_actionExit_triggered();
 }
 
-void Mainwindow::on_toolButton_setting_clicked()
-{
-    this->on_actionSetting_triggered();
-}
+//void Mainwindow::on_toolButton_setting_clicked()
+//{
+//    this->on_actionSetting_triggered();
+//}
 
 void Mainwindow::on_toolButton_scan_clicked()
 {

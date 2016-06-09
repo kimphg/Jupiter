@@ -572,9 +572,9 @@ void C_radar_data::redrawImg()
         drawnazi++;
         if(drawnazi>=MAX_AZIR)drawnazi=0;
         drawAzi(drawnazi);
-        if(!((unsigned char)(drawnazi<<4))){
-            procTracks(drawnazi);
-        }
+        //if(!((unsigned char)(drawnazi<<4))){
+        //    procTracks(drawnazi);
+        //}
         if(drawnazi==0)getNoiseLevel();
     }
 }

@@ -105,6 +105,7 @@ private:
 public:
     void setScaleNM(unsigned short rangeNM);
 private slots:
+    void readBuffer();
     void sync1();
     void ExitProgram();
     void gpsOption();
@@ -159,7 +160,7 @@ private slots:
 
     void on_toolButton_exit_clicked();
 
-    void on_toolButton_setting_clicked();
+    //void on_toolButton_setting_clicked();
 
     void on_toolButton_scan_clicked();
 

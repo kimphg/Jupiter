@@ -1,10 +1,11 @@
 #include "dataprocessingthread.h"
-#define MAX_IREC 3000
+#define MAX_IREC 1000
 
 DataBuff dataB[MAX_IREC];
-short iRec,iRead;
+short iRec=0,iRead=0;
 bool *pIsDrawn;
 bool *pIsPlaying;
+//QTimer readDataBuff;
 dataProcessingThread::~dataProcessingThread()
 {
     delete radarData;
@@ -42,6 +43,9 @@ dataProcessingThread::dataProcessingThread()
     isPlaying = false;
     radarDataSocket = new QUdpSocket(this);
     radarDataSocket->bind(5000, QUdpSocket::ShareAddress);
+
+//    connect(&readDataBuff, SIGNAL(timeout()), this, SLOT(ReadDataBuffer()));
+//    readDataBuff.start(10);
 //   arpaData = new C_ARPA_data();
 //   isRecording = false;
 //   radarData = new C_radar_data();
