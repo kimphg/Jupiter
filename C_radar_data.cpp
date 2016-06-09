@@ -144,7 +144,9 @@ void C_radar_data::drawBlackAzi(short azi_draw)
 
         short px = signal_map.x[azi_draw][r_pos];
         short py = signal_map.y[azi_draw][r_pos];
+        if(px<0||py<0)continue;
         short pSize = 1;
+
         if((px<pSize)||(py<pSize)||(px>=img_ppi->width()-pSize)||(py>=img_ppi->height()-pSize))continue;
 
         for(short x = -pSize;x <= pSize;x++)
@@ -161,6 +163,7 @@ void C_radar_data::drawBlackAzi(short azi_draw)
 
         short px = signal_map.xzoom[azi_draw][r_pos];
         short py = signal_map.yzoom[azi_draw][r_pos];
+        if(px<0||py<0)continue;
         short pSize = 1;
         if((px<pSize)||(py<pSize)||(px>=img_zoom_ppi->width()-pSize)||(py>=img_zoom_ppi->height()-pSize))continue;
 
@@ -185,7 +188,7 @@ void C_radar_data::drawAzi(short azi)
     drawBlackAzi(prev_azi*3+1);
     drawBlackAzi(prev_azi*3+2);
     //reset the drawing ray
-    //memset(&signal_map.display[0][0],0,DISPLAY_RES*3);
+    memset(&signal_map.display[0][0],0,DISPLAY_RES*3);
     //memset(&signal_map.display_zoom[0][0],0,DISPLAY_RES_ZOOM*3);
     //set data to the drawing ray
     unsigned short thresh = 0;
