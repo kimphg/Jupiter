@@ -1,5 +1,5 @@
 #include "dataprocessingthread.h"
-#define MAX_IREC 5000
+#define MAX_IREC 3000
 
 DataBuff dataB[MAX_IREC];
 short iRec,iRead;
@@ -12,7 +12,6 @@ dataProcessingThread::~dataProcessingThread()
 }
 void dataProcessingThread::ReadDataBuffer()
 {
-    //short nread = 0;
     while(iRec!=iRead)
     {
         //nread++;
@@ -20,15 +19,13 @@ void dataProcessingThread::ReadDataBuffer()
         radarData->GetDataHR(&dataBuff[iRead].data[0],dataBuff[iRead].len);
         if(isRecording)
         {
-            signRecFile.write((char*)&dataBuff[iRec].len,2);
-            signRecFile.write((char*)&dataBuff[iRec].data[0],dataBuff[iRec].len);
+            signRecFile.write((char*)&dataBuff[iRead].len,2);
+            signRecFile.write((char*)&dataBuff[iRead].data[0],dataBuff[iRead].len);
 
         }
         iRead++;
         if(iRead>=MAX_IREC)iRead=0;
     }
-    //printf("\nnread:%d",nread);
-
 }
 dataProcessingThread::dataProcessingThread()
 {
@@ -163,10 +160,10 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
 //    strftime( timestr, sizeof timestr, "%H:%M:%S", &ltime);
 
     if(*pIsPlaying)return;
-    if(header->len<=42)return;
+    if(header->len<=500)return;
     if(((*(pkt_data+36)<<8)|(*(pkt_data+37)))!=HR2D_UDP_PORT)
     {
-        printf("\nport:%d",((*(pkt_data+36)<<8)|(*(pkt_data+37))));
+        //printf("\nport:%d",((*(pkt_data+36)<<8)|(*(pkt_data+37))));
         return;
     }
     dataB[iRec].len = header->len - UDP_HEADER_LEN;
@@ -174,7 +171,7 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
     iRec++;
     if(iRec>=MAX_IREC)iRec = 0;
     *pIsDrawn = false;
-    printf("nhan duoc:%x\n",dataB[iRec].data[0]);
+    //printf("nhan duoc:%x\n",dataB[iRec].data[0]);
 
     return;
     printf("len:%d\n", header->len);

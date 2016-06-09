@@ -185,7 +185,7 @@ void C_radar_data::drawAzi(short azi)
     drawBlackAzi(prev_azi*3+1);
     drawBlackAzi(prev_azi*3+2);
     //reset the drawing ray
-    memset(&signal_map.display[0][0],0,DISPLAY_RES*3);
+    //memset(&signal_map.display[0][0],0,DISPLAY_RES*3);
     //memset(&signal_map.display_zoom[0][0],0,DISPLAY_RES_ZOOM*3);
     //set data to the drawing ray
     unsigned short thresh = 0;
@@ -472,8 +472,6 @@ unsigned char curFrameId;
 unsigned char dataBuff[RADAR_DATA_HEADER + RADAR_DATA_MAX_SIZE];
 void C_radar_data::GetData(unsigned short azi)
 {
-    //return;//!!!!
-    //unsigned short r_pos;
     unsigned short i = RADAR_DATA_HEADER;
 
     memcpy(&signal_map.level_m[azi][0],&dataBuff[i],range_max);
@@ -504,13 +502,8 @@ void C_radar_data::ProcessDataFrame()
 {
 
     short azi = (0xfff & (dataBuff[4] << 8 | dataBuff[5]))/2;
-//    testAzi = (0xfff & (dataBuff[4] << 8 | dataBuff[5]));
-//    if(oldAzi!=testAzi-1)
-//    {
-//        printf("\nMat PV:%d\n",testAzi);
-//    }
-//    oldAzi = testAzi;
-    //if(azi==curAzir)return;
+
+    if(azi==curAzir)return;
     //printf("azi:%d\n",azi);
     rotation_speed = dataBuff[1];
     overload = dataBuff[4]>>7;
