@@ -311,7 +311,7 @@ void C_radar_data::drawAzi(short azi)
 
             }
             //get value of the track
-            signal_map.sled[azi][r_pos]+= (value - signal_map.sled[azi][r_pos])/4.0f;
+            signal_map.sled[azi][r_pos]+= (value - signal_map.sled[azi][r_pos])/10.0f;
             //display alpha graph
             if(isDisplayAlpha)
             {
@@ -365,7 +365,7 @@ void C_radar_data::drawAzi(short azi)
                     signal_map.display_zoom[display_pos_zoom][1] = dopler;
 
                 }
-                if(signal_map.display_zoom[display_pos_zoom][2] < signal_map.sled[azi][r_pos])
+                if(true)//signal_map.display_zoom[display_pos_zoom][2] < signal_map.sled[azi][r_pos])
                 {
                     signal_map.display_zoom[display_pos_zoom][2] = signal_map.sled[azi][r_pos];
                 }
