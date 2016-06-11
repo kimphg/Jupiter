@@ -68,7 +68,7 @@ void dataProcessingThread::playbackRadarData()
         if(!signRepFile.isOpen())return;
         for(unsigned short i=0;i<playRate;i++)
         {
-            QMutexLocker locker(&mutex);
+            //QMutexLocker locker(&mutex);
 
             if(!signRepFile.read((char*)&len,2))
             {

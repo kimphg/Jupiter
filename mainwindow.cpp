@@ -2173,10 +2173,10 @@ void Mainwindow::on_toolButton_replay_fast_toggled(bool checked)
 {
     if(checked)
     {
-        processing->playRate = 40;
+        processing->playRate = 300;
     }else
     {
-        processing->playRate = 15;
+        processing->playRate = 80;
     }
 }
 
@@ -2348,4 +2348,14 @@ void Mainwindow::on_comboBox_code_type_currentIndexChanged(int index)
 void Mainwindow::on_toolButton_centerZoom_clicked()
 {
     processing->radarData->updateZoomRect(mousePointerX - scrCtX+dx,mousePointerY - scrCtY+dy);
+}
+
+void Mainwindow::on_toolButton_xl_dopler_clicked()
+{
+
+}
+
+void Mainwindow::on_toolButton_xl_dopler_toggled(bool checked)
+{
+    processing->radarData->xl_dopler = checked;
 }

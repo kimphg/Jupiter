@@ -217,6 +217,10 @@ private slots:
 
     void on_toolButton_centerZoom_clicked();
 
+    void on_toolButton_xl_dopler_clicked();
+
+    void on_toolButton_xl_dopler_toggled(bool checked);
+
 private:
     void initActionsConnections();
 };

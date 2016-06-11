@@ -64,13 +64,18 @@ typedef struct {
 }frame_t;
 */
 typedef struct  {
-    unsigned char level_m [MAX_AZIR][RAD_M_PULSE_RES];
+    unsigned char level [MAX_AZIR][RAD_M_PULSE_RES];
+    unsigned char level_disp [MAX_AZIR][RAD_M_PULSE_RES];
+    unsigned char dopler[MAX_AZIR][RAD_M_PULSE_RES];
+    unsigned char dopler_old[MAX_AZIR][RAD_M_PULSE_RES];
     unsigned char sled[MAX_AZIR][RAD_M_PULSE_RES];
-    unsigned char dopler_m[MAX_AZIR][RAD_M_PULSE_RES];
-    unsigned char level_s [MAX_AZIR][RAD_S_PULSE_RES];
-    unsigned char dopler_s[MAX_AZIR][RAD_S_PULSE_RES];
-    unsigned char display [DISPLAY_RES][3];//0 - signal, 1- dopler, 2 - sled;
-    unsigned char display_zoom [DISPLAY_RES_ZOOM][3];
+    unsigned char hot[MAX_AZIR][RAD_M_PULSE_RES];
+
+    //unsigned char level_s [MAX_AZIR][RAD_S_PULSE_RES];
+    //unsigned char dopler_s[MAX_AZIR][RAD_S_PULSE_RES];
+    //unsigned char doplerVar[RAD_M_PULSE_RES];
+    unsigned char display_ray [DISPLAY_RES][3];//0 - signal, 1- dopler, 2 - sled;
+    unsigned char display_ray_zoom [DISPLAY_RES_ZOOM][3];
     unsigned char display_mask [DISPLAY_RES*2+1][DISPLAY_RES*2+1];
     unsigned char display_mask_zoom [DISPLAY_RES_ZOOM*2+1][DISPLAY_RES_ZOOM*2+1];
     short x[MAX_AZIR_DRAW][DISPLAY_RES+1];
@@ -389,7 +394,7 @@ public:
 
     void                    updateZoomRect(float ctx, float cty);
     unsigned short          sn_stat;
-    bool                    avtodetect,xl_nguong,isClkAdcChanged;
+    bool                    avtodetect,xl_nguong,isClkAdcChanged,xl_dopler;
     float                   krain,kgain,ksea,brightness;
     float                   temp;
     float                   trueN;
@@ -405,7 +410,7 @@ public:
     void        GetDataHR(unsigned char *data, unsigned short dataLen);
     void        redrawImg();
     void        ProcessDataFrame();
-    void        GetData(unsigned short azi);
+    void        ProcessData(unsigned short azi);
     void        raw_map_init();
     void        raw_map_init_zoom();
     void        drawAzi(short azi);
@@ -443,7 +448,7 @@ public:
 private:
 
     void        setDoplerLevel(unsigned short azi, unsigned  short range, unsigned char level);
-    uint        getColor(unsigned char pvalue, unsigned char dopler, unsigned char psled);
+    uint        getColor(unsigned char pvalue, unsigned char dopler, unsigned char sled);
     void        drawSgn(short azi_draw, short r_pos);
     void        drawSgnZoom(short azi_draw, short r_pos);
     //void        drawZero(short azi, short r_pos);

@@ -31,7 +31,7 @@ public:
     bool isDrawn;
     bool isRunning;
     QMutex  mutex;
-    char    playRate;
+    unsigned short    playRate;
     DataBuff*   dataBuff;
     float   k_vet;
     void SetRadarPort( unsigned short portNumber);
