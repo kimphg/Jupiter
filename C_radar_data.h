@@ -68,6 +68,7 @@ typedef struct  {
     unsigned char level_disp [MAX_AZIR][RAD_M_PULSE_RES];
     unsigned char dopler[MAX_AZIR][RAD_M_PULSE_RES];
     unsigned char dopler_old[MAX_AZIR][RAD_M_PULSE_RES];
+    unsigned char dopler_old2[MAX_AZIR][RAD_M_PULSE_RES];
     unsigned char sled[MAX_AZIR][RAD_M_PULSE_RES];
     unsigned char hot[MAX_AZIR][RAD_M_PULSE_RES];
 
@@ -375,9 +376,7 @@ enum imgDrawMode
 {
     VALUE_ORANGE_BLUE = 0,
     VALUE_YELLOW_SHADES = 1,
-    VALUE_ORANGE_CYAN = 2,
-    DOPLER_3_COLOR = 3,
-    DOPLER_4_COLOR = 4
+    DOPLER_3_COLOR = 2,
 };
 enum DataOverLay { m_only, s_m_200, s_m_150 , max_s_m_200, max_s_m_150};
 class C_radar_data {
@@ -394,8 +393,25 @@ public:
 
     void                    updateZoomRect(float ctx, float cty);
     unsigned short          sn_stat;
-    bool                    avtodetect,xl_nguong,isClkAdcChanged,xl_dopler;
+    bool                    avtodetect,isClkAdcChanged,xl_dopler,cut_thresh;
+    bool                    filter,rgs_auto;
     float                   krain,kgain,ksea,brightness;
+    float                   krain_auto,kgain_auto,ksea_auto;
+    void setAutorgs( bool aut)
+    {
+        if(aut)
+        {
+            rgs_auto = true;
+            krain_auto = 0.5;
+            kgain_auto  = 3;
+            ksea_auto = 0;
+
+        }else
+        {
+            rgs_auto = false;
+        }
+
+    }
     float                   temp;
     float                   trueN;
     DataOverLay             dataOver;

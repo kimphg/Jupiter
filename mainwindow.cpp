@@ -2160,7 +2160,7 @@ void Mainwindow::on_toolButton_scan_toggled(bool checked)
 
 void Mainwindow::on_toolButton_xl_nguong_toggled(bool checked)
 {
-    processing->radarData->xl_nguong = checked;
+    processing->radarData->setAutorgs(checked);
 }
 
 void Mainwindow::on_toolButton_replay_toggled(bool checked)
@@ -2358,4 +2358,22 @@ void Mainwindow::on_toolButton_xl_dopler_clicked()
 void Mainwindow::on_toolButton_xl_dopler_toggled(bool checked)
 {
     processing->radarData->xl_dopler = checked;
+}
+
+
+void Mainwindow::on_toolButton_xl_nguong_3_toggled(bool checked)
+{
+    processing->radarData->cut_thresh = checked;
+}
+
+void Mainwindow::on_groupBox_3_currentChanged(int index)
+{
+    if(index==1)
+    {
+        processing->radarData->filter = true;
+    }
+    else
+    {
+        processing->radarData->filter = false;
+    }
 }

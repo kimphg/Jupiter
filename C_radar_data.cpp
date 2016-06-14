@@ -16,8 +16,10 @@ C_radar_data::C_radar_data()
     size_thresh = 4;
     isProcessing = true;
     imgMode = VALUE_ORANGE_BLUE;
-    xl_nguong = false;
+    filter = false;
+    rgs_auto = false;
     xl_dopler = false;
+    cut_thresh = false;
     clk_adc = 0;
     noiseAverage = 0;
     noiseVar = 0;
@@ -206,17 +208,9 @@ void C_radar_data::drawAzi(short azi)
             //display alpha graph
             if(isDisplayAlpha)
             {
-                if(imgMode==DOPLER_3_COLOR||imgMode==DOPLER_4_COLOR)
+                for(short i=255;i>255 - value;i--)
                 {
-                    for(short i=255;i>255-(dopler<<4);i--)
-                    {img_alpha->setPixel(r_pos,i,1);}
-                }else
-                {   //memset(img_alpha->bits()+r_pos*img_alpha->width()/8-value/8,1,value);
-                    for(short i=255;i>255 - value;i--)
-                    {
-                        img_alpha->setPixel(r_pos,i,1);
-                    }
-
+                    img_alpha->setPixel(r_pos,i,1);
                 }
             }
             //zoom to view scale
@@ -366,7 +360,7 @@ void C_radar_data::ProcessData(unsigned short azi)
     short i_s  = i_m+range_max;
     short i_md = i_s+RAD_S_PULSE_RES;
     short i_sd = i_md+range_max/2;
-    for (short r_pos = 0;r_pos<range_max-1;r_pos++)
+    for (short r_pos = 0;r_pos<range_max;r_pos++)
     {
 
             //unsigned short value,dopler, doplerVar=0;
@@ -413,92 +407,115 @@ void C_radar_data::ProcessData(unsigned short azi)
                 signal_map.level[azi][r_pos] = dataBuff[i_m+r_pos];
                 signal_map.dopler[azi][r_pos] = dataBuff[i_md+r_pos/2];
             }
+            //unzip the dopler data
+            if(r_pos&0x01)
+            {
+
+                signal_map.dopler[azi][r_pos] = 0x0f&signal_map.dopler[azi][r_pos];
+
+            }
+            else
+            {
+                signal_map.dopler[azi][r_pos] = signal_map.dopler[azi][r_pos]>>4;
+            }
     }
     for(short r_pos=0;r_pos<range_max;r_pos++)
     {
-        //unzip the dopler data
-        if(r_pos&0x01)
+        if(filter)
         {
-
-            signal_map.dopler[azi][r_pos] = 0x0f&signal_map.dopler[azi][r_pos];
-        }
-        else
-        {
-            signal_map.dopler[azi][r_pos] = signal_map.dopler[azi][r_pos]>>4;
-        }
-        // apply the  threshholding algorithm
-        bool cutoff = false;
-        short thresh;
-        if(xl_nguong)
-        {
-
-
-
-            //RGS thresh
-
-            if(r_pos<4)
+            // apply the  threshholding algorithm
+            bool cutoff = false;
+            short thresh = 0;
+            if(rgs_auto)
             {
-                rainLevel = noiseAverage;
+                //RGS thresh
+                if(r_pos<4)
+                {
+                    rainLevel = noiseAverage;
+                }
+                else
+                rainLevel += krain_auto*(signal_map.level[azi][r_pos]-rainLevel);
+                if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage + 6*noiseVar;
+                thresh = rainLevel + noiseVar*kgain_auto;
             }
             else
-            rainLevel += krain*(signal_map.level[azi][r_pos]-rainLevel);
-            if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage + 6*noiseVar;
-            thresh = rainLevel + noiseVar*kgain;
-            //threshold cutting
-            cutoff = (signal_map.level[azi][r_pos]<=thresh);
-
-
-        }
-        if(xl_dopler)
-        {
-            //dopler
-            short doplerVar = 0;
-            short cazi = azi;
-            short pazi = azi-1;
-            for(short i = 0;i<8;i++)
             {
-                if(cazi<0)cazi+=MAX_AZIR;
-                if(pazi<0)pazi+=MAX_AZIR;
-                short var = abs(signal_map.dopler[cazi][r_pos]-signal_map.dopler[pazi][r_pos]);
-                if(var>8)var=16-var;
-                doplerVar+=var;
-                cazi--;
-                pazi--;
+                //RGS thresh
+                if(r_pos<4)
+                {
+                    rainLevel = noiseAverage;
+                }
+                else
+                rainLevel += krain*(signal_map.level[azi][r_pos]-rainLevel);
+                if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage + 6*noiseVar;
+                thresh = rainLevel + noiseVar*kgain;
             }
-            if(!cutoff)
+            if(!cutoff)cutoff = (signal_map.level[azi][r_pos]<=thresh);
+            if(xl_dopler)
             {
-                cutoff = (signal_map.dopler[azi][r_pos]!=signal_map.dopler_old[azi][r_pos])||(doplerVar>4);
+                //dopler
+                if(!cutoff)
+                {
+                    short doplerVar =0;
+                    doplerVar = abs(signal_map.dopler[azi][r_pos]-signal_map.dopler_old[azi][r_pos])
+                                + abs(signal_map.dopler_old[azi][r_pos]-signal_map.dopler_old2[azi][r_pos])
+                                + abs(signal_map.dopler[azi][r_pos]-signal_map.dopler_old2[azi][r_pos]);
+                    cutoff = (doplerVar>2);
+                }
+                signal_map.dopler_old2[azi][r_pos] = signal_map.dopler_old[azi][r_pos];
+                signal_map.dopler_old[azi][r_pos] = signal_map.dopler[azi][r_pos];
             }
-        }
-        if(cutoff)
-        {
-
-            signal_map.sled[azi][r_pos]-= (signal_map.sled[azi][r_pos])/10.0f;
-            signal_map.level_disp[azi][r_pos] = 1;
-            if(signal_map.hot[azi][r_pos])
+            //update hot value
+            if(cutoff)
             {
-                signal_map.hot[azi][r_pos]--;
+                if(signal_map.hot[azi][r_pos])
+                {
+                    signal_map.hot[azi][r_pos]--;
+                }
+            }
+            else
+            {
+                if(signal_map.hot[azi][r_pos]<3)
+                {
+                    signal_map.hot[azi][r_pos]++;
+                }
+            }
+            // check hot condition
+            if(signal_map.hot[azi][r_pos]<2)
+            {
+                signal_map.level_disp[azi][r_pos] = 0;
+                signal_map.sled[azi][r_pos]-= (signal_map.sled[azi][r_pos])/40.0f;
+            }
+            else
+            {
+
+                signal_map.level_disp[azi][r_pos] = signal_map.level[azi][r_pos];// - (thresh);
+                signal_map.sled[azi][r_pos] += (255 - signal_map.sled[azi][r_pos])/10.0f;
             }
         }
         else
         {
 
-            signal_map.sled[azi][r_pos]+= (255 - signal_map.sled[azi][r_pos])/10.0f;
-            signal_map.level_disp[azi][r_pos]=signal_map.level[azi][r_pos] - (thresh);
-            if(signal_map.hot[azi][r_pos]<3)
+            if(cut_thresh)
             {
-                signal_map.hot[azi][r_pos]++;
+                short thresh = 0;
+                if(r_pos<4)
+                {
+                    rainLevel = noiseAverage;
+                }
+                else
+                rainLevel += 0.4*(signal_map.level[azi][r_pos]-rainLevel);
+                if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage + 6*noiseVar;
+                thresh = rainLevel - noiseVar*6;
+                if(signal_map.level[azi][r_pos]>(thresh))signal_map.level_disp[azi][r_pos] = signal_map.level[azi][r_pos] - (thresh);
+                else signal_map.level_disp[azi][r_pos] = 0;
             }
-        }
-        if(signal_map.hot[azi][r_pos]<2)
-        {
-            signal_map.level_disp[azi][r_pos] = 1;
-        }
-        signal_map.dopler_old[azi][r_pos] = signal_map.dopler[azi][r_pos];
-        if((!xl_nguong)&&(!xl_dopler))
-        {
-            signal_map.level_disp[azi][r_pos] = signal_map.level[azi][r_pos];
-            signal_map.dopler_old[azi][r_pos] = signal_map.dopler[azi][r_pos];
+            else
+            {
+                signal_map.level_disp[azi][r_pos]=signal_map.level[azi][r_pos];
+            }
+
+
         }
 
         //
@@ -1154,29 +1171,10 @@ uint C_radar_data::getColor(unsigned char pvalue,unsigned char dopler,unsigned c
             {
                 color = 0x00ffff;
             }
-        alpha = 0xff - ((0xff - value)*0.75);
+        alpha = value;//0xff - ((0xff - value)*0.75);
         color = color|(alpha<<24);
         break;
-    case DOPLER_4_COLOR:
-        if(dopler==0||dopler==1||dopler==15)
-        {
-            color = 0xffff00;
-        }else
-            if(dopler==2||dopler==3||dopler==13||dopler==14)
-            {
-                color = 0x00ff7f;
-            }
-            else if(dopler==4||dopler==5||dopler==11||dopler==12)
-            {
-                color = 0x007fff;
-            }
-            else
-            {
-                color = 0x0000ff;
-            }
-        alpha = 0xff - ((0xff - value)*0.75);
-        color = color|(alpha<<24);
-        break;
+
     case VALUE_ORANGE_BLUE:
         alpha = 0xff - ((0xff - value)*0.75);
         //pvalue-=(pvalue/10);
