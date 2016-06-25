@@ -18,6 +18,7 @@ C_radar_data::C_radar_data()
     imgMode = VALUE_ORANGE_BLUE;
     filter = false;
     rgs_auto = false;
+    bo_bang_0 = false;
     xl_dopler = false;
     cut_thresh = false;
     clk_adc = 0;
@@ -322,7 +323,7 @@ void C_radar_data::drawAzi(short azi)
 {
 //     float var = signal_map.level_m[azi][range_max-50]-noiseAverage;
 //     noiseAverage += var/60.0f;
-//     noiseVar += (var-noiseVar)/60;
+//     arar += (var-noiseVar)/60;
      printf("\nnoise Level:%f",noiseAverage);
      int sum=0;
      int sumvar = 0;
@@ -338,6 +339,7 @@ void C_radar_data::drawAzi(short azi)
 
      if(noiseVar==0)noiseVar = sumvar/float(n);else
      {noiseVar+=(sumvar/float(n)-noiseVar)/2;}
+     printf("\nnoise var:%f",noiseVar);
 
 
 }
@@ -362,8 +364,6 @@ void C_radar_data::ProcessData(unsigned short azi)
     short i_sd = i_md+range_max/2;
     for (short r_pos = 0;r_pos<range_max;r_pos++)
     {
-
-            //unsigned short value,dopler, doplerVar=0;
             if(r_pos<RAD_S_PULSE_RES)
             {
                 switch (dataOver) {
@@ -421,70 +421,91 @@ void C_radar_data::ProcessData(unsigned short azi)
     }
     for(short r_pos=0;r_pos<range_max;r_pos++)
     {
+        // apply the  threshholding algorithm
+        bool cutoff = false;
+        short thresh = 0;
+        if(rgs_auto)
+        {
+            //RGS thresh
+            if(r_pos<4)
+            {
+                rainLevel = noiseAverage;
+            }
+            else
+            rainLevel += krain_auto*(signal_map.level[azi][r_pos]-rainLevel);
+            if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage + 6*noiseVar;
+            thresh = rainLevel + noiseVar*kgain_auto;
+        }
+        else
+        {
+            //RGS thresh
+            if(r_pos<4)
+            {
+                rainLevel = noiseAverage;
+            }
+            else
+            rainLevel += krain*(signal_map.level[azi][r_pos]-rainLevel);
+            if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage + 6*noiseVar;
+            thresh = rainLevel + noiseVar*kgain;
+        }
+        if(bo_bang_0)
+        {
+            if((signal_map.dopler[azi][r_pos]==0)
+                    ||(signal_map.dopler[azi][r_pos]==0)
+                    ||(signal_map.dopler[azi][r_pos]==0))
+            {
+                cutoff = true;
+                //signal_map.hot[azi][r_pos]=0;
+            }
+        }
+        if(!cutoff)cutoff = (signal_map.level[azi][r_pos]<=thresh);
+        if(xl_dopler)
+        {
+            //dopler
+            if(!cutoff)
+            {
+                short doplerVar =0;
+                short var;
+                var = abs(signal_map.dopler[azi][r_pos]-signal_map.dopler_old[azi][r_pos]);
+                if(var>8)
+                    var = 16-var;
+                doplerVar+=var;
+                var = abs(signal_map.dopler_old[azi][r_pos]-signal_map.dopler_old2[azi][r_pos]);
+                if(var>8)
+                    var = 16-var;
+                doplerVar+=var;
+                var = abs(signal_map.dopler[azi][r_pos]-signal_map.dopler_old2[azi][r_pos]);
+                if(var>8)
+                    var = 16-var;
+                doplerVar+=var;
+                cutoff = (doplerVar>2);
+            }
+            signal_map.dopler_old2[azi][r_pos] = signal_map.dopler_old[azi][r_pos];
+            signal_map.dopler_old[azi][r_pos] = signal_map.dopler[azi][r_pos];
+        }
+        //update hot value
+        if(cutoff)
+        {
+            if(signal_map.hot[azi][r_pos])
+            {
+                signal_map.hot[azi][r_pos]--;
+            }
+        }
+        else
+        {
+            if(signal_map.hot[azi][r_pos]<3)
+            {
+                signal_map.hot[azi][r_pos]++;
+            }
+        }
         if(filter)
         {
-            // apply the  threshholding algorithm
-            bool cutoff = false;
-            short thresh = 0;
-            if(rgs_auto)
-            {
-                //RGS thresh
-                if(r_pos<4)
-                {
-                    rainLevel = noiseAverage;
-                }
-                else
-                rainLevel += krain_auto*(signal_map.level[azi][r_pos]-rainLevel);
-                if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage + 6*noiseVar;
-                thresh = rainLevel + noiseVar*kgain_auto;
-            }
-            else
-            {
-                //RGS thresh
-                if(r_pos<4)
-                {
-                    rainLevel = noiseAverage;
-                }
-                else
-                rainLevel += krain*(signal_map.level[azi][r_pos]-rainLevel);
-                if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage + 6*noiseVar;
-                thresh = rainLevel + noiseVar*kgain;
-            }
-            if(!cutoff)cutoff = (signal_map.level[azi][r_pos]<=thresh);
-            if(xl_dopler)
-            {
-                //dopler
-                if(!cutoff)
-                {
-                    short doplerVar =0;
-                    doplerVar = abs(signal_map.dopler[azi][r_pos]-signal_map.dopler_old[azi][r_pos])
-                                + abs(signal_map.dopler_old[azi][r_pos]-signal_map.dopler_old2[azi][r_pos])
-                                + abs(signal_map.dopler[azi][r_pos]-signal_map.dopler_old2[azi][r_pos]);
-                    cutoff = (doplerVar>2);
-                }
-                signal_map.dopler_old2[azi][r_pos] = signal_map.dopler_old[azi][r_pos];
-                signal_map.dopler_old[azi][r_pos] = signal_map.dopler[azi][r_pos];
-            }
-            //update hot value
-            if(cutoff)
-            {
-                if(signal_map.hot[azi][r_pos])
-                {
-                    signal_map.hot[azi][r_pos]--;
-                }
-            }
-            else
-            {
-                if(signal_map.hot[azi][r_pos]<3)
-                {
-                    signal_map.hot[azi][r_pos]++;
-                }
-            }
+
             // check hot condition
             if(signal_map.hot[azi][r_pos]<2)
             {
                 signal_map.level_disp[azi][r_pos] = 0;
-                signal_map.sled[azi][r_pos]-= (signal_map.sled[azi][r_pos])/40.0f;
+                signal_map.sled[azi][r_pos]-= (signal_map.sled[azi][r_pos])/100.0f;
             }
             else
             {
@@ -1139,7 +1160,7 @@ uint C_radar_data::getColor(unsigned char pvalue,unsigned char dopler,unsigned c
 {
 
     unsigned short value = ((unsigned short)pvalue)*brightness;
-
+    if(sled>=8)sled = 0xff; else sled*=32;
     if(value>0xff)
     {
         value = 0xff;

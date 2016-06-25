@@ -225,6 +225,8 @@ private slots:
 
     void on_groupBox_3_currentChanged(int index);
 
+    void on_toolButton_xl_dopler_2_toggled(bool checked);
+
 private:
     void initActionsConnections();
 };

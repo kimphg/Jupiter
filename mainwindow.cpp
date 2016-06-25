@@ -492,7 +492,7 @@ void Mainwindow::DrawMap()
 
 
     for(uint i = 0; i < N_LAYER; i++) {
-        //printf("vnmap.layers[i].size()%d\n",vnmap.layers[i].size());
+        printf("vnmap.layers[%d].size()%d\n",i,vnmap.layers[i].size());
         if(i<3)
         {
             for(uint j = 0; j < vnmap.layers[i].size(); j++) {
@@ -510,7 +510,7 @@ void Mainwindow::DrawMap()
                 p.setPen(pen);
                 p.drawPolygon(poly);
             }
-        }else if(false)
+        }else
         {
             //pen.setColor(color[i]);
             if(i==3)pen.setWidth(2);else pen.setWidth(1);
@@ -2313,6 +2313,7 @@ void Mainwindow::on_toolButton_map_select_clicked()
     pMap = new QPixmap(height(),height());
     vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 200,config.m_config.mapFilename.data());//100km  max range
     DrawMap();
+    repaint();
 }
 
 void Mainwindow::on_dial_valueChanged(int value)
@@ -2376,4 +2377,9 @@ void Mainwindow::on_groupBox_3_currentChanged(int index)
     {
         processing->radarData->filter = false;
     }
+}
+
+void Mainwindow::on_toolButton_xl_dopler_2_toggled(bool checked)
+{
+    processing->radarData->bo_bang_0 = checked;
 }

@@ -394,7 +394,7 @@ public:
     void                    updateZoomRect(float ctx, float cty);
     unsigned short          sn_stat;
     bool                    avtodetect,isClkAdcChanged,xl_dopler,cut_thresh;
-    bool                    filter,rgs_auto;
+    bool                    filter,rgs_auto,bo_bang_0;
     float                   krain,kgain,ksea,brightness;
     float                   krain_auto,kgain_auto,ksea_auto;
     void setAutorgs( bool aut)

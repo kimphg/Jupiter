@@ -32,6 +32,10 @@ void QCustomTabWidget::highLight()
     {
         this->setStyleSheet("background-color: rgb(0, 0, 0,0);color:rgb(255, 255, 255);font: 12pt \"MS Shell Dlg 2\";");
     }
+    else if(this->currentIndex()==3)
+    {
+        this->setStyleSheet("background-color: rgb(0, 0, 0,0);color:rgb(255, 255, 255);font: 12pt \"MS Shell Dlg 2\";");
+    }
     else
     {
         this->setStyleSheet("background-color: rgb(30, 50, 70,255);color:rgb(255, 255, 255);font: 12pt \"MS Shell Dlg 2\";");
