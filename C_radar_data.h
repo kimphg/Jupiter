@@ -101,7 +101,7 @@ typedef struct  {
     float          p;
     float          terrain;
 }object_t;
-typedef std::vector<mark_t> markList;
+typedef std::vector<mark_t> plotList;
 typedef std::vector<object_t> objectList;
 
 //______________________________________//
@@ -240,7 +240,7 @@ public:
     ~C_radar_data();
     float k_vet;// !!!!
     trackList               mTrackList;
-    markList                suspect_list;
+    plotList                plot_list;
     signal_map_t            data_mem;
     unsigned char           size_thresh,overload, terrain_init_time, clk_adc;
     float                   scale_ppi,scale_zoom;

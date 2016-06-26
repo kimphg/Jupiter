@@ -898,7 +898,7 @@ void C_radar_data::procPix(short proc_azi,short range)//_______signal detected, 
     {
 
         mark_t         new_plot;
-        new_plot.maxA =  new_mark.minA  = proc_azi;
+        new_plot.maxA =  new_plot.minA  = proc_azi;
         //new_mark.minR = new_mark.maxR = range;
         new_plot.size =  1;
         new_plot.sumTer = data_mem.sled[proc_azi][range];

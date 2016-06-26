@@ -676,12 +676,12 @@ void Mainwindow::DrawTarget(QPainter* p)
                 {
                     x = (processing->radarData->mTrackList[i].object_list[j].x + RAD_M_PULSE_RES)*signsize - (RAD_M_PULSE_RES*signsize-scrCtX)-dx;
                     y = (RAD_M_PULSE_RES - processing->radarData->mTrackList[i].object_list[j].y)*signsize - (RAD_M_PULSE_RES*signsize-scrCtY)-dy;
-                    if(processing->radarData->mTrackList[i].tclass==RED_OBJ)p->drawPoint(x,y);
+                    if(processing->radarData->mTrackList[i].confirmed)p->drawPoint(x,y);
                 }
                 j--;
                 if(j<0)continue;
                 //printf("red");
-                if(processing->radarData->mTrackList[i].tclass==RED_OBJ)
+                if(processing->radarData->mTrackList[i].confirmed)
                 {
                     p->setPen(penTargetRed);
 
