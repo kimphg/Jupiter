@@ -227,6 +227,10 @@ private slots:
 
     void on_toolButton_xl_dopler_2_toggled(bool checked);
 
+    void on_toolButton_auto_tracking_clicked();
+
+    void on_toolButton_auto_tracking_toggled(bool checked);
+
 private:
     void initActionsConnections();
 };

@@ -2275,7 +2275,7 @@ void Mainwindow::on_toolButton_zoom_out_clicked()
 
 void Mainwindow::on_toolButton_reset_clicked()
 {
-    processing->radarData->resetData();
+    processing->radarData->resetSled();
 }
 
 void Mainwindow::on_toolButton_send_command_2_clicked()
@@ -2371,15 +2371,25 @@ void Mainwindow::on_groupBox_3_currentChanged(int index)
 {
     if(index==1)
     {
-        processing->radarData->filter = true;
+        processing->radarData->isFilting = true;
     }
     else
     {
-        processing->radarData->filter = false;
+        processing->radarData->isFilting = false;
     }
 }
 
 void Mainwindow::on_toolButton_xl_dopler_2_toggled(bool checked)
 {
     processing->radarData->bo_bang_0 = checked;
+}
+
+void Mainwindow::on_toolButton_auto_tracking_clicked()
+{
+
+}
+
+void Mainwindow::on_toolButton_auto_tracking_toggled(bool checked)
+{
+    processing->radarData->avtodetect = checked;
 }

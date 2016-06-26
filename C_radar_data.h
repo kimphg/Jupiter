@@ -64,17 +64,17 @@ typedef struct {
 }frame_t;
 */
 typedef struct  {
+    //processing data
     unsigned char level [MAX_AZIR][RAD_M_PULSE_RES];
     unsigned char level_disp [MAX_AZIR][RAD_M_PULSE_RES];
+    bool          detect[MAX_AZIR][RAD_M_PULSE_RES];
     unsigned char dopler[MAX_AZIR][RAD_M_PULSE_RES];
     unsigned char dopler_old[MAX_AZIR][RAD_M_PULSE_RES];
     unsigned char dopler_old2[MAX_AZIR][RAD_M_PULSE_RES];
     unsigned char sled[MAX_AZIR][RAD_M_PULSE_RES];
     unsigned char hot[MAX_AZIR][RAD_M_PULSE_RES];
-
-    //unsigned char level_s [MAX_AZIR][RAD_S_PULSE_RES];
-    //unsigned char dopler_s[MAX_AZIR][RAD_S_PULSE_RES];
-    //unsigned char doplerVar[RAD_M_PULSE_RES];
+    short         plotIndex[MAX_AZIR][RAD_M_PULSE_RES];
+    //display data
     unsigned char display_ray [DISPLAY_RES][3];//0 - signal, 1- dopler, 2 - sled;
     unsigned char display_ray_zoom [DISPLAY_RES_ZOOM][3];
     unsigned char display_mask [DISPLAY_RES*2+1][DISPLAY_RES*2+1];
@@ -96,16 +96,14 @@ typedef struct  {
 typedef struct  {
     float          az ,rg;
     short          size;
-    //short           markNum;
+    char           dopler;
     float          x,y;
     float          p;
     float          terrain;
 }object_t;
 typedef std::vector<mark_t> markList;
 typedef std::vector<object_t> objectList;
-enum ObjectClass{
-    WHITE_OBJ,BLUE_OBJ,RED_OBJ
-};
+
 //______________________________________//
 class track_t {
 public:
@@ -114,7 +112,7 @@ public:
 
     }
     qint64 currentTimeMs;
-//    fmat q1,q2,h,p,x;
+    bool confirmed;
     objectList suspect_list,object_list;
     float deltaAzi;
     float estX ,estY;
@@ -122,140 +120,34 @@ public:
     float course, velocity;
     char state;
     float dTime;
-    QDateTime time;
+    //QDateTime time;
     bool isProcessed;
     bool isUpdated;
-    ObjectClass tclass;
-    bool isMoving;//,confirmed;
-    bool isManeuvering;
     void updateTime()
     {
 
-        qint64 newTimeMs = time.currentMSecsSinceEpoch();
-        dTime = (((long long int)newTimeMs - (long long int)currentTimeMs))/1000.f;
-        currentTimeMs = newTimeMs;
-
-        //dTime = 5;
+//        qint64 newTimeMs = time.currentMSecsSinceEpoch();
+//        dTime = (((long long int)newTimeMs - (long long int)currentTimeMs))/1000.f;
+//        currentTimeMs = newTimeMs;
 
     }
-    void init(float mesA,float mesR, char initState)
-    {/*
-
-        currentTimeMs = time.toMSecsSinceEpoch();
-        q1<<  0 <<  0 <<  0 <<  0 <<endr
-          <<  0 <<  0 <<  0 <<  0 <<endr
-          <<  0 <<  0 <<  4 <<  0 <<endr
-          <<  0 <<  0 <<  0 <<  4 <<endr;
-
-        q2<<  0 <<  0 <<  0 <<  0 <<endr
-          <<  0 <<  0 <<  0 <<  0 <<endr
-          <<  0 <<  0 <<  12 <<  0 <<endr
-          <<  0 <<  0 <<  0 <<  12 <<endr;
-
-        h <<  1 <<  0 <<  0 <<  0 <<endr
-          <<  0 <<  1 <<  0 <<  0 <<endr;
-
-        p << 100 <<  0 <<  0 <<  0 <<endr
-          <<  0 << 100 <<  0 <<  0 <<endr
-          <<  0 <<  0 <<  200 <<  0 <<endr
-          <<  0 <<  0 <<  0 <<  200 <<endr;//ENVDEP
-
-        x <<  0 <<endr
-          <<  0 <<endr
-          <<  0 <<endr
-          <<  0 <<endr;
-        //
-
-       isManeuvering = false;
-       isProcessed= true;
-       isUpdated = false;
-       estA = mesA;
-       estR = mesR;
-       deltaAzi = 0;
-       velocity = 0;
-       state = initState;
-       if(object_list.size())object_list.clear();
-       if(suspect_list.size())suspect_list.clear();
-       isMoving = false;
-       tclass = WHITE_OBJ;
-       predict();*/
-    }
-    void updateTrackParam()
+    void init(object_t *object)
     {
-        if(tclass !=WHITE_OBJ)
-        {
-            if(tclass == BLUE_OBJ)
-            {
-
-                if(object_list.size()>20)
-                {
-
-                    float sx,sy;
-                        sx = object_list[object_list.size()-1].x-object_list[1].x;
-                        sy = object_list[object_list.size()-1].y-object_list[1].y;
-                    if(sx+sy>10)
-                    {
-                        tclass = RED_OBJ;
-
-                    }
-                }
-            }
-            if(object_list.size()>MAX_TRACK_LEN)// lich su qui dao toi da
-            {
-                objectList new_ojb_list;
-                new_ojb_list.swap(object_list);
-                for(unsigned short i = 20; i < new_ojb_list.size() ; i++)//cut off 20 first elements
-                {
-                    object_list.push_back(new_ojb_list[i]);
-                }
-            }
-            float dx,dy;
-            if(object_list.size()>12)
-            {
-                dx = object_list[object_list.size()-1].x-object_list[object_list.size()-12].x;
-                dy = object_list[object_list.size()-1].y-object_list[object_list.size()-12].y;
-                float dist = dx*dx+dy*dy;
-                velocity += 0.5f*(sqrtf(dist)/11.0f/(dTime)-velocity);
-            }
-            else if(object_list.size()>6)
-            {
-                dx = object_list[object_list.size()-1].x-object_list[object_list.size()-6].x;
-                dy = object_list[object_list.size()-1].y-object_list[object_list.size()-6].y;
-                float dist = dx*dx+dy*dy;
-                velocity  += 0.5f*(sqrtf(dist)/5.0f/(dTime)-velocity);//= sqrtf(dist)/5.0f/(dt);
-            }
-//            else if(object_list.size()>3)
-//            {
-//                dx = object_list[object_list.size()-1].x-object_list[object_list.size()-2].x;
-//                dy = object_list[object_list.size()-1].y-object_list[object_list.size()-2].y;
-//                float dist = dx*dx+dy*dy;
-//                velocity  += 0.5f*(sqrtf(dist)/(dTime)-velocity);//= sqrtf(dist)/dt;
-//            }
-
-            course = atanf(dx/dy);
-            if(dy<0)course+=PI;
-            if(course<0)course+=PI_NHAN2;
-            /*if(velocity>0.05f)//pixel/s
-            {
-                isMoving = true;
-            }
-            else
-            {
-                isMoving = false;
-            }*/
-        }
-        else if(object_list.size()>TRACK_CONFIRMED_SIZE)
-        {
-            tclass = BLUE_OBJ;
-            //printf("blue");
-        }
+        this->object_list.push_back(*object);
+        estA = object->az;
+        estR = object->rg;
+        estX = ((sinf(estA)))*estR;
+        estY = ((cosf(estA)))*estR;
+        velocity = 0;
+        confirmed = false;
+        state = 1;
+        dTime = 5;
     }
     void update()
-    {/*
+    {
         float mesA;
         float mesR;
-        //dTime = 5;
-        updateTime();
+
         float pmax = 0;
         short k=-1;
         for(unsigned short i=0;i<suspect_list.size();i++)
@@ -271,82 +163,44 @@ public:
             mesA = suspect_list[k].az;
             mesR = suspect_list[k].rg;
             object_list.push_back(suspect_list[k]);
-            isUpdated = true;// !!!
+            isUpdated = true;
+            state++;
             suspect_list.clear();
         }
         else
         {
             isUpdated = false;
+            state--;
         }
-
-        //
-        //______________________________________//
-        //Bayesian EKF tracking algorithm written by Phung Kim Phuong
-        //______________________________________//
-
+        if(object_list.size()>10)
+        {
+            confirmed = true;
+        }
         if(isUpdated)
         {
-            if(state<10)state++;
-            //measurement :
-            float cc = mesR*cosf(mesA-estA)-estR;
-            float dd = mesR*tanf(mesA-estA);
-            fmat z;
-            z<<cc<<endr<<dd<<endr;
-            //z.print("\nZ:\n");return;//!!!
-            //measurement error matrix r:
-            //rr = estR*estR*0.0003// azi error for HR2D is about 1 deg -> (2*pi/360)^2=0.0003
-            //range error is about 1.5-> 1.5^2=2
-            fmat r;
-            //r<<(object_list[object_list.size()-1].drg+1)*(object_list[object_list.size()-1].drg+1)<<0<<endr
-            // <<0<<(object_list[object_list.size()-1].daz+1)*(object_list[object_list.size()-1].daz+1)/100.0<<endr;//NIM!!!
-            r<<2<<0<<endr
-             <<0<<estR*estR*0.0002<<endr;//NIM!!!
-//            printf("object_list[object_list.size()-1].daz:%f",object_list[object_list.size()-1].daz);
-//            r.print("\nr:------------\n");
-            //Kalman gain:
-            fmat k;
-            k = p*h.t()*inv(h*p*h.t() + r);
-            //k.ones();
-            //k.print("\nk:--------\n");
-            //correct estimation:
-            //x.print("\nXP:");
-            x = x+k*(z-h*x);
-            //x.print("\nX:");
-            deltaAzi = atanf(x.at(3,0)/estR);
-            estA += deltaAzi;
-            estR += x.at(2,0);//delta range = x.at(3,1);
-            object_list[object_list.size()-1].x = ((sinf(estA)))*estR;
-            object_list[object_list.size()-1].y = ((cosf(estA)))*estR;
-            //correct error covariance:
-            p = p - k*h*p;
-            if(tclass !=WHITE_OBJ)predict();
-        }else//miss:
-        {
-            if(state)state--;
-            deltaAzi = atan(x.at(3,0)/estR);
-            estA += deltaAzi;
-            estR += x.at(2,0);
-            object_list[object_list.size()-1].x = ((sinf(estA)))*estR;
-            object_list[object_list.size()-1].y = ((cosf(estA)))*estR;
-            if(tclass !=WHITE_OBJ)predict();
+            float mesX = ((sinf(mesA)))*mesR;
+            float mesY = ((cosf(mesA)))*mesR;
+            float dx = mesX - estX;
+            float dy = mesY - estY;
+            estX+=(mesX-estX)/2;
+            estY+=(mesY-estY)/2;
+            float new_course = atanf(dx/dy);
+            if(dy<0)new_course+=PI;
+            if(new_course<0)new_course += PI_NHAN2;
+            float new_velo = sqrt(dx*dx+dy*dy);
+            if(!course)course = new_course;else course+= (new_course-course)/2;
+            if(!velocity)velocity = new_velo;else velocity+= (new_velo-velocity)/2;
         }
-        updateTrackParam();*/
+        predict();
     }
     void predict()
-    {/*
-        float aa = cos(deltaAzi);
-        float bb = sin(deltaAzi);//NIM
-        isManeuvering = (deltaAzi>0.001);
-        //printf("\n delta azi:%f",deltaAzi);
-        fmat a;// jacobian matrix
-        a <<  0 <<  0 <<  aa<<  bb<<endr
-          <<  0 <<  0 << -bb<<  aa<<endr
-          <<  0 <<  0 <<  aa<<  bb<<endr
-          <<  0 <<  0 << -bb<<  aa<<endr;
-        x = a*x;
-        //predict error covariance:
-        if(isManeuvering)p = a*p*a.t()+q2;
-        else p = a*p*a.t()+q1;*/
+    {
+        estX += ((sinf(course)))*velocity;
+        estY += ((cosf(course)))*velocity;
+        estA = atanf(estX/estY);
+        if(estY<0)estA += PI;
+        if(estA<0)estA += PI_NHAN2;
+        estR = estX*estX + estY*estY;
     }
     bool checkProb(object_t* object)
     {
@@ -356,7 +210,7 @@ public:
         float dR = object->rg - estR;
         dA*=dA;
         dR*=dR;
-        if((tclass!=WHITE_OBJ)&&(state>TRACK_STABLE_STATE))
+        if(state>TRACK_STABLE_STATE)
         {
             if(dR>=4 || dA>=0.0007f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
             object->p = (1.0f-dR/9.0f)*(1.0f-dA/0.0007f);
@@ -386,15 +240,15 @@ public:
     ~C_radar_data();
     float k_vet;// !!!!
     trackList               mTrackList;
-    markList                mark_list;
-    signal_map_t            signal_map;
+    markList                suspect_list;
+    signal_map_t            data_mem;
     unsigned char           size_thresh,overload, terrain_init_time, clk_adc;
     float                   scale_ppi,scale_zoom;
 
     void                    updateZoomRect(float ctx, float cty);
     unsigned short          sn_stat;
     bool                    avtodetect,isClkAdcChanged,xl_dopler,cut_thresh;
-    bool                    filter,rgs_auto,bo_bang_0;
+    bool                    isFilting,rgs_auto,bo_bang_0;
     float                   krain,kgain,ksea,brightness;
     float                   krain_auto,kgain_auto,ksea_auto;
     void setAutorgs( bool aut)
@@ -434,7 +288,7 @@ public:
     void        DrawZoom(short azi_draw, short r_pos);
 //    void        blackLine(short x0, short y0, short x1, short y1);
     void        addTrackManual(float x, float y);
-    void        addTrack(float azi, float range, short state);
+    void        addTrack(object_t *mObject);
     void        getPolar(float x,float y,float *azi,float *range);
     void        setTrueN(float trueN_deg){
 
@@ -446,6 +300,7 @@ public:
     void        setScalePPI(float scale);
     void        setScaleZoom(float scale);
     void        resetData();
+    void        resetSled();
     void        setProcessing(bool onOff);
     //bool        getDataOverload(){if(isDataTooLarge) {isDataTooLarge =false;return true;} else return false;}
 //    bool        checkFeedback(unsigned char* command)
@@ -479,7 +334,7 @@ private:
     void        getNoiseLevel();
     void        procPix(short proc_azi,short range);
     void        procTracks(unsigned short curA);
-    void        procMark(mark_t* pMark);
+    void        procPLot(mark_t* pMark);
     void        procObject(object_t* pObject);
 
     //void status_start();
