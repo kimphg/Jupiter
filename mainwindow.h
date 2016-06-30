@@ -13,6 +13,7 @@
 #include <QtGui>
 #include <vnmap.h>
 //#include <CpView.h>
+
 #include <Config.h>
 #include <gpsdialog.h>
 #include <dataprocessingthread.h>

@@ -45,7 +45,8 @@ HEADERS  += mainwindow.h \
     qcustomframe.h \
     qcustomcombobox.h \
     qcustomgroupbox.h \
-    qcustomtabwidget.h
+    qcustomtabwidget.h \
+    pkp.h
 
 FORMS    += mainwindow.ui \
     gpsdialog.ui \

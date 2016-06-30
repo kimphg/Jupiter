@@ -12,7 +12,9 @@
 #define TRACK_INIT_STATE            3
 #define PI_NHAN2                    6.2831853072f
 #define PI_CHIA2                    1.5707963268f
-#define PI                          3.141592654f
+#ifndef PI
+   #define PI                          3.141592654f
+#endif
 #define MAX_TRACK_LEN               400
 #define MAX_TRACKS                  199
 #define MAX_AZIR                    2048
@@ -120,6 +122,7 @@ public:
     float course, velocity;
     char state;
     float dTime;
+    bool isTracking;
     //QDateTime time;
     bool isProcessed;
     bool isUpdated;
@@ -140,22 +143,24 @@ public:
         estY = ((cosf(estA)))*estR;
         velocity = 0;
         confirmed = false;
-        state = 1;
+        isProcessed = true;
+        state = 3;
         dTime = 5;
+        isTracking = false;
     }
     void update()
     {
         float mesA;
         float mesR;
-
+        isTracking = true;
         float pmax = 0;
         short k=-1;
         for(unsigned short i=0;i<suspect_list.size();i++)
         {
-            if(pmax<suspect_list[i].p)
+            if(pmax<suspect_list.at(i).p)
             {
                 k=i;
-                pmax=suspect_list[i].p;
+                pmax=suspect_list.at(i).p;
             }
         }
         if(k>=0)
@@ -200,7 +205,7 @@ public:
         estA = atanf(estX/estY);
         if(estY<0)estA += PI;
         if(estA<0)estA += PI_NHAN2;
-        estR = estX*estX + estY*estY;
+        estR = sqrt(estX*estX + estY*estY);
     }
     bool checkProb(object_t* object)
     {
