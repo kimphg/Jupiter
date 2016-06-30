@@ -838,7 +838,7 @@ void C_radar_data::procObject(object_t* pObject)
 
                 for(unsigned short i=0;i<mTrackList.size();i++)
                 {
-                    if(mTrackList.at(i).state&&(! mTrackList.at(i).isProcessed))
+                    if(mTrackList.at(i).state&&(! mTrackList.at(i).isProcessed)&&(pObject->dopler!=0))
                     {
                         if(mTrackList.at(i).checkProb(pObject)){
                             mTrackList.at(i).suspect_list.push_back(*pObject);
@@ -860,7 +860,7 @@ void C_radar_data::procObject(object_t* pObject)
                 //create new track
                 if(mTrackList.size()<MAX_TRACKS)
                 {
-                    if(pObject->dopler)addTrack(pObject);// chi lay dopler khac 0
+                    if((pObject->dopler!=1)&&(pObject->dopler!=15)&&(pObject->dopler!=0))addTrack(pObject);// chi lay dopler khac 0
 
                 }
 

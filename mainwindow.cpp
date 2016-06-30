@@ -543,14 +543,14 @@ void Mainwindow::DrawTarget(QPainter* p)
                 p->setPen(penTrack);
                 short j;
                 //draw track:
-                for(j=0;j<((short)processing->radarData->mTrackList.at(i).object_list.size());j++)
-                {!!!
-                    x = (processing->radarData->mTrackList.at(i).object_list[j].x + RAD_M_PULSE_RES)*signsize - (RAD_M_PULSE_RES*signsize-scrCtX)-dx;
-                    y = (RAD_M_PULSE_RES - processing->radarData->mTrackList.at(i).object_list[j].y)*signsize - (RAD_M_PULSE_RES*signsize-scrCtY)-dy;
-                    if(processing->radarData->mTrackList.at(i).confirmed)p->drawPoint(x,y);
-                }
-                j--;
-                if(j<0)continue;
+                //for(j=0;j<((short)processing->radarData->mTrackList.at(i).object_list.size());j++)
+                //{
+                    x = (processing->radarData->mTrackList.at(i).estX + RAD_M_PULSE_RES)*processing->radarData->scale_ppi - (RAD_M_PULSE_RES*processing->radarData->scale_ppi-scrCtX)-dx;
+                    y = (RAD_M_PULSE_RES - processing->radarData->mTrackList.at(i).estY)*processing->radarData->scale_ppi - (RAD_M_PULSE_RES*processing->radarData->scale_ppi-scrCtY)-dy;
+                    p->drawPoint(x,y);
+                //}
+//                j--;
+//                if(j<0)continue;
                 //printf("red");
                 if(processing->radarData->mTrackList.at(i).confirmed)
                 {
