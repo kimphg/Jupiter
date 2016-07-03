@@ -99,7 +99,6 @@ typedef struct  {
     float          az ,rg;
     short          size;
     char           dopler;
-    float          x,y;
     float          p;
     float          terrain;
 }object_t;
@@ -136,6 +135,7 @@ public:
     }
     void init(object_t *object)
     {
+        object_list.clear();
         this->object_list.push_back(*object);
         estA = object->az;
         estR = object->rg;
@@ -200,6 +200,7 @@ public:
     }
     void predict()
     {
+        return;
         estX += ((sinf(course)))*velocity;
         estY += ((cosf(course)))*velocity;
         estA = atanf(estX/estY);

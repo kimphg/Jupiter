@@ -724,14 +724,14 @@ void C_radar_data::procPLot(mark_t* pMark)
     if((pMark->size>3)&&((pMark->size<50)))//ENVDEP
     {
             object_t newobject;
-            float ctA = pMark->sumA/pMark->size/MAX_AZIR*PI_NHAN2+trueN;
+            float ctA = pMark->sumA/pMark->size;// /MAX_AZIR*PI_NHAN2+trueN;
             float ctR = pMark->sumR/pMark->size;
-            if(ctA >= PI_NHAN2)ctA -= PI_NHAN2;
+            if(ctA >= MAX_AZIR)ctA -= MAX_AZIR;
 
             //check dopler
             newobject.dopler = data_mem.dopler[short(ctA)][short(ctR)];
             newobject.terrain = pMark->sumTer/(float)(pMark->size);
-            newobject.az   = ctA;
+            newobject.az   = ctA/MAX_AZIR*PI_NHAN2+trueN;
             newobject.rg   = ctR;
             procObject(&newobject);
     }
@@ -819,7 +819,7 @@ void C_radar_data::addTrack(object_t* mObject)
     }
     track_t newTrack;
     newTrack.init(mObject);
-    if(mTrackList.size()<30)mTrackList.push_back(newTrack);
+    mTrackList.push_back(newTrack);
 }
 void C_radar_data::deleteTrack(short trackNum)
 {
@@ -832,20 +832,21 @@ void C_radar_data::deleteTrack(short trackNum)
 }
 void C_radar_data::procObject(object_t* pObject)
 {
+    if(pObject->dopler==0)return;
 
         if(avtodetect)
         {
 
-                for(unsigned short i=0;i<mTrackList.size();i++)
-                {
-                    if(mTrackList.at(i).state&&(! mTrackList.at(i).isProcessed)&&(pObject->dopler!=0))
-                    {
-                        if(mTrackList.at(i).checkProb(pObject)){
-                            mTrackList.at(i).suspect_list.push_back(*pObject);
-                            return;//add object to a processing track
-                        }
-                    }
-                }
+//                for(unsigned short i=0;i<mTrackList.size();i++)
+//                {
+//                    if(mTrackList.at(i).state&&(! mTrackList.at(i).isProcessed))
+//                    {
+//                        if(mTrackList.at(i).checkProb(pObject)){
+//                            mTrackList.at(i).suspect_list.push_back(*pObject);
+//                            return;//add object to a processing track
+//                        }
+//                    }
+//                }
 
                 for(unsigned short i=0;i<mTrackList.size();i++)
                 {
@@ -858,7 +859,7 @@ void C_radar_data::procObject(object_t* pObject)
                     }
                 }
                 //create new track
-                if(mTrackList.size()<MAX_TRACKS)
+                if(mTrackList.size()<50)//MAX_TRACKS)
                 {
                     if((pObject->dopler!=1)&&(pObject->dopler!=15)&&(pObject->dopler!=0))addTrack(pObject);// chi lay dopler khac 0
 

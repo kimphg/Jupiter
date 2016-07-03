@@ -545,8 +545,8 @@ void Mainwindow::DrawTarget(QPainter* p)
                 //draw track:
                 //for(j=0;j<((short)processing->radarData->mTrackList.at(i).object_list.size());j++)
                 //{
-                    x = (processing->radarData->mTrackList.at(i).estX + RAD_M_PULSE_RES)*processing->radarData->scale_ppi - (RAD_M_PULSE_RES*processing->radarData->scale_ppi-scrCtX)-dx;
-                    y = (RAD_M_PULSE_RES - processing->radarData->mTrackList.at(i).estY)*processing->radarData->scale_ppi - (RAD_M_PULSE_RES*processing->radarData->scale_ppi-scrCtY)-dy;
+                    x = (processing->radarData->mTrackList.at(i).estX + RAD_M_PULSE_RES)*processing->radarData->scale_ppi - (DISPLAY_RES*processing->radarData->scale_ppi-scrCtX)-dx;
+                    y = (RAD_M_PULSE_RES - processing->radarData->mTrackList.at(i).estY)*processing->radarData->scale_ppi - (DISPLAY_RES*processing->radarData->scale_ppi-scrCtY)-dy;
                     p->drawPoint(x,y);
                 //}
 //                j--;
