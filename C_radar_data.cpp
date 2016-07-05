@@ -316,7 +316,7 @@ void C_radar_data::drawAzi(short azi)
 
      if(noiseVar==0)noiseVar = sumvar/float(n);else
      {noiseVar+=(sumvar/float(n)-noiseVar)/2;}
-     printf("\nnoise var:%f",noiseVar);
+     //printf("\nnoise var:%f",noiseVar);
 
 
 }
@@ -528,8 +528,8 @@ void C_radar_data::ProcessData(unsigned short azi)
                 rainLevel = noiseAverage;
             }
             else
-            rainLevel += 0.5f*(data_mem.level[azi][r_pos]-rainLevel);//krain = 0.5
-            if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage + 6*noiseVar;
+            rainLevel += 0.4f*(data_mem.level[azi][r_pos]-rainLevel);//krain = 0.5
+            //if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage + 6*noiseVar;
             thresh = rainLevel + noiseVar*3;//kgain = 3
             if(data_mem.level[azi][r_pos]>thresh)
             {
@@ -549,6 +549,7 @@ void C_radar_data::ProcessData(unsigned short azi)
             if(r_pos>50)
             {
                 data_mem.detect[azi][r_pos] = data_mem.hot[azi][r_pos]>1;
+                if(!data_mem.detect[azi][r_pos])data_mem.level_disp[azi][r_pos]= 0;
                 if(data_mem.detect[azi][r_pos])
                 {
                     procPix(azi,r_pos);
@@ -721,18 +722,33 @@ void C_radar_data::GetDataHR(unsigned char* data,unsigned short dataLen)
 void C_radar_data::procPLot(mark_t* pMark)
 {
 
-    if((pMark->size>3)&&((pMark->size<50)))//ENVDEP
+    if((pMark->size>5)&&((pMark->size<50)))//ENVDEP
     {
             object_t newobject;
-            float ctA = pMark->sumA/pMark->size;// /MAX_AZIR*PI_NHAN2+trueN;
-            float ctR = pMark->sumR/pMark->size;
+            float ctA = (float)pMark->sumA/(float)pMark->size;// /MAX_AZIR*PI_NHAN2+trueN;
+            //float ctR = (float)pMark->sumR/(float)pMark->size;
             if(ctA >= MAX_AZIR)ctA -= MAX_AZIR;
-
+            newobject.size = pMark->size;
+            newobject.azMax = pMark->maxA;
+            newobject.azMin = pMark->minA;
+            newobject.rMax = pMark->maxR;
+            newobject.rMin = pMark->minR;
+            short dr = newobject.rMax-newobject.rMin;
+            float ctR = (newobject.rMax+newobject.rMin)/2;
+            if(ctA<0||ctA>MAX_AZIR|| ctR>=RAD_M_PULSE_RES)
+            {
+                return;
+            }
             //check dopler
-            newobject.dopler = data_mem.dopler[short(ctA)][short(ctR)];
+            if(dr>2)
+            {
+                if(data_mem.dopler[short(ctA)][short(ctR)]!=data_mem.dopler[short(ctA)][short(ctR+1)])return;
+            }
+            newobject.dopler = data_mem.dopler[short(ctA)][short(ctR+1)];
             newobject.terrain = pMark->sumTer/(float)(pMark->size);
             newobject.az   = ctA/MAX_AZIR*PI_NHAN2+trueN;
             newobject.rg   = ctR;
+
             procObject(&newobject);
     }
 
@@ -817,9 +833,12 @@ void C_radar_data::addTrack(object_t* mObject)
             return;
         }
     }
-    track_t newTrack;
-    newTrack.init(mObject);
-    mTrackList.push_back(newTrack);
+    if(mTrackList.size()<400)
+    {
+        track_t newTrack;
+        newTrack.init(mObject);
+        mTrackList.push_back(newTrack);
+    }
 }
 void C_radar_data::deleteTrack(short trackNum)
 {
@@ -832,7 +851,7 @@ void C_radar_data::deleteTrack(short trackNum)
 }
 void C_radar_data::procObject(object_t* pObject)
 {
-    if(pObject->dopler==0)return;
+
 
         if(avtodetect)
         {
@@ -848,22 +867,21 @@ void C_radar_data::procObject(object_t* pObject)
 //                    }
 //                }
 
-                for(unsigned short i=0;i<mTrackList.size();i++)
-                {
-                    if(!mTrackList.at(i).state)
-                    {
+//                for(unsigned short i=0;i<mTrackList.size();i++)
+//                {
+//                    if(!mTrackList.at(i).state)
+//                    {
 
-                        mTrackList.at(i).init(pObject);
+//                        mTrackList.at(i).init(pObject);
 
-                        return;//add object to a empty track
-                    }
-                }
+//                        return;//add object to a empty track
+//                    }
+//                }
                 //create new track
-                if(mTrackList.size()<50)//MAX_TRACKS)
-                {
+
                     if((pObject->dopler!=1)&&(pObject->dopler!=15)&&(pObject->dopler!=0))addTrack(pObject);// chi lay dopler khac 0
 
-                }
+
 
 
         }
@@ -897,28 +915,30 @@ void C_radar_data::procPix(short proc_azi,short range)//_______signal detected, 
          plotIndex = data_mem.plotIndex[proc_azi][range-1];
 
     }
-    else if(data_mem.detect[pr_proc_azi][range-1])
-    {
-         plotIndex = data_mem.plotIndex[pr_proc_azi][range-1];
+//    else if(data_mem.detect[pr_proc_azi][range-1])
+//    {
+//         plotIndex = data_mem.plotIndex[pr_proc_azi][range-1];
 
-    }
-    else if(data_mem.detect[pr_proc_azi][range+1])
-    {
-         plotIndex = data_mem.plotIndex[pr_proc_azi][range+1];
-    }
-    if(plotIndex!=-1)// add to existing marker
+//    }
+//    else if(data_mem.detect[pr_proc_azi][range+1])
+//    {
+//         plotIndex = data_mem.plotIndex[pr_proc_azi][range+1];
+//    }
+    if(plotIndex!=-1&&(plotIndex<plot_list.size())&&(plot_list.at(plotIndex).size))// add to existing marker
     {
         data_mem.plotIndex[proc_azi][range] = plotIndex;
         plot_list.at(plotIndex).size++;
         if(proc_azi<plot_list.at(plotIndex).minA){
             plot_list.at(plotIndex).sumA    +=  proc_azi + MAX_AZIR;
-            plot_list.at(plotIndex).maxA    =  proc_azi + MAX_AZIR;
+            plot_list.at(plotIndex).maxA    =  proc_azi ;
         }else
         {
             plot_list.at(plotIndex).sumA    +=  proc_azi;
+
             plot_list.at(plotIndex).maxA    =  proc_azi;
         }
-
+        if(plot_list.at(plotIndex).maxR<range)plot_list.at(plotIndex).maxR=range;
+        if(plot_list.at(plotIndex).minR>range)plot_list.at(plotIndex).minR=range;
         plot_list.at(plotIndex).sumR    +=  range;
         plot_list.at(plotIndex).sumTer  +=  data_mem.sled[proc_azi][range];
 
@@ -933,6 +953,8 @@ void C_radar_data::procPix(short proc_azi,short range)//_______signal detected, 
         new_plot.sumTer = data_mem.sled[proc_azi][range];
         new_plot.sumA =  proc_azi;
         new_plot.sumR =  range;
+        new_plot.maxR = range;
+        new_plot.minR = range;
         bool listFull = true;
 
         for(unsigned short i = 0;i<plot_list.size();++i)
@@ -941,6 +963,8 @@ void C_radar_data::procPix(short proc_azi,short range)//_______signal detected, 
             if(!plot_list.at(i).size)
             {
                 data_mem.plotIndex[proc_azi][range] =  i;
+                plot_list.at(i).sumA=0;
+                plot_list.at(i).sumR=0;
                 plot_list.at(i) = new_plot;
                 listFull = false;
                 break;
@@ -948,6 +972,7 @@ void C_radar_data::procPix(short proc_azi,short range)//_______signal detected, 
         }
         if(listFull)
         {
+            //if(plot_list.size()>99)return;
             plot_list.push_back(new_plot);
             data_mem.plotIndex[proc_azi][range]  = plot_list.size()-1;
         }

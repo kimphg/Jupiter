@@ -89,14 +89,15 @@ typedef struct  {
 
 typedef struct  {
     short maxA,minA;
-    double sumA,sumR;
-    //unsigned short maxR,minR;
+    long sumA,sumR;
+    unsigned short maxR,minR;
     float sumTer;
-    double size;
+    short size;
     //bool isProcessed;
 } mark_t;
 typedef struct  {
     float          az ,rg;
+    short           azMin,azMax,rMin,rMax;
     short          size;
     char           dopler;
     float          p;
@@ -144,7 +145,7 @@ public:
         velocity = 0;
         confirmed = false;
         isProcessed = true;
-        state = 3;
+        state = 2;
         dTime = 5;
         isTracking = false;
     }
@@ -153,6 +154,7 @@ public:
         float mesA;
         float mesR;
         isTracking = true;
+        if(state)state--;
         float pmax = 0;
         short k=-1;
         for(unsigned short i=0;i<suspect_list.size();i++)
@@ -169,13 +171,13 @@ public:
             mesR = suspect_list[k].rg;
             object_list.push_back(suspect_list[k]);
             isUpdated = true;
-            state++;
+            //state++;
             suspect_list.clear();
         }
         else
         {
             isUpdated = false;
-            state--;
+            //state--;
         }
         if(object_list.size()>10)
         {
