@@ -527,7 +527,7 @@ void Mainwindow::DrawTarget(QPainter* p)
     penTargetRed.setWidth(3);
     //QPen penARPATarget(Qt::yellow);
     //penARPATarget.setWidth(3);
-    QPen penTargetBlue(Qt::darkBlue);
+    QPen penTargetBlue(Qt::cyan);
     penTargetBlue.setWidth(2);
     //penTargetBlue.setStyle(Qt::DashLine);
     QPen penTrack(Qt::darkRed);
@@ -2264,5 +2264,5 @@ void Mainwindow::on_toolButton_auto_tracking_clicked()
 
 void Mainwindow::on_toolButton_auto_tracking_toggled(bool checked)
 {
-    processing->radarData->avtodetect = checked;
+    processing->radarData->setAvtoDetect(checked);
 }

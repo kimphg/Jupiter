@@ -65,34 +65,13 @@ typedef struct {
 
 }frame_t;
 */
-typedef struct  {
-    //processing data
-    unsigned char level [MAX_AZIR][RAD_M_PULSE_RES];
-    unsigned char level_disp [MAX_AZIR][RAD_M_PULSE_RES];
-    bool          detect[MAX_AZIR][RAD_M_PULSE_RES];
-    unsigned char dopler[MAX_AZIR][RAD_M_PULSE_RES];
-    unsigned char dopler_old[MAX_AZIR][RAD_M_PULSE_RES];
-    unsigned char dopler_old2[MAX_AZIR][RAD_M_PULSE_RES];
-    unsigned char sled[MAX_AZIR][RAD_M_PULSE_RES];
-    unsigned char hot[MAX_AZIR][RAD_M_PULSE_RES];
-    short         plotIndex[MAX_AZIR][RAD_M_PULSE_RES];
-    //display data
-    unsigned char display_ray [DISPLAY_RES][3];//0 - signal, 1- dopler, 2 - sled;
-    unsigned char display_ray_zoom [DISPLAY_RES_ZOOM][3];
-    unsigned char display_mask [DISPLAY_RES*2+1][DISPLAY_RES*2+1];
-    unsigned char display_mask_zoom [DISPLAY_RES_ZOOM*2+1][DISPLAY_RES_ZOOM*2+1];
-    short x[MAX_AZIR_DRAW][DISPLAY_RES+1];
-    short y[MAX_AZIR_DRAW][DISPLAY_RES+1];
-    short xzoom[MAX_AZIR_DRAW][DISPLAY_RES_ZOOM];
-    short yzoom[MAX_AZIR_DRAW][DISPLAY_RES_ZOOM];
-} signal_map_t;
+
 
 typedef struct  {
     short maxA,minA;
-    long sumA,sumR;
     unsigned short maxR,minR;
-    float sumTer;
-    short size;
+    unsigned int sumTer,sumA,sumR;
+    unsigned short size;
     //bool isProcessed;
 } mark_t;
 typedef struct  {
@@ -119,6 +98,8 @@ public:
     float deltaAzi;
     float estX ,estY;
     float estA, estR;
+    float mesA;
+    float mesR;
     float course, velocity;
     char state;
     float dTime;
@@ -138,21 +119,23 @@ public:
     {
         object_list.clear();
         this->object_list.push_back(*object);
-        estA = object->az;
-        estR = object->rg;
+        mesA = estA = object->az;
+        mesR = estR = object->rg;
         estX = ((sinf(estA)))*estR;
         estY = ((cosf(estA)))*estR;
         velocity = 0;
+        course = 0;
         confirmed = false;
         isProcessed = true;
-        state = 2;
+        state = 3;
         dTime = 5;
+
         isTracking = false;
+
     }
     void update()
     {
-        float mesA;
-        float mesR;
+
         isTracking = true;
         if(state)state--;
         float pmax = 0;
@@ -171,13 +154,13 @@ public:
             mesR = suspect_list[k].rg;
             object_list.push_back(suspect_list[k]);
             isUpdated = true;
-            //state++;
+            if(state<12)state+=2;
             suspect_list.clear();
         }
         else
         {
             isUpdated = false;
-            //state--;
+            if(state>0)state--;
         }
         if(object_list.size()>10)
         {
@@ -202,6 +185,8 @@ public:
     }
     void predict()
     {
+        estA = mesA;
+        estR = mesR;
         return;
         estX += ((sinf(course)))*velocity;
         estY += ((cosf(course)))*velocity;
@@ -220,11 +205,11 @@ public:
         dR*=dR;
         if(state>TRACK_STABLE_STATE)
         {
-            if(dR>=4 || dA>=0.0007f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            if(dR>=4 || dA>=0.0081f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
             object->p = (1.0f-dR/9.0f)*(1.0f-dA/0.0007f);
         }else
         {
-            if(dR>=12 || dA>=0.0021f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            if(dR>=12 || dA>=0.016f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
             object->p = (1.0f-dR/27.0f)*(1.0f-dA/0.0021f);
         }
         return true;
@@ -249,13 +234,13 @@ public:
     float k_vet;// !!!!
     trackList               mTrackList;
     plotList                plot_list;
-    signal_map_t            data_mem;
+
     unsigned char           size_thresh,overload, terrain_init_time, clk_adc;
     float                   scale_ppi,scale_zoom;
 
     void                    updateZoomRect(float ctx, float cty);
     unsigned short          sn_stat;
-    bool                    avtodetect,isClkAdcChanged,xl_dopler,cut_thresh;
+    bool                    isClkAdcChanged,xl_dopler,cut_thresh;
     bool                    isFilting,rgs_auto,bo_bang_0;
     float                   krain,kgain,ksea,brightness;
     float                   krain_auto,kgain_auto,ksea_auto;
@@ -273,6 +258,11 @@ public:
             rgs_auto = false;
         }
 
+    }
+    void setAvtoDetect(bool arg)
+    {
+        terrain_init_time = 5;
+        avtodetect = arg;
     }
     float                   temp;
     float                   trueN;
@@ -325,16 +315,11 @@ public:
         }
     void resetTrack();
 private:
-
-    void        setDoplerLevel(unsigned short azi, unsigned  short range, unsigned char level);
+    bool        avtodetect;
     uint        getColor(unsigned char pvalue, unsigned char dopler, unsigned char sled);
     void        drawSgn(short azi_draw, short r_pos);
     void        drawSgnZoom(short azi_draw, short r_pos);
-    //void        drawZero(short azi, short r_pos);
-    //void        fadeSignPix(short px, short py);
     unsigned char command_feedback[8];
-
-    //bool        isDataTooLarge;
     void        polarToXY(float *x, float *y, float azi, float range);
     bool        isProcessing;
     short       curAzir;
