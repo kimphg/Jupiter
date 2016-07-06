@@ -12,8 +12,8 @@
 #define CFG_DYVIEW  "Dy "
 #define CFG_MAPFILE "Map "
 #define CFG_FILE    "config.isc"
-#define DEFAULT_LAT		20.705434f
-#define DEFAULT_LONG	106.785371f
+#define DEFAULT_LAT		20.707f
+#define DEFAULT_LONG	106.78f
 #define LAT_MIN			5
 #define LAT_MAX			25
 #define LON_MIN		105
