@@ -19,6 +19,7 @@ QTimer*                     syncTimer1s ;
 QTimer*                     dataPlaybackTimer ;
 QThread*                    t,*t1 ;
 bool displayAlpha = false;
+QList<CTarget*> targetList;
 //static short                currMaxRange = RADAR_MAX_RESOLUTION;
 static short                currMaxAzi = MAX_AZIR,currMinAzi = 0;
 static short                dxMax,dyMax;
@@ -534,12 +535,32 @@ void Mainwindow::DrawTarget(QPainter* p)
     //QPen penARPATrack(Qt::darkYellow);
     //draw radar targets
     short x,y;
+    short targetId = 0;
     if(true)
     {
-        for(uint i=0;i<processing->radarData->mTrackList.size();i++)
+        for(uint trackId=0;trackId<processing->radarData->mTrackList.size();trackId++)
         {
             //if(!processing->radarData->mTrackList.at(i).confirmed)continue;
-                if(!processing->radarData->mTrackList.at(i).state)continue;
+                if(!processing->radarData->mTrackList.at(trackId).state)continue;
+                x= processing->radarData->mTrackList.at(trackId).estX*processing->radarData->scale_ppi + scrCtX - dx;
+                y= - processing->radarData->mTrackList.at(trackId).estY*processing->radarData->scale_ppi + scrCtY - dy;
+                short tid =0;
+                for(;tid<targetList.size();tid++)
+                {
+                    if(targetList.at(tid)->trackId==trackId)
+                    {
+
+                        targetList.at(tid)->setPosistion(x,y);
+                    }
+                }
+                if(tid==targetList.size())// add new target
+                {
+                    CTarget*  tg1 = new CTarget(this);
+                    tg1->setPosistion(x,y);
+                    tg1->show();
+                    tg1->trackId = trackId;
+
+                }
                 p->setPen(penTrack);
                 short j;
                 //draw track:
@@ -547,14 +568,13 @@ void Mainwindow::DrawTarget(QPainter* p)
                 //{
                     //x = (processing->radarData->mTrackList.at(i).estX + DISPLAY_RES)*processing->radarData->scale_ppi - (DISPLAY_RES*processing->radarData->scale_ppi-scrCtX)-dx;
                     //y = (DISPLAY_RES - processing->radarData->mTrackList.at(i).estY)*processing->radarData->scale_ppi - (DISPLAY_RES*processing->radarData->scale_ppi-scrCtY)-dy;
-                x= processing->radarData->mTrackList.at(i).estX*processing->radarData->scale_ppi + scrCtX - dx;
-                y= - processing->radarData->mTrackList.at(i).estY*processing->radarData->scale_ppi + scrCtY - dy;
-                    p->drawPoint(x,y);
+
+                    //p->drawPoint(x,y);
                 //}
 //                j--;
 //                if(j<0)continue;
                 //printf("red");
-                if(processing->radarData->mTrackList.at(i).confirmed)
+                /*if(processing->radarData->mTrackList.at(trackId).confirmed)
                 {
                     p->setPen(penTargetRed);
 
@@ -564,9 +584,9 @@ void Mainwindow::DrawTarget(QPainter* p)
                     p->setPen(penTargetBlue);
                 }
                 p->drawRect(x-6,y-6,12,12);
-                p->drawText(x+5,y+5,300,40,0,QString::number(processing->radarData->mTrackList.at(i).state)
-                            + "-" + QString::number(processing->radarData->mTrackList.at(i).terrain)
-                            + "-" + QString::number(processing->radarData->mTrackList.at(i).dopler),0);
+                p->drawText(x+5,y+5,300,40,0,QString::number(processing->radarData->mTrackList.at(trackId).state)
+                            + "-" + QString::number(processing->radarData->mTrackList.at(trackId).terrain)
+                            + "-" + QString::number(processing->radarData->mTrackList.at(trackId).dopler),0);*/
                 /*if(false)//processing->radarData->mTrackList.at(i).isMoving) // moving obj
                 {
 
