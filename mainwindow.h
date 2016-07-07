@@ -22,6 +22,7 @@
 #include <QFileDialog>
 #include <QImage>
 #include <QHostAddress>
+#include "ctarget.h"
 //#include "radarcontroldialog.h"
 //#include "c_arpa_data.h"
 //#include <QtSerialPort/QSerialPort>
