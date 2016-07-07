@@ -1112,8 +1112,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>100</width>
-          <height>30</height>
+          <width>235</width>
+          <height>126</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1126,8 +1126,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>100</width>
-          <height>30</height>
+          <width>235</width>
+          <height>126</height>
          </rect>
         </property>
         <attribute name="label">
@@ -20159,7 +20159,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QCustomButton" name="toolButton_reset">
+      <widget class="QCustomButton" name="toolButton_reset_2">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -20172,7 +20172,28 @@
         </font>
        </property>
        <property name="text">
-        <string>Reset</string>
+        <string>Reset vết</string>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCustomButton" name="toolButton_reset_3">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Reset quĩ đạo</string>
        </property>
        <property name="checkable">
         <bool>false</bool>

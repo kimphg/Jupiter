@@ -6,7 +6,7 @@
 #define ARMA_BLAS_UNDERSCORE
 
 
-#define TRACK_STABLE_STATE          6
+#define TRACK_STABLE_STATE          5
 #define MIN_TERRAIN                 10
 #define TRACK_CONFIRMED_SIZE        3
 #define TRACK_INIT_STATE            3
@@ -68,12 +68,13 @@ typedef struct {
 
 
 typedef struct  {
-    short maxA,minA;
-    unsigned short maxR,minR;
     unsigned int sumTer,sumA,sumR;
+    short maxA,minA,ctA;
+    unsigned short maxR,minR,ctR;
     unsigned short size;
+    unsigned char maxLevel,dopler;
     //bool isProcessed;
-} mark_t;
+} plot_t;
 typedef struct  {
     float          az ,rg;
     short           azMin,azMax,rMin,rMax;
@@ -82,7 +83,7 @@ typedef struct  {
     float          p;
     float          terrain;
 }object_t;
-typedef std::vector<mark_t> plotList;
+typedef std::vector<plot_t> plotList;
 typedef std::vector<object_t> objectList;
 
 //______________________________________//
@@ -95,6 +96,7 @@ public:
     qint64 currentTimeMs;
     bool confirmed;
     objectList suspect_list,object_list;
+    char terrain;
     float deltaAzi;
     float estX ,estY;
     float estA, estR;
@@ -104,6 +106,7 @@ public:
     char state;
     float dTime;
     bool isTracking;
+    char dopler;
     //QDateTime time;
     bool isProcessed;
     bool isUpdated;
@@ -119,6 +122,7 @@ public:
     {
         object_list.clear();
         this->object_list.push_back(*object);
+        this->dopler=object->dopler;
         mesA = estA = object->az;
         mesR = estR = object->rg;
         estX = ((sinf(estA)))*estR;
@@ -137,7 +141,7 @@ public:
     {
 
         isTracking = true;
-        if(state)state--;
+
         float pmax = 0;
         short k=-1;
         for(unsigned short i=0;i<suspect_list.size();i++)
@@ -153,14 +157,20 @@ public:
             mesA = suspect_list[k].az;
             mesR = suspect_list[k].rg;
             object_list.push_back(suspect_list[k]);
+            dopler = suspect_list[k].dopler;
+            terrain = suspect_list[k].terrain;
             isUpdated = true;
-            if(state<12)state+=2;
+            if(state<12)
+            {
+                if(confirmed)state+=2;
+                else state++;
+            }
             suspect_list.clear();
         }
         else
         {
             isUpdated = false;
-            if(state>0)state--;
+            if(state)state--;
         }
         if(object_list.size()>10)
         {
@@ -201,16 +211,24 @@ public:
         if(dA>PI) dA-=PI_NHAN2;
         else if(dA<-PI)dA+=PI_NHAN2;//----------------
         float dR = object->rg - estR;
+        short doplerVar = abs(dopler - object->dopler);
+        if(doplerVar>8)doplerVar = 16-doplerVar;
+        if(doplerVar>1)return false;
         dA*=dA;
         dR*=dR;
         if(state>TRACK_STABLE_STATE)
         {
-            if(dR>=4 || dA>=0.0081f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = (1.0f-dR/9.0f)*(1.0f-dA/0.0007f);
-        }else
+            if(dR>=9 || dA>=0.0007f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            object->p = 4/dR*0.0007f/dA;
+        }else if(!confirmed)
         {
-            if(dR>=12 || dA>=0.016f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = (1.0f-dR/27.0f)*(1.0f-dA/0.0021f);
+            if(dR>=12 || dA>=0.0009f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            object->p = 12/dR*0.0010f/dA;
+        }
+        else
+        {
+            if(dR>=16 || dA>=0.0012f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            object->p = 12/dR*0.0012f/dA;
         }
         return true;
     }
@@ -261,9 +279,10 @@ public:
     }
     void setAvtoDetect(bool arg)
     {
-        terrain_init_time = 5;
+        terrain_init_time = 4;
         avtodetect = arg;
     }
+
     float                   temp;
     float                   trueN;
     DataOverLay             dataOver;
@@ -294,6 +313,7 @@ public:
         while(trueN_deg>=360)trueN_deg-=360;
         trueN =(trueN_deg/360.0f*PI_NHAN2);
         raw_map_init();
+        resetTrack();
     }
     void        setScalePPI(float scale);
     void        setScaleZoom(float scale);
@@ -313,7 +333,7 @@ public:
 
             return (char*)&command_feedback[0];
         }
-    void resetTrack();
+    void        resetTrack();
 private:
     bool        avtodetect;
     uint        getColor(unsigned char pvalue, unsigned char dopler, unsigned char sled);
@@ -327,7 +347,7 @@ private:
     void        getNoiseLevel();
     void        procPix(short proc_azi,short range);
     void        procTracks(unsigned short curA);
-    void        procPLot(mark_t* pMark);
+    void        procPLot(plot_t* mPlot);
     void        procObject(object_t* pObject);
 
     //void status_start();

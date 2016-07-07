@@ -232,6 +232,8 @@ private slots:
 
     void on_toolButton_auto_tracking_toggled(bool checked);
 
+    void on_toolButton_reset_3_clicked();
+
 private:
     void initActionsConnections();
 };

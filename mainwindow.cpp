@@ -523,7 +523,7 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
 void Mainwindow::DrawTarget(QPainter* p)
 {
     //draw radar  target:
-    QPen penTargetRed(Qt::red);
+    QPen penTargetRed(Qt::magenta);
     penTargetRed.setWidth(3);
     //QPen penARPATarget(Qt::yellow);
     //penARPATarget.setWidth(3);
@@ -538,7 +538,7 @@ void Mainwindow::DrawTarget(QPainter* p)
     {
         for(uint i=0;i<processing->radarData->mTrackList.size();i++)
         {
-            //if(processing->radarData->mTrackList.at(i).state<TRACK_STABLE_STATE)continue;
+            //if(!processing->radarData->mTrackList.at(i).confirmed)continue;
                 if(!processing->radarData->mTrackList.at(i).state)continue;
                 p->setPen(penTrack);
                 short j;
@@ -564,7 +564,9 @@ void Mainwindow::DrawTarget(QPainter* p)
                     p->setPen(penTargetBlue);
                 }
                 p->drawRect(x-6,y-6,12,12);
-                p->drawText(x-30,y-20,100,40,0,QString::number(i+1),0);
+                p->drawText(x+5,y+5,300,40,0,QString::number(processing->radarData->mTrackList.at(i).state)
+                            + "-" + QString::number(processing->radarData->mTrackList.at(i).terrain)
+                            + "-" + QString::number(processing->radarData->mTrackList.at(i).dopler),0);
                 /*if(false)//processing->radarData->mTrackList.at(i).isMoving) // moving obj
                 {
 
@@ -2265,4 +2267,9 @@ void Mainwindow::on_toolButton_auto_tracking_clicked()
 void Mainwindow::on_toolButton_auto_tracking_toggled(bool checked)
 {
     processing->radarData->setAvtoDetect(checked);
+}
+
+void Mainwindow::on_toolButton_reset_3_clicked()
+{
+    processing->radarData->resetTrack();
 }
