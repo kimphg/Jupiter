@@ -10997,7 +10997,7 @@
       </widget>
      </item>
      <item row="4" column="2">
-      <widget class="QLabel" name="label_18">
+      <widget class="QLabel" name="label_radar_range">
        <property name="palette">
         <palette>
          <active>
@@ -11422,7 +11422,7 @@
       </widget>
      </item>
      <item row="0" column="2">
-      <widget class="QLabel" name="label_16">
+      <widget class="QLabel" name="label_radar_id">
        <property name="palette">
         <palette>
          <active>
@@ -12272,7 +12272,7 @@
       </widget>
      </item>
      <item row="5" column="2">
-      <widget class="QLabel" name="label_status_7">
+      <widget class="QLabel" name="label_radar_azi">
        <property name="palette">
         <palette>
          <active>
@@ -20687,7 +20687,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>1</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>

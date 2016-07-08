@@ -76,8 +76,8 @@ typedef struct  {
     //bool isProcessed;
 } plot_t;
 typedef struct  {
-    float          az ,rg;
-    short           azMin,azMax,rMin,rMax;
+    float          az ,rg,x,y;
+    short          azMin,azMax,rMin,rMax;
     short          size;
     char           dopler;
     float          p;
@@ -172,14 +172,19 @@ public:
             isUpdated = false;
             if(state)state--;
         }
-        if(object_list.size()>10)
+        if(!confirmed)
         {
-            confirmed = true;
+            if(object_list.size()>10)
+            {
+                if(state>TRACK_STABLE_STATE)confirmed = true;
+            }
         }
         if(isUpdated)
         {
             float mesX = ((sinf(mesA)))*mesR;
             float mesY = ((cosf(mesA)))*mesR;
+            object_list.at(object_list.size()-1).x = mesX;
+            object_list.at(object_list.size()-1).y = mesY;
             float dx = mesX - estX;
             float dy = mesY - estY;
             estX+=(mesX-estX)/2;
@@ -279,7 +284,7 @@ public:
     }
     void setAvtoDetect(bool arg)
     {
-        terrain_init_time = 4;
+        terrain_init_time = 2;
         avtodetect = arg;
     }
 

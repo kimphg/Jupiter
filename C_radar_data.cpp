@@ -43,7 +43,7 @@ C_radar_data::C_radar_data()
     img_ppi = new QImage(DISPLAY_RES*2+1,DISPLAY_RES*2+1,QImage::Format_ARGB32);
     img_alpha = new QImage(RAD_M_PULSE_RES,256,QImage::Format_Mono);
     img_zoom_ppi = new QImage(ZOOM_SIZE+1,ZOOM_SIZE+1,QImage::Format_ARGB32);
-
+    img_ppi->fill(Qt::transparent);
     isDisplayAlpha = false;
     size_thresh = 4;
     isProcessing = true;
@@ -429,25 +429,25 @@ void C_radar_data::ProcessData(unsigned short azi)
     }
     for(short r_pos=0;r_pos<range_max;r_pos++)
     {
-        if(isFilting)
+        if(isFilting&&(!rgs_auto))
         {
             // apply the  threshholding algorithm
             bool cutoff = false;
             short thresh = 0;
-            if(rgs_auto)
-            {
-                //RGS thresh
-                if(r_pos<4)
-                {
-                    rainLevel = noiseAverage;
-                }
-                else
-                rainLevel += krain_auto*(data_mem.level[azi][r_pos]-rainLevel);
-                if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage + 6*noiseVar;
-                thresh = rainLevel + noiseVar*kgain_auto;
-            }
-            else
-            {
+            if(!rgs_auto)
+//            {
+//                //RGS thresh
+//                if(r_pos<4)
+//                {
+//                    rainLevel = noiseAverage;
+//                }
+//                else
+//                rainLevel += krain_auto*(data_mem.level[azi][r_pos]-rainLevel);
+//                if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage + 6*noiseVar;
+//                thresh = rainLevel + noiseVar*kgain_auto;
+//            }
+//            else
+//            {
                 //RGS thresh
                 if(r_pos<4)
                 {
@@ -457,7 +457,7 @@ void C_radar_data::ProcessData(unsigned short azi)
                 rainLevel += krain*(data_mem.level[azi][r_pos]-rainLevel);
                 if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage + 6*noiseVar;
                 thresh = rainLevel + noiseVar*kgain;
-            }
+//            }
 
             if(!cutoff)cutoff = (data_mem.level[azi][r_pos]<=thresh);
             if(bo_bang_0)
@@ -560,6 +560,7 @@ void C_radar_data::ProcessData(unsigned short azi)
             }
             if(rainLevel>(noiseAverage+9*noiseVar))rainLevel = noiseAverage + 9*noiseVar;
             thresh = rainLevel + noiseVar*3;//kgain = 3
+
 //            short dvar;
 //            dvar = abs(data_mem.dopler[azi][r_pos]-data_mem.dopler_old[azi][r_pos]);
 //            if(dvar>8)dvar = 16-dvar;
@@ -578,7 +579,19 @@ void C_radar_data::ProcessData(unsigned short azi)
                 }
 
             }
-            if(isFilting&&data_mem.hot[azi][r_pos]<2)data_mem.level_disp[azi][r_pos]= 0;
+            if(rgs_auto)
+            {
+                if(data_mem.hot[azi][r_pos]<2)
+                {
+                    if(isFilting)data_mem.level_disp[azi][r_pos]= 0;
+                    data_mem.sled[azi][r_pos]-= (data_mem.sled[azi][r_pos])/100.0f;
+                }
+                else
+                {
+                    data_mem.sled[azi][r_pos] += (255 - data_mem.sled[azi][r_pos])/10.0f;
+
+                }
+            }
             if(r_pos>RANGE_MIN)
             {
                 data_mem.detect[azi][r_pos] = data_mem.hot[azi][r_pos]>1;

@@ -27,12 +27,13 @@ static C_ARPA_data          arpa_data;
 //static short                curAzir=-1;//,drawAzir=0;
 static float                signsize,sn_scale;
 static short                scrCtX, scrCtY, dx =0,dy=0,dxMap=0,dyMap=0;//mouseX,mouseY;
-static short                mousePointerX,mousePointerY;
+static short                mousePointerX,mousePointerY,mouseX,mouseY;
 static char                 gridOff = false;
 static char                 udpFailure = 0;//config file !!!
 static bool                 isScreenUp2Date,isSettingUp2Date,isDraging = false;
 static bool                 isScaleChanged =true;
 static QStandardItemModel   modelTargetList;
+short selected_target_index;
 enum drawModes{
     SGN_DIRECT_DRAW,SGN_IMG_DRAW,NOTERR_DRAW
 }drawMode = SGN_IMG_DRAW;
@@ -47,7 +48,15 @@ short range = 1;
 bool isDrawSubTg = true;
 //static unsigned short cur_object_index = 0;
 
-
+void Mainwindow::mouseDoubleClickEvent( QMouseEvent * e )
+{
+    if ( e->button() == Qt::LeftButton )
+    {
+        mousePointerX = (e->x());
+        mousePointerY = (e->y());
+        processing->radarData->updateZoomRect(mousePointerX - scrCtX+dx,mousePointerY - scrCtY+dy);
+    }
+}
 void Mainwindow::sendToRadar(const char* hexdata)
 {
     short len = strlen(hexdata)/2+1;
@@ -77,7 +86,7 @@ void Mainwindow::mouseReleaseEvent(QMouseEvent *event)
 //        isScreenUp2Date = false;
 //        return;
 //    }
-    processing->radarData->updateZoomRect(mousePointerX - scrCtX+dx,mousePointerY - scrCtY+dy);
+
     DrawMap();
     isScreenUp2Date = false;
     isDraging = false;
@@ -113,8 +122,7 @@ void Mainwindow::wheelEvent(QWheelEvent *event)
 }
 void Mainwindow::mouseMoveEvent(QMouseEvent *event) {
     //if(!isDraging)return;
-    //mouseX = (event->x());
-    //mouseY = (event->y());
+
     if(isDraging&&(event->buttons() & Qt::LeftButton)) {
 
         while(dx*dx+dy*dy>dxMax*dxMax)
@@ -127,27 +135,22 @@ void Mainwindow::mouseMoveEvent(QMouseEvent *event) {
                 if(dy>0){dy--;dyMap--;}else {dy++;dyMap++;}
             }
         }
-        dx+= mousePointerX-event->x();
-        dy+= mousePointerY-event->y();
-        dxMap += mousePointerX-event->x();
-        dyMap += mousePointerY-event->y();
-        mousePointerX=event->x();
-        mousePointerY=event->y();
+        dx+= mouseX-event->x();
+        dy+= mouseY-event->y();
+        dxMap += mouseX-event->x();
+        dyMap += mouseY-event->y();
+        mouseX=event->x();
+        mouseY=event->y();
         isScreenUp2Date = false;
     }
 }
 void Mainwindow::mousePressEvent(QMouseEvent *event)
 {
-    if(event->x()>height())return;
-    mousePointerX = (event->x());
-    mousePointerY = (event->y());
-
-    //ui->frame_RadarViewOptions->hide();
+    if(event->x()>scrCtX+scrCtY)return;
+    mouseX = (event->x());
+    mouseY = (event->y());
     if(event->buttons() & Qt::LeftButton) {
         isDraging = true;
-        mousePointerX=event->x();
-        mousePointerY=event->y();
-        //printf("mouseX %d\n",mouseX);
     }
     else if(event->buttons() & Qt::RightButton)
     {
@@ -159,10 +162,6 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
         return;
     }
 
-//    if(selectobject) {
-
-
-//    }
 
 }
 /*void MainWindow::wheelEvent(QWheelEvent *event)
@@ -531,46 +530,66 @@ void Mainwindow::DrawTarget(QPainter* p)
     QPen penTargetBlue(Qt::cyan);
     penTargetBlue.setWidth(2);
     //penTargetBlue.setStyle(Qt::DashLine);
-    QPen penTrack(Qt::darkRed);
+    QPen penTrack;
+    penTrack.setWidth(2);
+    penTrack.setColor(QColor(250,50,250,150));
     //QPen penARPATrack(Qt::darkYellow);
     //draw radar targets
-    short x,y;
-    short targetId = 0;
+    float x,y;
+    //short targetId = 0;
     if(true)
     {
         for(uint trackId=0;trackId<processing->radarData->mTrackList.size();trackId++)
         {
-            //if(!processing->radarData->mTrackList.at(i).confirmed)continue;
+            if(!processing->radarData->mTrackList.at(trackId).confirmed)continue;
                 if(!processing->radarData->mTrackList.at(trackId).state)continue;
-                x= processing->radarData->mTrackList.at(trackId).estX*processing->radarData->scale_ppi + scrCtX - dx;
-                y= - processing->radarData->mTrackList.at(trackId).estY*processing->radarData->scale_ppi + scrCtY - dy;
+                x= processing->radarData->mTrackList.at(trackId).estX*processing->radarData->scale_ppi/scale;
+                y= processing->radarData->mTrackList.at(trackId).estY*processing->radarData->scale_ppi/scale;
                 short tid =0;
                 for(;tid<targetList.size();tid++)
                 {
                     if(targetList.at(tid)->trackId==trackId)
                     {
-
                         targetList.at(tid)->setPosistion(x,y);
+                        break;
                     }
                 }
                 if(tid==targetList.size())// add new target
                 {
-                    CTarget*  tg1 = new CTarget(this);
-                    tg1->setPosistion(x,y);
-                    tg1->show();
-                    tg1->trackId = trackId;
-
+                    tid =0;
+                    for(;tid<targetList.size();tid++)
+                    {
+                        //if(processing->radarData->mTrackList.at(targetList.at(tid)->trackId).state == 0)
+                        if(!targetList.at(tid)->isUsed)
+                        {
+                            targetList.at(tid)->trackId = trackId;
+                            targetList.at(tid)->isUsed = true;
+                            targetList.at(tid)->setPosistion(x,y);
+                        }
+                    }
+                    if(tid==targetList.size())
+                    {
+                        CTarget*  tg1 = new CTarget(this);
+                        tg1->setPosistion(x,y);
+                        //tg1->show();
+                        tg1->trackId = trackId;
+                        tg1->isUsed = true;
+                        targetList.append(tg1);
+                    }
                 }
-                p->setPen(penTrack);
-                short j;
-                //draw track:
-                //for(j=0;j<((short)processing->radarData->mTrackList.at(i).object_list.size());j++)
-                //{
-                    //x = (processing->radarData->mTrackList.at(i).estX + DISPLAY_RES)*processing->radarData->scale_ppi - (DISPLAY_RES*processing->radarData->scale_ppi-scrCtX)-dx;
-                    //y = (DISPLAY_RES - processing->radarData->mTrackList.at(i).estY)*processing->radarData->scale_ppi - (DISPLAY_RES*processing->radarData->scale_ppi-scrCtY)-dy;
 
-                    //p->drawPoint(x,y);
-                //}
+//                draw track:
+                p->setPen(penTrack);
+                short k=0;
+                for(short j=(processing->radarData->mTrackList.at(trackId).object_list.size()-1);j>0;j--)
+                {
+                    k++;
+                    if(k>20)break;
+                    short x,y;
+                    x = processing->radarData->mTrackList.at(trackId).object_list.at(j).x*processing->radarData->scale_ppi + scrCtX - dx;
+                    y = -processing->radarData->mTrackList.at(trackId).object_list.at(j).y*processing->radarData->scale_ppi + scrCtY - dy;
+                    p->drawPoint(x,y);
+                }
 //                j--;
 //                if(j<0)continue;
                 //printf("red");
@@ -826,6 +845,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
         p.drawRect(rect);
         p.drawImage(rect,*processing->radarData->img_zoom_ppi,processing->radarData->img_zoom_ppi->rect());
     }
+    updateTargets();
 }
 //void MainWindow::keyPressEvent(QKeyEvent *event)
 //{
@@ -1093,7 +1113,9 @@ void Mainwindow::UpdateRadarData()
             processing->radarData->isClkAdcChanged = false;
         }
         processing->radarData->redrawImg();
+        //updateTargets();
         update();
+
         if(radar_state==DISCONNECTED)setRadarState(CONNECTED);
     }
     else if(!isScreenUp2Date)
@@ -2094,7 +2116,59 @@ void Mainwindow::on_toolButton_alphaView_toggled(bool checked)
 }
 
 
+void Mainwindow::updateTargets()
+{
 
+    for(short i = 0;i<targetList.size();i++)
+    {
+        if(!targetList.at(i)->isUsed)continue;
+        if(processing->radarData->mTrackList.at(targetList.at(i)->trackId).state == 0)
+        {
+            targetList.at(i)->isUsed = false;
+            targetList.at(i)->hide();
+            continue;
+        }
+        float x	= targetList.at(i)->x*scale + scrCtX-dx ;
+        float y	= -targetList.at(i)->y*scale + scrCtY-dy ;
+        float w = scrCtY-30;
+        float dx = x-scrCtX;
+        float dy = y-scrCtY;
+        if(dx*dx+dy*dy>(w*w))
+        {
+            targetList.at(i)->hide();
+        }
+        else
+        {
+            targetList.at(i)->show();
+            targetList.at(i)->setScrPos(x,y);
+        }
+
+        if(targetList.at(i)->clicked)
+        {
+
+            selected_target_index = i;
+            targetList.at(i)->setSelected(true);
+            targetList.at(i)->clicked = false;
+        }
+        if(selected_target_index == i)
+        {
+            ui->label_radar_id->setText(QString::number(i+1));
+            //ui->label_radar_range->setText(QString::number(targetList.at(i)->range)+"Nm");
+            //ui->label_radar_azi->setText( QString::number(targetList.at(i)->azi)+"\xB0");
+            //ui->label_status_lat_radar->setText( QString::number((short)targetList.at(i)->m_lat)+"\xB0"+QString::number((targetList.at(i)->m_lat-(short)targetList.at(i)->m_lat)*60,'g',4)+"N");
+            //ui->label_status_long_radar->setText(QString::number((short)targetList.at(i)->m_lon)+"\xB0"+QString::number((targetList.at(i)->m_lon-(short)targetList.at(i)->m_lon)*60,'g',4)+"E");
+            //ui->label_status_speed_radar->setText(QString::number(targetList.at(i)->speed)+"Kn");
+        }
+        else
+        {
+            targetList.at(i)->setSelected(false);// = false;
+        }
+        //printf("\nx:%f y:%f",x,y);
+    }
+    //ui->
+    //t1.setGeometry(400,400,20,20);
+    //targetList.append(t1);
+}
 
 void Mainwindow::on_toolButton_centerView_clicked()
 {
@@ -2292,4 +2366,9 @@ void Mainwindow::on_toolButton_auto_tracking_toggled(bool checked)
 void Mainwindow::on_toolButton_reset_3_clicked()
 {
     processing->radarData->resetTrack();
+}
+
+void Mainwindow::on_toolButton_reset_2_clicked()
+{
+    processing->radarData->resetSled();
 }

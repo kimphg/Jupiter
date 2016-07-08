@@ -50,11 +50,10 @@ protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *event);
-
+    void mouseDoubleClickEvent( QMouseEvent * e );
     enum radarSate   { DISCONNECTED,CONNECTED,CONNECTED_ROTATE9_TXOFF,CONNECTED_ROTATE12_TXOFF, CONNECTED_ROTATE9_TXON,CONNECTED_ROTATE12_TXON } radar_state;
 private:
-    //void createActions();
-    //void createMenus();
+    void updateTargets();
     void DrawGrid(QPainter* p,short centerX,short centerY);
     void CameraControl(int x,int y, int zoom);
     void CameraControl(int direction);
@@ -234,6 +233,8 @@ private slots:
     void on_toolButton_auto_tracking_toggled(bool checked);
 
     void on_toolButton_reset_3_clicked();
+
+    void on_toolButton_reset_2_clicked();
 
 private:
     void initActionsConnections();
