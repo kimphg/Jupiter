@@ -1,6 +1,6 @@
 #include "ctarget.h"
-#define SIZE 20
-#define SIZE_HALF 10
+#define SIZE 22
+#define SIZE_HALF 11
 
 CTarget::CTarget(QWidget *parent) : QFrame(parent)
 {
