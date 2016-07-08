@@ -365,7 +365,7 @@ void Mainwindow::DrawMap()
 
 
     for(uint i = 0; i < N_LAYER; i++) {
-        printf("vnmap.layers[%d].size()%d\n",i,vnmap.layers[i].size());
+        //printf("vnmap.layers[%d].size()%d\n",i,vnmap.layers[i].size());
         if(i<3)
         {
             for(uint j = 0; j < vnmap.layers[i].size(); j++) {
