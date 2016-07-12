@@ -25,7 +25,7 @@
 #define RAD_FULL_RES                1792
 #define SIGNAL_SCALE_0      0.157539f//0.1464f//0.094523077
 #define SIGNAL_SCALE_1      0.126031f//0.094523077
-#define SIGNAL_SCALE_2      0.094523f;//0.09669f//0.063015385
+#define SIGNAL_SCALE_2      0.094523f//0.09669f//0.063015385
 #define SIGNAL_SCALE_3      0.063015f//0.031507692
 #define SIGNAL_SCALE_4      0.031508f
 #define SIGNAL_SCALE_5      0.015754f
@@ -80,6 +80,7 @@ typedef struct  {
     short          azMin,azMax,rMin,rMax;
     short          size;
     char           dopler;
+    bool           isManual;
     float          p;
     float          terrain;
 }object_t;
@@ -98,14 +99,14 @@ public:
     objectList suspect_list,object_list;
     char terrain;
     float deltaAzi;
-    float estX ,estY;
+    float estX ,estY,oldX,oldY,Vx,Vy;
     float estA, estR;
-    float mesA;
-    float mesR;
+    float mesA,oldA;
+    float mesR,oldR;
     float course, velocity;
     char state;
     float dTime;
-    bool isTracking;
+    bool isTracking,isManual;
     char dopler;
     //QDateTime time;
     bool isProcessed;
@@ -131,10 +132,20 @@ public:
         course = 0;
         confirmed = false;
         isProcessed = true;
+        isTracking = false;
         state = 3;
         dTime = 5;
+        if( object->isManual)
+        {
+            isManual = true;
+            confirmed  = true;
+            state = 5;
+        }
+        else
+        {
+            isManual = false;
+        }
 
-        isTracking = false;
 
     }
     void update()
@@ -146,6 +157,12 @@ public:
         short k=-1;
         for(unsigned short i=0;i<suspect_list.size();i++)
         {
+            if(suspect_list.at(i).isManual)
+            {
+                isManual = true;
+                confirmed  = true;
+                state = 5;
+            }
             if(pmax<suspect_list.at(i).p)
             {
                 k=i;
@@ -162,8 +179,8 @@ public:
             isUpdated = true;
             if(state<12)
             {
-                if(confirmed)state+=2;
-                else state++;
+                if(confirmed)state+=3;
+                else state+=2;
             }
             suspect_list.clear();
         }
@@ -181,27 +198,40 @@ public:
         }
         if(isUpdated)
         {
+
             float mesX = ((sinf(mesA)))*mesR;
             float mesY = ((cosf(mesA)))*mesR;
-            object_list.at(object_list.size()-1).x = mesX;
-            object_list.at(object_list.size()-1).y = mesY;
-            float dx = mesX - estX;
-            float dy = mesY - estY;
-            estX+=(mesX-estX)/2;
-            estY+=(mesY-estY)/2;
-            float new_course = atanf(dx/dy);
-            if(dy<0)new_course+=PI;
-            if(new_course<0)new_course += PI_NHAN2;
-            float new_velo = sqrt(dx*dx+dy*dy);
-            if(!course)course = new_course;else course+= (new_course-course)/2;
-            if(!velocity)velocity = new_velo;else velocity+= (new_velo-velocity)/2;
+
+            //float dx = mesX - estX;
+            //float dy = mesY - estY;
+            estX+=(mesX-estX);
+            estY+=(mesY-estY);
+            object_list.at(object_list.size()-1).x = estX;
+            object_list.at(object_list.size()-1).y = estY;
+
+            //float new_course = atanf(dx/dy);
+            //if(dy<0)new_course+=PI;
+            //if(new_course<0)new_course += PI_NHAN2;
+            //float new_velo = sqrt(dx*dx+dy*dy);
+            //if(!course)course = new_course;else course+= (new_course-course)/2;
+            //if(!velocity)velocity = new_velo;else velocity+= (new_velo-velocity)/2;
+            if(object_list.size()>2)predict();
         }
-        predict();
+        else
+        {
+            object_t obj;
+            obj.x = estX;
+            obj.y = estY;
+            this->object_list.push_back(obj);
+        }
+
     }
     void predict()
     {
-        estA = mesA;
-        estR = mesR;
+        oldA = estA;
+        oldR = estR;
+        estA = (mesA+oldA)/2;
+        estR = (mesR+oldR)/2;
         return;
         estX += ((sinf(course)))*velocity;
         estY += ((cosf(course)))*velocity;
@@ -216,24 +246,42 @@ public:
         if(dA>PI) dA-=PI_NHAN2;
         else if(dA<-PI)dA+=PI_NHAN2;//----------------
         float dR = object->rg - estR;
-        short doplerVar = abs(dopler - object->dopler);
-        if(doplerVar>8)doplerVar = 16-doplerVar;
-        if(doplerVar>1)return false;
+        if(dopler!=17){
+            short doplerVar = abs(dopler - object->dopler);
+            if(doplerVar>8)doplerVar = 16-doplerVar;
+            if(doplerVar>1)return false;
+        }
         dA*=dA;
         dR*=dR;
-        if(state>TRACK_STABLE_STATE)
+        if(!isManual)
         {
-            if(dR>=9 || dA>=0.0007f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = 4/dR*0.0007f/dA;
-        }else if(!confirmed)
+            if(state>TRACK_STABLE_STATE)
+            {
+                if(dR>=9 || dA>=0.0007f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+                object->p = 4/dR*0.0007f/dA;
+            }else if(!confirmed)
+            {
+                if(dR>=12 || dA>=0.0009f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+                object->p = 12/dR*0.0010f/dA;
+            }
+            else
+            {
+                if(dR>=16 || dA>=0.0012f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+                object->p = 12/dR*0.0012f/dA;
+            }
+        }else
         {
-            if(dR>=12 || dA>=0.0009f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = 12/dR*0.0010f/dA;
-        }
-        else
-        {
-            if(dR>=16 || dA>=0.0012f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = 12/dR*0.0012f/dA;
+            if(state<10)
+            {
+                if(dR>=16 || dA>=0.0012f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+                object->p = 25/dR*0.0012f/dA;
+            }
+            else
+            {
+                if(dR>=12 || dA>=0.0009f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+                object->p = 12/dR*0.0010f/dA;
+            }
+
         }
         return true;
     }
@@ -263,7 +311,7 @@ public:
 
     void                    updateZoomRect(float ctx, float cty);
     unsigned short          sn_stat;
-    bool                    isClkAdcChanged,xl_dopler,cut_thresh;
+    bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled;
     bool                    isFilting,rgs_auto,bo_bang_0;
     float                   krain,kgain,ksea,brightness;
     float                   krain_auto,kgain_auto,ksea_auto;
@@ -353,8 +401,8 @@ private:
     void        procPix(short proc_azi,short range);
     void        procTracks(unsigned short curA);
     void        procPLot(plot_t* mPlot);
-    void        procObject(object_t* pObject);
-
+    bool procObjectAvto(object_t* pObject);
+    bool procObjectManual(object_t* pObject);
     //void status_start();
     //FILE *pFile;
 };

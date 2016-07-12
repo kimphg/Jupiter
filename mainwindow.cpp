@@ -32,13 +32,16 @@ static char                 gridOff = false;
 static char                 udpFailure = 0;//config file !!!
 static bool                 isScreenUp2Date,isSettingUp2Date,isDraging = false;
 static bool                 isScaleChanged =true;
+float           scale;
 static QStandardItemModel   modelTargetList;
+CConfig         config;
+QStringList warningList;
 short selected_target_index;
 enum drawModes{
     SGN_DIRECT_DRAW,SGN_IMG_DRAW,NOTERR_DRAW
 }drawMode = SGN_IMG_DRAW;
 short range = 1;
-
+float rangeStep = 1;
 //typedef struct {
 //    unsigned char        bytes[8];
 //}
@@ -47,7 +50,26 @@ short range = 1;
 //static CommandList command_queue;
 bool isDrawSubTg = true;
 //static unsigned short cur_object_index = 0;
+short lon2x(float lon)
+{
 
+   float refLat = (config.m_config.m_lat )*0.00872664625997;
+   return  (- dx + scrCtX + ((lon - config.m_config.m_long) * 111.31949079327357f*cosf(refLat))*scale);
+}
+short lat2y(float lat)
+{
+
+   return (- dy + scrCtY - ((lat - config.m_config.m_lat) * 111.31949079327357f)*scale);
+}
+double y2lat(short y)
+{
+   return (y  )/scale/111.31949079327357f + config.m_config.m_lat;
+}
+double x2lon(short x)
+{
+    float refLat = (config.m_config.m_lat )*0.00872664625997;
+   return (x  )/scale/111.31949079327357f/cosf(refLat) + config.m_config.m_long;
+}
 void Mainwindow::mouseDoubleClickEvent( QMouseEvent * e )
 {
     if ( e->button() == Qt::LeftButton )
@@ -121,7 +143,16 @@ void Mainwindow::wheelEvent(QWheelEvent *event)
     //if(event->delta()<0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()-1);
 }
 void Mainwindow::mouseMoveEvent(QMouseEvent *event) {
-    //if(!isDraging)return;
+    //draw mouse coordinates
+    float azi,range;
+    processing->radarData->getPolar((mousePointerX - scrCtX+dx)/scale,-(mousePointerY - scrCtY+dy)/scale,&azi,&range);
+    if(azi<0)azi+=PI_NHAN2;
+    azi = azi/PI*180.0;
+    range = range/CONST_NM;
+//    p.drawText(mousePointerX+5,mousePointerY+5,100,20,0,QString::number(range,'g',4)+"|"+QString::number(azi,'g',4),0);
+    ui->label_cursor_range->setText(QString::number(range,'g',6));
+    ui->label_cursor_azi->setText(QString::number(azi,'g',6));
+    //
 
     if(isDraging&&(event->buttons() & Qt::LeftButton)) {
 
@@ -150,16 +181,15 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
     mouseX = (event->x());
     mouseY = (event->y());
     if(event->buttons() & Qt::LeftButton) {
+        if(ui->toolButton_manual_track->isChecked())
+        {
+            float xRadar = (mouseX - scrCtX+dx) ;//coordinates in  radar xy system
+            float yRadar = -(mouseY - scrCtY+dy);
+            processing->radarData->addTrackManual(xRadar,yRadar);
+            isScreenUp2Date = false;
+        }
+        else
         isDraging = true;
-    }
-    else if(event->buttons() & Qt::RightButton)
-    {
-
-        float xRadar = (mousePointerX - scrCtX+dx)/scale ;//coordinates in  radar xy system
-        float yRadar = -(mousePointerY - scrCtY+dy)/scale;
-        processing->radarData->addTrackManual(xRadar,yRadar);
-        isScreenUp2Date = false;
-        return;
     }
 
 
@@ -431,8 +461,7 @@ void Mainwindow::DrawMap()
 void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
 {
     //return;
-    QPen pen(QColor(0x7f,0x7f,0x7f,0xff));
-    pen.setWidth(3);
+    QPen pen(QColor(0x8f,0x8f,0x8f,0x7f));
     pen.setStyle(Qt::SolidLine);
     p->setBrush(QBrush(Qt::NoBrush));
     p->setPen(pen);
@@ -441,59 +470,38 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
     //pen.setColor(QColor(30,90,150,120));
     pen.setWidth(2);
     p->setPen(pen);
-
-    p->drawEllipse(QPoint(centerX,centerY),
-                  (short)(10.0*CONST_NM*scale),
-                  (short)(10.0*CONST_NM*scale));
-    p->drawEllipse(QPoint(centerX,centerY),
-                  (short)(20.0*CONST_NM*scale),
-                  (short)(20.0*CONST_NM*scale));
-    p->drawEllipse(QPoint(centerX,centerY),
-                  (short)(30.0*CONST_NM*scale),
-                  (short)(30.0*CONST_NM*scale));
-    p->drawEllipse(QPoint(centerX,centerY),
-                  (short)(40.0*CONST_NM*scale),
-                  (short)(40.0*CONST_NM*scale));
-    p->drawEllipse(QPoint(centerX,centerY),
-                  (short)(50.0*CONST_NM*scale),
-                  (short)(50.0*CONST_NM*scale));
-    p->drawEllipse(QPoint(centerX,centerY),
-                  (short)(60.0*CONST_NM*scale),
-                  (short)(60.0*CONST_NM*scale));
-    p->drawEllipse(QPoint(centerX,centerY),
-                  (short)(70.0*CONST_NM*scale),
-                  (short)(70.0*CONST_NM*scale));
-    return;
-    if(gridOff == 0)//with frame
+    for(short i = 1;i<8;i++)
     {
-        //p->drawLine(0,centerY,width(),centerY);
-        //p->drawLine(centerX,0,centerX,height());
+    p->drawEllipse(QPoint(centerX,centerY),
+                  (short)(i*rangeStep*CONST_NM*scale),
+                  (short)(i*rangeStep*CONST_NM*scale));
     }
-    else
-    {
+
+
+
         //p.drawEllipse(QPoint(centerX,centerY),(int)(20*CONST_NM*scale),(int)(20*CONST_NM*scale));
         //p.drawEllipse(QPoint(centerX,centerY),(int)(5*CONST_NM*scale),(short)(5*CONST_NM*scale));
         //pen.setWidth(1);
         //p->setPen(pen);
         short theta;
-        short gridR = height()*0.7;
+        short gridR = rangeStep*1.852f*scale*7;
         for(theta=0;theta<360;theta+=90){
             QPoint point1,point2;
                 short dx = gridR*cosf(PI*theta/180);
                 short dy = gridR*sinf(PI*theta/180);
-                point1.setX(centerX+0.33*dx);
-                point1.setY(centerY+0.33*dy);
+                point1.setX(centerX);
+                point1.setY(centerY);
                 point2.setX(centerX+dx);
                 point2.setY(centerY+dy);
                 p->drawLine(point1,point2);
 
         }
-        for(theta=0;theta<360;theta+=10){
+        for(theta=0;theta<360;theta+=30){
             QPoint point1,point2;
                 short dx = gridR*cosf(PI*theta/180);
                 short dy = gridR*sinf(PI*theta/180);
-                point1.setX(centerX+0.95*dx);
-                point1.setY(centerY+0.95*dy);
+                point1.setX(centerX);
+                point1.setY(centerY);
                 point2.setX( centerX+dx);
                 point2.setY(centerY+dy);
                 p->drawLine(point1,point2);
@@ -503,19 +511,9 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
                 else p->drawText(point2,QString::number(theta-270));
 
         }
-        for(theta=0;theta<360;theta+=2){
-            QPoint point1,point2;
-                short dx = gridR*cosf(PI*theta/180);
-                short dy = gridR*sinf(PI*theta/180);
-                point1.setX(centerX+0.98*dx);
-                point1.setY(centerY+0.98*dy);
-                point2.setX(centerX+dx);
-                point2.setY(centerY+dy);
-                p->drawLine(point1,point2);
 
-        }
         //end grid
-    }
+
 
 
 }
@@ -524,7 +522,7 @@ void Mainwindow::DrawTarget(QPainter* p)
 {
     //draw radar  target:
     QPen penTargetRed(Qt::magenta);
-    penTargetRed.setWidth(3);
+    penTargetRed.setWidth(2);
     //QPen penARPATarget(Qt::yellow);
     //penARPATarget.setWidth(3);
     QPen penTargetBlue(Qt::cyan);
@@ -541,55 +539,78 @@ void Mainwindow::DrawTarget(QPainter* p)
     {
         for(uint trackId=0;trackId<processing->radarData->mTrackList.size();trackId++)
         {
-            if(!processing->radarData->mTrackList.at(trackId).confirmed)continue;
-                if(!processing->radarData->mTrackList.at(trackId).state)continue;
+            if(!processing->radarData->mTrackList.at(trackId).isManual)continue;
+            if(!processing->radarData->mTrackList.at(trackId).state)continue;
+
                 x= processing->radarData->mTrackList.at(trackId).estX*processing->radarData->scale_ppi/scale;
                 y= processing->radarData->mTrackList.at(trackId).estY*processing->radarData->scale_ppi/scale;
+                if(processing->radarData->mTrackList.at(trackId).dopler==17)
+                {
+                    short sx = processing->radarData->mTrackList.at(trackId).object_list.at(0).x*processing->radarData->scale_ppi + scrCtX - dx;
+                    short sy = -processing->radarData->mTrackList.at(trackId).object_list.at(0).y*processing->radarData->scale_ppi + scrCtY - dy;
+                    p->setPen(penTargetBlue);
+
+                    p->drawEllipse(sx-6,sy-6,12,12);
+
+                    continue;
+                }
+
                 short tid =0;
                 for(;tid<targetList.size();tid++)
                 {
+                    if(targetList.at(tid)->isUsed)
                     if(targetList.at(tid)->trackId==trackId)
                     {
                         targetList.at(tid)->setPosistion(x,y);
+                        targetList.at(tid)->m_lat = y2lat(processing->radarData->mTrackList.at(trackId).estY*processing->radarData->scale_ppi);
+                        targetList.at(tid)->m_lon = x2lon(processing->radarData->mTrackList.at(trackId).estX*processing->radarData->scale_ppi);
+                        targetList.at(tid)->show();
                         break;
                     }
                 }
                 if(tid==targetList.size())// add new target
                 {
-                    tid =0;
-                    for(;tid<targetList.size();tid++)
-                    {
-                        //if(processing->radarData->mTrackList.at(targetList.at(tid)->trackId).state == 0)
-                        if(!targetList.at(tid)->isUsed)
-                        {
-                            targetList.at(tid)->trackId = trackId;
-                            targetList.at(tid)->isUsed = true;
-                            targetList.at(tid)->setPosistion(x,y);
-                        }
-                    }
-                    if(tid==targetList.size())
-                    {
+//                    tid =0;
+//                    for(;tid<targetList.size();tid++)
+//                    {
+//                        //if(processing->radarData->mTrackList.at(targetList.at(tid)->trackId).state == 0)
+//                        if(!targetList.at(tid)->isUsed)
+//                        {
+//                            targetList.at(tid)->trackId = trackId;
+//                            targetList.at(tid)->isUsed = true;
+//                            targetList.at(tid)->show();
+//                            targetList.at(tid)->setPosistion(x,y);
+//                        }
+//                    }
+//                    if(tid==targetList.size())
+//                    {
                         CTarget*  tg1 = new CTarget(this);
-                        tg1->setPosistion(x,y);
-                        //tg1->show();
+                        tg1->isManual = processing->radarData->mTrackList.at(trackId).isManual;
                         tg1->trackId = trackId;
                         tg1->isUsed = true;
+                        tg1->show();
+                        tg1->m_lat = y2lat(processing->radarData->mTrackList.at(trackId).estY*processing->radarData->scale_ppi);
+                        tg1->m_lon = x2lon(processing->radarData->mTrackList.at(trackId).estX*processing->radarData->scale_ppi);
+                        tg1->setPosistion(x,y);
                         targetList.append(tg1);
-                    }
+//                    }
                 }
 
 //                draw track:
-                p->setPen(penTrack);
+                if(processing->radarData->mTrackList.at(trackId).isManual)p->setPen(penTargetRed);
+                else p->setPen(penTargetBlue);
                 short k=0;
+                short sx,sy;
                 for(short j=(processing->radarData->mTrackList.at(trackId).object_list.size()-1);j>0;j--)
                 {
                     k++;
-                    if(k>20)break;
-                    short x,y;
-                    x = processing->radarData->mTrackList.at(trackId).object_list.at(j).x*processing->radarData->scale_ppi + scrCtX - dx;
-                    y = -processing->radarData->mTrackList.at(trackId).object_list.at(j).y*processing->radarData->scale_ppi + scrCtY - dy;
-                    p->drawPoint(x,y);
+                    if(k>40)break;
+
+                    sx = processing->radarData->mTrackList.at(trackId).object_list.at(j).x*processing->radarData->scale_ppi + scrCtX - dx;
+                    sy = -processing->radarData->mTrackList.at(trackId).object_list.at(j).y*processing->radarData->scale_ppi + scrCtY - dy;
+                    p->drawPoint(sx,sy);
                 }
+                p->drawText(sx+10,sy+10,300,40,0,QString::number(tid+1));
 //                j--;
 //                if(j<0)continue;
                 //printf("red");
@@ -824,12 +845,22 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     p.drawLine(mousePointerX+15,mousePointerY,mousePointerX+10,mousePointerY);
     p.drawLine(mousePointerX,mousePointerY-10,mousePointerX,mousePointerY-15);
     p.drawLine(mousePointerX,mousePointerY+10,mousePointerX,mousePointerY+15);
+    //draw mouse coordinates
     float azi,range;
-    processing->radarData->getPolar((mousePointerX - scrCtX+dx)/scale,-(mousePointerY - scrCtY+dy)/scale,&azi,&range);
+    short   x=this->mapFromGlobal(QCursor::pos()).x();
+    short   y=this->mapFromGlobal(QCursor::pos()).y();
+    processing->radarData->getPolar((x - scrCtX+dx)/scale,-(y - scrCtY+dy)/scale,&azi,&range);
     if(azi<0)azi+=PI_NHAN2;
     azi = azi/PI*180.0;
     range = range/CONST_NM;
-    p.drawText(mousePointerX+5,mousePointerY+5,100,20,0,QString::number(range,'g',4)+"|"+QString::number(azi,'g',4),0);
+//    p.drawText(mousePointerX+5,mousePointerY+5,100,20,0,QString::number(range,'g',4)+"|"+QString::number(azi,'g',4),0);
+    ui->label_cursor_range->setText(QString::number(range,'g',6));
+    ui->label_cursor_azi->setText(QString::number(azi,'g',6));
+    ui->label_cursor_lat->setText(QString::number( (short)y2lat(-(y - scrCtY+dy)))+"\xB0"+
+                                  QString::number(((float)y2lat(-(y - scrCtY+dy))-(short)(y2lat(-(y - scrCtY+dy))))*60,'g',4)+"N");
+
+     ui->label_cursor_long->setText(QString::number( (short)x2lon(x - scrCtX+dx))+"\xB0"+
+                                   QString::number(((float)x2lon(x - scrCtX+dx)-(short)(x2lon(x - scrCtX+dx)))*60,'g',4)+"E");
     //draw zooom
 
     //draw frame
@@ -883,6 +914,7 @@ void Mainwindow::SaveBinFile()
 }
 void Mainwindow::InitSetting()
 {
+    setMouseTracking(true);
     QRect rec = QApplication::desktop()->screenGeometry(0);
     setFixedSize(1920, 1080);
     if((rec.height()==1080)&&(rec.width()==1920))
@@ -941,10 +973,6 @@ void Mainwindow::InitSetting()
 void Mainwindow::ReloadSetting()
 {
 
-
-
-
-
         scrCtX = height()/2+50;//+ ui->toolBar_Main->width()+20;//ENVDEP
         scrCtY = height()/2;
 
@@ -982,14 +1010,14 @@ void Mainwindow::DrawViewFrame(QPainter* p)
     p->drawRect(0,0,scrCtX-scrCtY,height());
     p->setBrush(Qt::NoBrush);
 
-    QPen pengrid(QColor(128,128,0,255));
+    QPen pengrid(QColor(255,255,50,255));
     pengrid.setWidth(4);
     p->setPen(pengrid);
     p->drawEllipse(scrCtX-scrCtY+25,25,d,d);
     pengrid.setWidth(2);
     p->setPen(pengrid);
     QFont font = p->font() ;
-    font.setPointSize(6);
+    font.setPointSize(8);
     p->setFont(font);
     //short theta;
     for(short theta=0;theta<360;theta+=10){
@@ -1093,6 +1121,7 @@ void Mainwindow::setScaleNM(unsigned short rangeNM)
     if(currMaxRange>RADAR_MAX_RESOLUTION)currMaxRange = RADAR_MAX_RESOLUTION;*/
     isScreenUp2Date = false;
 }
+short waittimer =0;
 void Mainwindow::UpdateRadarData()
 {
 
@@ -1114,17 +1143,21 @@ void Mainwindow::UpdateRadarData()
         }
         processing->radarData->redrawImg();
         //updateTargets();
-        update();
+        waittimer = 0;
 
         if(radar_state==DISCONNECTED)setRadarState(CONNECTED);
     }
-    else if(!isScreenUp2Date)
+    else
     {
-        update();
-        isScreenUp2Date = true;
+
+        if(waittimer<100 )waittimer++;else
+        {
+            setRadarState(DISCONNECTED);
+        }
+
     }
 
-
+    update();
 
 
     /*QStandardItemModel* model = new QStandardItemModel(processing->radarData->mTrackList.size(), 5);
@@ -1345,8 +1378,8 @@ void Mainwindow::sync1()//period 1 second
 //    int n = 32*256.0f/((processing->radarData->noise_level[0]*256 + processing->radarData->noise_level[1]));
 //    int m = 256.0f*((processing->radarData->noise_level[2]*256 + processing->radarData->noise_level[3]))
 //            /((processing->radarData->noise_level[4]*256 + processing->radarData->noise_level[5]));
-    QByteArray array(processing->radarData->getFeedback(), 8);
-    ui->label_command->setText(QString(array.toHex()));
+
+
     //display target list:
     /*for(uint i=0;i<processing->radarData->mTrackList.size();i++)
     {
@@ -1417,49 +1450,25 @@ void Mainwindow::sync1()//period 1 second
         sendToRadar(&bytes[0]);
         //udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
     }
-    //display radar state
+    QByteArray array(processing->radarData->getFeedback(), 8);
     switch(radar_state)
     {
     case DISCONNECTED:
-
+        ui->label_status->setText(QString::fromUtf8("Chưa kết nối"));
+        ui->toolButton_tx->setEnabled(false);
+        ui->toolButton_scan->setEnabled(false);
+        ui->label_command->setText(QString::fromUtf8("Chưa kết nối"));
+        //ui->label_status_warning->setStyleSheet("background-color: rgb(255, 100, 50,255);");
         break;
     case CONNECTED:
         ui->label_status->setText(QString::number(processing->radarData->overload));
-        if(processing->radarData->rotation_speed)
-        {
-            ui->toolButton_scan->setChecked(true);
 
-            if(processing->radarData->rotation_speed==1)ui->label_speed->setText("9 v/p");
-            else if(processing->radarData->rotation_speed==2)ui->label_speed->setText("12 v/p");
-        }
-        else
-        {
-            ui->toolButton_scan->setChecked(false);
-            ui->label_speed->setText("0 v/p");
-        }
-        switch((processing->radarData->sn_stat>>8))
-        {
-        case 0 :
-            ui->label_sn_type->setText(QString::fromUtf8("Xung đơn"));
-            break;
-        case 1 :
-            ui->label_sn_type->setText(QString::fromUtf8("Mã Baker"));
-            break;
-        case 2 :
-            ui->label_sn_type->setText(QString::fromUtf8("Mã M"));
-            break;
-        case 3 :
-            ui->label_sn_type->setText(QString::fromUtf8("Mã NN"));
-            break;
+        ui->toolButton_tx->setEnabled(true);
+        ui->toolButton_scan->setEnabled(true);
 
-        default:
-            ui->label_sn_type->setText(QString::fromUtf8("Mã DTTT"));
-            break;
-            //ui->label_sn_type->setText(QString::number(processing->radarData->sn_stat&0x07));
-
-        }
-
-        ui->label_sn_param->setText(QString::number((processing->radarData->sn_stat)&0xff));
+        ui->label_command->setText(QString(array.toHex()));
+        //ui->label_status_warning->setStyleSheet("background-color: rgb(20, 40, 60,255);");
+        //ui->label_status_warning->setText(QString::fromUtf8("Không cảnh báo"));
         break;
     case CONNECTED_ROTATE12_TXON:
         ui->label_status->setText(QString::fromUtf8("Phát 12v/p"));
@@ -1468,25 +1477,45 @@ void Mainwindow::sync1()//period 1 second
         ui->label_status->setText(QString::fromUtf8("Quay 12v/p"));
         break;
     }
+    switch(processing->radarData->sn_stat&0x07)
+    {
+    case 4:
+        ui->label_sn_type->setText("Mã DTTT");
+        ui->label_sn_param->setText(QString::number((((processing->radarData->sn_stat>>3)&0x07)+1)*128));
+
+        break;
+    default:
+        ui->label_sn_param->setText(QString::number(((processing->radarData->sn_stat>>3)&0x07)));
+        break;
+    }
+
+
+
 }
 void Mainwindow::setRadarState(radarSate radarState)
 {
     if(radarState != radar_state)
     {
         radar_state = radarState;
+        //display radar state
+
         switch(radar_state)
         {
         case DISCONNECTED:
             ui->label_status->setText(QString::fromUtf8("Chưa kết nối"));
-            ui->toolButton_tx->hide();
-            ui->toolButton_scan->hide();
+            ui->toolButton_tx->setEnabled(false);
+            ui->toolButton_scan->setEnabled(false);
+            ui->label_command->setText(QString::fromUtf8("Chưa kết nối"));
+            //ui->label_status_warning->setStyleSheet("background-color: rgb(255, 100, 50,255);");
             break;
         case CONNECTED:
             ui->label_status->setText(QString::number(processing->radarData->overload));
-            ui->label_sn_type->setText(QString::number(processing->radarData->sn_stat&0x07));
-            ui->label_sn_param->setText(QString::number((processing->radarData->sn_stat>>3)&0x07));
-            ui->toolButton_tx->show();
-            ui->toolButton_scan->show();
+
+            ui->toolButton_tx->setEnabled(true);
+            ui->toolButton_scan->setEnabled(true);
+
+            //ui->label_status_warning->setStyleSheet("background-color: rgb(20, 40, 60,255);");
+            //ui->label_status_warning->setText(QString::fromUtf8("Không cảnh báo"));
             break;
         case CONNECTED_ROTATE12_TXON:
             ui->label_status->setText(QString::fromUtf8("Phát 12v/p"));
@@ -1780,34 +1809,47 @@ void Mainwindow::UpdateScale()
     {
     case 0:
         scale = (height()/2-5)/(CONST_NM*1.5f );
+        rangeStep = 1.5f/6.0f;
         ui->label_range->setText("1.5 NM");
         break;
     case 1:
-        scale = (height()/2-5)/(CONST_NM*4 );
-        ui->label_range->setText("4 NM");
+        scale = (height()/2-5)/(CONST_NM*3 );
+        rangeStep = 3/6.0f;
+        ui->label_range->setText("3 NM");
         break;
     case 2:
-        scale = (height()/2-5)/(CONST_NM*8 );
-        ui->label_range->setText("8 NM");
+        scale = (height()/2-5)/(CONST_NM*6 );
+        rangeStep = 6/6.0f;
+        ui->label_range->setText("6 NM");
         break;
     case 3:
-        scale = (height()/2-5)/(CONST_NM*16 );
-        ui->label_range->setText("16 NM");
+        scale = (height()/2-5)/(CONST_NM*12 );
+        rangeStep = 12/6.0f;
+        ui->label_range->setText("12 NM");
         break;
     case 4:
         scale = (height()/2-5)/(CONST_NM*24 );
+        rangeStep = 24/6.0f;
         ui->label_range->setText("24 NM");
         break;
     case 5:
-        scale = (height()/2-5)/(CONST_NM*48 );
-        ui->label_range->setText("48 NM");
+        scale = (height()/2-5)/(CONST_NM*36 );
+        rangeStep = 36/6.0f;
+        ui->label_range->setText("36 NM");
         break;
     case 6:
-        scale = (height()/2-5)/(CONST_NM*64 );
-        ui->label_range->setText("64 NM");
+        scale = (height()/2-5)/(CONST_NM*48 );
+        rangeStep = 48/6.0f;
+        ui->label_range->setText("48 NM");
         break;
     case 7:
+        scale = (height()/2-5)/(CONST_NM*72 );
+        rangeStep = 72/6.0f;
+        ui->label_range->setText("72 NM");
+        break;
+    case 8:
         scale = (height()/2-5)/(CONST_NM*96 );
+        rangeStep = 96/6.0f;
         ui->label_range->setText("96 NM");
         break;
     default:
@@ -1815,6 +1857,7 @@ void Mainwindow::UpdateScale()
         ui->label_range->setText("48 NM");
         break;
     }
+    ui->toolButton_grid->setText(QString::fromUtf8("Vòng cự ly(")+QString::number(rangeStep)+"NM)");
     isScaleChanged = true;
     isScreenUp2Date = false;
 
@@ -2036,41 +2079,43 @@ void Mainwindow::on_toolButton_scan_clicked()
 void Mainwindow::on_toolButton_tx_toggled(bool checked)
 {
 
-    if(checked)
+//    if(checked)
 
-    {   //0xaa,0xab,0x00,0x01,0x00,0x00,0x00
-        unsigned char        bytes[8] = {0xaa,0xab,0x02,0x01,0x00,0x00,0x00};
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        bytes[2] = 0x00;//{0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        //ui->toolButton_tx->setChecked(false);
-    }
-    else
-    {
+//    {   //0xaa,0xab,0x00,0x01,0x00,0x00,0x00
+//        unsigned char        bytes[8] = {0xaa,0xab,0x02,0x01,0x00,0x00,0x00};
+//        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+//        bytes[2] = 0x00;//{0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
+//        Sleep(100);
+//        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+//        //ui->toolButton_tx->setChecked(false);
+//    }
+//    else
+//    {
 
-        unsigned char        bytes[8] = {0xaa,0xab,0x02,0x00,0x00,0x00,0x00};
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        bytes[2] = 0x00;// = {0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        //ui->toolButton_tx->setChecked(true);
-    }
+//        unsigned char        bytes[8] = {0xaa,0xab,0x02,0x00,0x00,0x00,0x00};
+//        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+//        bytes[2] = 0x00;// = {0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
+//        Sleep(100);
+//        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+//        //ui->toolButton_tx->setChecked(true);
+//    }
 
 }
 
 void Mainwindow::on_toolButton_scan_toggled(bool checked)
 {
-    if(checked)
-    {
-        unsigned char        bytes[8] = {0xaa,0xab,0x03,0x02,0x00,0x00,0x00};
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+//    if(checked)
+//    {
+//        unsigned char        bytes[8] = {0xaa,0xab,0x03,0x02,0x00,0x00,0x00};
+//        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
 
-    }
-    else
-    {
-        unsigned char        bytes[8] = {0xaa,0xab,0x03,0x00,0x00,0x00,0x00};
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+//    }
+//    else
+//    {
+//        unsigned char        bytes[8] = {0xaa,0xab,0x03,0x00,0x00,0x00,0x00};
+//        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
 
-    }
+//    }
 
 }
 
@@ -2121,10 +2166,19 @@ void Mainwindow::updateTargets()
 
     for(short i = 0;i<targetList.size();i++)
     {
-        if(!targetList.at(i)->isUsed)continue;
+        if(!targetList.at(i)->isUsed)
+        {
+            continue;
+
+            targetList.at(i)->hide();
+
+        }
         if(processing->radarData->mTrackList.at(targetList.at(i)->trackId).state == 0)
         {
             targetList.at(i)->isUsed = false;
+            ui->label_status_warning->setText(QString::fromUtf8("Mất MT số:")+QString::number(i+1));
+            warningList.append(QString::fromUtf8("Mất MT số:")+QString::number(i+1));
+            ui->label_status_warning->setStyleSheet("background-color: rgb(255, 100, 50,255);");
             targetList.at(i)->hide();
             continue;
         }
@@ -2150,13 +2204,21 @@ void Mainwindow::updateTargets()
             targetList.at(i)->setSelected(true);
             targetList.at(i)->clicked = false;
         }
+        if(targetList.at(i)->doubleClicked)
+        {
+
+            selected_target_index = i;
+            processing->radarData->mTrackList.at((targetList.at(i)->trackId)).isManual = true;
+            targetList.at(i)->isManual = true;
+            targetList.at(i)->doubleClicked = false;
+        }
         if(selected_target_index == i)
         {
             ui->label_radar_id->setText(QString::number(i+1));
-            //ui->label_radar_range->setText(QString::number(targetList.at(i)->range)+"Nm");
-            //ui->label_radar_azi->setText( QString::number(targetList.at(i)->azi)+"\xB0");
-            //ui->label_status_lat_radar->setText( QString::number((short)targetList.at(i)->m_lat)+"\xB0"+QString::number((targetList.at(i)->m_lat-(short)targetList.at(i)->m_lat)*60,'g',4)+"N");
-            //ui->label_status_long_radar->setText(QString::number((short)targetList.at(i)->m_lon)+"\xB0"+QString::number((targetList.at(i)->m_lon-(short)targetList.at(i)->m_lon)*60,'g',4)+"E");
+            ui->label_radar_range->setText(QString::number(processing->radarData->mTrackList.at(targetList.at(i)->trackId).estR*processing->radarData->scale_ppi/scale/1.852f)+"Nm");
+            ui->label_radar_azi->setText( QString::number(processing->radarData->mTrackList.at(targetList.at(i)->trackId).estA/PI*180)+"\xB0");
+            ui->label_radar_lat->setText( QString::number((short)targetList.at(i)->m_lat)+"\xB0"+QString::number((targetList.at(i)->m_lat-(short)targetList.at(i)->m_lat)*60,'g',4)+"N");
+            ui->label_radar_long->setText(QString::number((short)targetList.at(i)->m_lon)+"\xB0"+QString::number((targetList.at(i)->m_lon-(short)targetList.at(i)->m_lon)*60,'g',4)+"E");
             //ui->label_status_speed_radar->setText(QString::number(targetList.at(i)->speed)+"Kn");
         }
         else
@@ -2237,7 +2299,7 @@ void Mainwindow::on_toolButton_zoom_in_clicked()
 
 void Mainwindow::on_toolButton_zoom_out_clicked()
 {
-    if(range<7)range++;
+    if(range<8)range++;
     UpdateScale();
     DrawMap();
 }
@@ -2358,17 +2420,124 @@ void Mainwindow::on_toolButton_auto_tracking_clicked()
 
 }
 
-void Mainwindow::on_toolButton_auto_tracking_toggled(bool checked)
-{
-    processing->radarData->setAvtoDetect(checked);
-}
+
 
 void Mainwindow::on_toolButton_reset_3_clicked()
 {
     processing->radarData->resetTrack();
+    for(short i = 0;i<targetList.size();i++)
+    {
+        targetList.at(i)->deleteLater();
+    }
+    targetList.clear();
 }
 
 void Mainwindow::on_toolButton_reset_2_clicked()
 {
     processing->radarData->resetSled();
+}
+
+void Mainwindow::on_toolButton_scan_clicked(bool checked)
+{
+    if(checked)
+    {
+        unsigned char        bytes[8] = {0xaa,0xab,0x03,0x02,0x00,0x00,0x00};
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+
+    }
+    else
+    {
+        unsigned char        bytes[8] = {0xaa,0xab,0x03,0x00,0x00,0x00,0x00};
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+
+    }
+}
+
+void Mainwindow::on_toolButton_tx_clicked(bool checked)
+{
+    if(checked)
+
+    {   //first set up
+        unsigned char        bytes[8] = {0x04,0xab,0x00,0x05,0x00,0x00,0x00};//set 1280
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        bytes[0] = 0x08;//set resolution 60m
+        bytes[2] = 0x03;
+        bytes[3] = 0x00;
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        bytes[0] = 0x1a;
+        bytes[2] = 0x20;//set up auto noise level
+        bytes[3] = 0x00;
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        //tx on
+
+        bytes[0] = 0xaa;
+        bytes[2] = 0x02;
+        bytes[3] = 0x01;//tx on 1
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        bytes[2] = 0x00;//tx on 2
+
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        //ui->toolButton_tx->setChecked(false);
+    }
+    else
+    {
+
+        unsigned char        bytes[8] = {0xaa,0xab,0x00,0x00,0x00,0x00,0x00};
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        bytes[2] = 0x02;// = {0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
+        //ui->toolButton_tx->setChecked(true);
+    }
+}
+
+void Mainwindow::on_toolButton_vet_clicked(bool checked)
+{
+    processing->radarData->isSled = checked;
+}
+
+void Mainwindow::on_label_status_warning_clicked()
+{
+    if(warningList.size())warningList.removeAt(warningList.size()-1);
+    if(warningList.size())
+    {
+        ui->label_status_warning->setText(warningList.at(warningList.size()-1));
+    }
+    else
+    {
+        ui->label_status_warning->setText(QString::fromUtf8("Không cảnh báo"));
+        ui->label_status_warning->setStyleSheet("background-color: rgb(20, 40, 60,255);");
+    }
 }

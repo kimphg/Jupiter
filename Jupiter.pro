@@ -7,17 +7,17 @@
 #Control and process data from HR2D radar
 #view ARPA data
 #-------------------------------------------------
-# Version 1.1
+# Version 2.2
 #-------------------------------------------------
 #file type defined as .r2d, radar data starts from 22nd byte of each frame
 #run for both 1024 and 2048 data type
 #radar resolution can be changed by the user
-
 @CONFIG += debug_and_release@
 QT       += core gui
 QT       += network
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-TARGET = Jupiter_1.1
+TARGET = Jupiter2.2
 TEMPLATE = app
 SOURCES += main.cpp\
     mainwindow.cpp \
@@ -57,14 +57,15 @@ FORMS    += mainwindow.ui \
 #else:unix: LIBS += -L$$PWD\shapelib\ -lshapelib
 #INCLUDEPATH += $$PWD/shapelib
 #DEPENDPATH += $$PWD/shapelib
+
 INCLUDEPATH += $$PWD/../WpdPack/Include
 DEPENDPATH += $$PWD/../WpdPack/Include
 RESOURCES +=
 INCLUDEPATH += $$PWD/../
 DEPENDPATH += $$PWD/../
-win32:LIBS += -L$$PWD/../armadilloWin32/lib_winx86/ -lblas_win32_MT
-win32:LIBS += -L$$PWD/../armadilloWin32/lib_winx86/ -llapack_win32_MT
-unix: LIBS += -larmadillo
+#win32:LIBS += -L$$PWD/../armadilloWin32/lib_winx86/ -lblas_win32_MT
+#win32:LIBS += -L$$PWD/../armadilloWin32/lib_winx86/ -llapack_win32_MT
+#unix: LIBS += -larmadillo
 win32:LIBS += -L$$PWD/../WpdPack/Lib/ -lPacket
 win32:LIBS += -L$$PWD/../WpdPack/Lib/ -lwpcap
 #INCLUDEPATH += $$PWD/../opencv/build/include
@@ -74,6 +75,7 @@ win32:LIBS += -L$$PWD/../WpdPack/Lib/ -lwpcap
 #win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_videoio249
 
 LIBS +=
+
 #win32:CONFIG(release, debug|release):INCLUDEPATH += $$PWD/armadillo/lib_winx86
 #win32:CONFIG(release, debug|release):DEPENDPATH += $$PWD/armadillo/lib_winx86
 

@@ -10,6 +10,7 @@ CTarget::CTarget(QWidget *parent) : QFrame(parent)
     setGeometry(0,0,SIZE,SIZE);
     selected = false;
     clicked = false;
+    doubleClicked = false;
     //resetView();
 }
 void CTarget::setCoordinates(float lat,float lon,float rg,float az)
@@ -45,8 +46,8 @@ void CTarget::hoverMove(QHoverEvent *)
 }
 void CTarget::paintEvent(QPaintEvent *event)
 {
-    if(selected)this->setStyleSheet("border: 2px dashed magenta;");
-    else this->setStyleSheet("background-color: rgba(0,0,0,0);border : 2px dashed  magenta;");
+    if(isManual)this->setStyleSheet("border: 2px dashed magenta;");
+    else this->setStyleSheet("background-color: rgba(0,0,0,0);border : 2px dashed  cyan;");
     //QFrame::paintEvent(event);
 //    QPainter p(this);
 //    p.setRenderHint(QPainter::Antialiasing, true);
@@ -60,8 +61,8 @@ void CTarget::paintEvent(QPaintEvent *event)
 }
 void CTarget::highLight()
 {
-    if(selected)this->setStyleSheet("border: 2px dashed magenta;");
-    else this->setStyleSheet("background-color: rgba(0,0,0,0);border : 2px dashed   magenta;");
+    if(isManual)this->setStyleSheet("border: 2px dashed magenta;");
+    else this->setStyleSheet("background-color: rgba(0,0,0,0);border : 2px dashed   cyan;");
     //repaint();
 }
 void CTarget::resetView()
@@ -70,8 +71,8 @@ void CTarget::resetView()
     //this->setStyleSheet("background-color: rgba(0,0,0,0);border : 2px solid red;");
 
     //this->setStyleSheet("background-color: rgba(0,0,0,0);border : 2px dashed  cyan;");
-    if(selected)this->setStyleSheet("border: 2px dashed magenta;");
-    else this->setStyleSheet("background-color: rgba(0,0,0,0);border : 2px dashed   magenta;");
+    if(isManual)this->setStyleSheet("border: 2px dashed magenta;");
+    else this->setStyleSheet("background-color: rgba(0,0,0,0);border : 2px dashed   cyan;");
     //setGeometry(400,400,22,22);
     //repaint();
 
@@ -79,7 +80,7 @@ void CTarget::resetView()
 void CTarget::OnClick()
 {
     //setSelected(true);
-    clicked = true;
+
     //resetView();
     //this->setStyleSheet("background-color: rgba(0,0,0,0);border : 2px dashed  blue;");
     //this->
@@ -98,13 +99,14 @@ bool CTarget::event(QEvent *event)
     {
 
     case QEvent::MouseButtonPress:
-        OnClick();
+        clicked = true;
         return true;
         break;
     case QEvent::MouseButtonDblClick:
-        OnClick();
+        doubleClicked = true;
         return true;
         break;
+
     default:
         break;
     }

@@ -77,10 +77,10 @@ private:
     //
     //CConfig         m_config;
     //CpView  *       m_view;
-    float           scale;
+
     QTimer          *drawTimer;
     QPoint          view_pos;
-    CConfig         config;
+
 
     bool LoadISMapFile();
     void SaveBinFile();
@@ -230,11 +230,17 @@ private slots:
 
     void on_toolButton_auto_tracking_clicked();
 
-    void on_toolButton_auto_tracking_toggled(bool checked);
-
     void on_toolButton_reset_3_clicked();
 
     void on_toolButton_reset_2_clicked();
+
+    void on_toolButton_scan_clicked(bool checked);
+
+    void on_toolButton_tx_clicked(bool checked);
+
+    void on_toolButton_vet_clicked(bool checked);
+
+    void on_label_status_warning_clicked();
 
 private:
     void initActionsConnections();
