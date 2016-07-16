@@ -140,7 +140,7 @@ public:
         dTime = 5;
         if( object->isManual)
         {
-            printf("debug new man\n");
+            //printf("debug new man\n");
             isManual = true;
             confirmed  = true;
             state = 5;
