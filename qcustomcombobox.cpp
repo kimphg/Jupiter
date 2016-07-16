@@ -1,4 +1,4 @@
-#include "QCustomComboBox.h"
+#include "qcustomcombobox.h"
 
 QCustomComboBox::QCustomComboBox(QWidget *parent) : QComboBox(parent)
 {

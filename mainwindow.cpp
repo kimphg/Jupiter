@@ -546,8 +546,8 @@ void Mainwindow::DrawTarget(QPainter* p)
                 y= processing->radarData->mTrackList.at(trackId).estY*processing->radarData->scale_ppi/scale;
                 if(processing->radarData->mTrackList.at(trackId).dopler==17)
                 {
-                    short sx = processing->radarData->mTrackList.at(trackId).object_list.at(0).x*processing->radarData->scale_ppi + scrCtX - dx;
-                    short sy = -processing->radarData->mTrackList.at(trackId).object_list.at(0).y*processing->radarData->scale_ppi + scrCtY - dy;
+                    short sx = processing->radarData->mTrackList.at(trackId).estX*processing->radarData->scale_ppi + scrCtX - dx;
+                    short sy = -processing->radarData->mTrackList.at(trackId).estY*processing->radarData->scale_ppi + scrCtY - dy;
                     p->setPen(penTargetBlue);
 
                     p->drawEllipse(sx-6,sy-6,12,12);

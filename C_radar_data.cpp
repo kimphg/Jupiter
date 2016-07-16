@@ -1,7 +1,7 @@
 #define PI 3.141592654f
 #include "C_radar_data.h"
-#include <math.h>
-#include <QtDebug>
+#include <cmath>
+//#include <QtDebug>
 
 #define PLOT_MAX_SIZE 80
 #define PLOT_MIN_SIZE 3
@@ -631,7 +631,7 @@ void C_radar_data::ProcessDataFrame()
     if(clk_adc != n_clk_adc)
     {
         // clock adc
-        if((n_clk_adc>=0)&&(n_clk_adc<=5))
+        if((n_clk_adc<=5))
         {
             clk_adc = n_clk_adc;
             isClkAdcChanged = true;
@@ -916,17 +916,39 @@ void C_radar_data::addTrackManual(float x,float y)
     newobj.x = x/scale_ppi;
     newobj.y = y/scale_ppi;
     //
-    if(!procObjectManual(&newobj))
+    bool newtrack=true;
+    short trackId = -1;
+    short max_length = 0;
+    for(unsigned short i=0;i<mTrackList.size();i++)
     {
-
-        if(!procObjectAvto(&newobj))addTrack( &newobj);
-
+        if(mTrackList.at(i).state>5)
+        {
+            if(mTrackList.at(i).checkProb(&newobj)){
+                if(max_length<mTrackList.at(i).object_list.size())
+                {
+                    max_length = mTrackList.at(i).object_list.size();
+                    trackId = i;
+                    newtrack = false;
+                }
+            }
+        }
     }
+     if(newtrack)
+     {
+            addTrack( &newobj);
+            //printf("newtrack ");
+     }
+     else
+     {
+         mTrackList.at(trackId).suspect_list.push_back(newobj);
+     }
+
+
 }
 void C_radar_data::addTrack(object_t* mObject)
 {
     //add new track
-
+    //printf("new track \n");
     for(unsigned short i=0;i<mTrackList.size();i++)
     {
         if(!mTrackList.at(i).state)

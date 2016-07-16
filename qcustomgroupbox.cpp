@@ -1,4 +1,4 @@
-#include "QCustomGroupBox.h"
+#include "qcustomgroupbox.h"
 
 QCustomGroupBox::QCustomGroupBox(QWidget *parent) : QGroupBox(parent)
 {

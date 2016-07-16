@@ -1,4 +1,4 @@
-#include "QCustomTabWidget.h"
+#include "qcustomtabwidget.h"
 
 QCustomTabWidget::QCustomTabWidget(QWidget *parent) : QTabWidget(parent)
 {

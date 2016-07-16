@@ -35,19 +35,19 @@
 #define TARGET_MIN_SPEED      3
 #define TARGET_MAX_SPEED      50
 #define ZOOM_SIZE           550
-#define DISPLAY_RES_ZOOM            4096
+#define DISPLAY_RES_ZOOM            5120
 #define DISPLAY_SCALE_ZOOM           4
 #include <vector>
 #include <math.h>
 #include <QImage>
 #include <QDateTime>
-#include <QDebug> //REMLATER
-/*#ifdef _WIN32
-#include <armadilloWin32/armadillo>
-#else
-#include <armadilloLinux/armadillo>
-#endif
-using namespace arma;*/
+//#include <QDebug> //REMLATER
+//#ifdef _WIN32
+//#include <armadilloWin32/armadillo>
+//#else
+//#include <armadilloLinux/armadillo>
+//#endif
+//using namespace arma;
 //#include <list>
 using namespace std;
 /*typedef struct {
@@ -101,6 +101,7 @@ public:
     float deltaAzi;
     float estX ,estY,oldX,oldY,Vx,Vy;
     float estA, estR;
+    float estWeightX,estWeightY;
     float mesA,oldA;
     float mesR,oldR;
     float course, velocity;
@@ -128,6 +129,8 @@ public:
         mesR = estR = object->rg;
         estX = ((sinf(estA)))*estR;
         estY = ((cosf(estA)))*estR;
+        estWeightX = 2;
+        estWeightY = 2;
         velocity = 0;
         course = 0;
         confirmed = false;
@@ -137,6 +140,7 @@ public:
         dTime = 5;
         if( object->isManual)
         {
+            printf("debug new man\n");
             isManual = true;
             confirmed  = true;
             state = 5;
@@ -152,16 +156,21 @@ public:
     {
 
         isTracking = true;
-
+        estWeightX = 2;
+        estWeightY = 2;
         float pmax = 0;
         short k=-1;
         for(unsigned short i=0;i<suspect_list.size();i++)
         {
             if(suspect_list.at(i).isManual)
             {
+                estWeightX = 10;
+                estWeightY = 10;
                 isManual = true;
                 confirmed  = true;
                 state = 5;
+                k=i;
+                break;
             }
             if(pmax<suspect_list.at(i).p)
             {
@@ -189,6 +198,8 @@ public:
             isUpdated = false;
             if(state)state--;
         }
+
+        //update
         if(!confirmed)
         {
             if(object_list.size()>10)
@@ -201,21 +212,60 @@ public:
 
             float mesX = ((sinf(mesA)))*mesR;
             float mesY = ((cosf(mesA)))*mesR;
-
-            //float dx = mesX - estX;
-            //float dy = mesY - estY;
-            estX+=(mesX-estX);
-            estY+=(mesY-estY);
+            oldX = estX;
+            oldY = estY;
+            float dx = mesX - estX;
+            float dy = mesY - estY;
+            estX+=dx/estWeightX;
+            estY+=dy/estWeightY;
             object_list.at(object_list.size()-1).x = estX;
             object_list.at(object_list.size()-1).y = estY;
+            dx = estX - oldX;
+            dy = estY - oldY;
+            float new_course = atanf(dx/dy);
+            if(dy<0)new_course+=PI;
+            if(new_course<0)new_course += PI_NHAN2;
+            float new_velo = sqrt(dx*dx+dy*dy);
+            if(!course)
+                course = new_course;
+            else
 
-            //float new_course = atanf(dx/dy);
-            //if(dy<0)new_course+=PI;
-            //if(new_course<0)new_course += PI_NHAN2;
-            //float new_velo = sqrt(dx*dx+dy*dy);
-            //if(!course)course = new_course;else course+= (new_course-course)/2;
-            //if(!velocity)velocity = new_velo;else velocity+= (new_velo-velocity)/2;
-            if(object_list.size()>2)predict();
+            {
+                float dcourse = (new_course-course);
+                if(abs(dcourse>PI))
+                {
+                    if(dcourse>0)dcourse-=PI_NHAN2;
+                    else dcourse+=PI_NHAN2;
+                }
+                course+=dcourse/2;
+                if(course<0)course+=PI_NHAN2;
+                if(course>PI_NHAN2)course-=PI_NHAN2;
+            }
+            if(!velocity)velocity = new_velo;else velocity+= (new_velo-velocity)/2;
+            if(object_list.size()>2)
+            {
+                dx = ((sinf(course)))*velocity;
+                dy = ((cosf(course)))*velocity;
+                estX+=dx;
+                estY+=dy;
+                if(estY!=0)
+                {
+                    estA = atanf(estX/estY);
+                    if(estY<0 )
+                    {
+                        estA+=PI;
+                        if(estA>PI_NHAN2)estA-=PI_NHAN2;
+                    }
+                    estR = sqrt(estX*estX + estY*estY);
+                }
+            }
+            else
+            {
+                oldA = estA;
+                oldR = estR;
+                estA = (mesA+oldA)/2;
+                estR = (mesR+oldR)/2;
+            }
         }
         else
         {
@@ -228,11 +278,11 @@ public:
     }
     void predict()
     {
-        oldA = estA;
-        oldR = estR;
-        estA = (mesA+oldA)/2;
-        estR = (mesR+oldR)/2;
-        return;
+//        oldA = estA;
+//        oldR = estR;
+//        estA = (mesA+oldA)/2;
+//        estR = (mesR+oldR)/2;
+//        return;
         estX += ((sinf(course)))*velocity;
         estY += ((cosf(course)))*velocity;
         estA = atanf(estX/estY);
@@ -247,9 +297,12 @@ public:
         else if(dA<-PI)dA+=PI_NHAN2;//----------------
         float dR = object->rg - estR;
         if(dopler!=17){
-            short doplerVar = abs(dopler - object->dopler);
-            if(doplerVar>8)doplerVar = 16-doplerVar;
-            if(doplerVar>1)return false;
+            if(object->dopler!=17)
+            {
+                short doplerVar = abs(dopler - object->dopler);
+                if(doplerVar>8)doplerVar = 16-doplerVar;
+                if(doplerVar>1)return false;
+            }
         }
         dA*=dA;
         dR*=dR;

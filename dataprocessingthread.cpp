@@ -155,8 +155,8 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
     /*
      * unused variables
      */
-    (VOID)(param);
-    (VOID)(pkt_data);
+//    (VOID)(param);
+//    (VOID)(pkt_data);
 
     /* convert the timestamp to readable format */
 //    local_tv_sec = header->ts.tv_sec;
@@ -178,13 +178,13 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
     //printf("nhan duoc:%x\n",dataB[iRec].data[0]);
 
     return;
-    printf("len:%d\n", header->len);
-    //printf("%.6d len:%d\n", header->ts.tv_usec, header->len);
-    for(short i=0;i<dataB[iRec].len;i++)
-    {
-        printf("%x-",dataB[iRec].data[i]);
-    }
-    printf("\n");
+//    printf("len:%d\n", header->len);
+//    //printf("%.6d len:%d\n", header->ts.tv_usec, header->len);
+//    for(short i=0;i<dataB[iRec].len;i++)
+//    {
+//        printf("%x-",dataB[iRec].data[i]);
+//    }
+//    printf("\n");
 
 }
 void dataProcessingThread::run()
@@ -201,16 +201,16 @@ void dataProcessingThread::run()
         printf( errbuf); return;
     }
     isRunning = true;
-//    int i = 0;
+    int i = 0;
     /* Print the list */
-//    for(d=alldevs; d; d=d->next)
-//    {
-//        printf("%d. %s", ++i, d->name);
-//        if (d->description)
-//            printf(" (%s)\n", d->description);
-//        else
-//            printf(" (No description available)\n");
-//    }
+    for(d=alldevs; d; d=d->next)
+    {
+        printf("%d. %s", ++i, d->name);
+        if (d->description)
+            printf(" (%s)\n", d->description);
+        else
+            printf(" (No description available)\n");
+    }
     d=alldevs;
     if ( (adhandle= pcap_open(d->name,          // name of the device
                                   65536,            // portion of the packet to capture

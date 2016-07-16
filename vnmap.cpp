@@ -1,6 +1,6 @@
 
 #include "vnmap.h"
-
+#include <math.h>
 bool Q_vnmap::checkInside(Point_t  *point)
 {
         if((point->m_Lat)<(brPos.m_Lat)) return 0;

@@ -1,4 +1,4 @@
-#include "QCustomFrame.h"
+#include "qcustomframe.h"
 
 QCustomFrame::QCustomFrame(QWidget *parent) : QFrame(parent)
 {
