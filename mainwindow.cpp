@@ -30,7 +30,7 @@ static short                scrCtX, scrCtY, dx =0,dy=0,dxMap=0,dyMap=0;//mouseX,
 static short                mousePointerX,mousePointerY,mouseX,mouseY;
 static char                 gridOff = false;
 static char                 udpFailure = 0;//config file !!!
-static bool                 isScreenUp2Date,isSettingUp2Date,isDraging = false;
+static bool                 isSettingUp2Date,isDraging = false;
 static bool                 isScaleChanged =true;
 float           scale;
 static QStandardItemModel   modelTargetList;
@@ -110,7 +110,7 @@ void Mainwindow::mouseReleaseEvent(QMouseEvent *event)
 //    }
 
     DrawMap();
-    isScreenUp2Date = false;
+//    isScreenUp2Date = false;
     isDraging = false;
     /*currMaxRange = (sqrtf(dx*dx+dy*dy)+scrCtY)/signsize;
     if(currMaxRange>RADAR_MAX_RESOLUTION)currMaxRange = RADAR_MAX_RESOLUTION;
@@ -172,7 +172,21 @@ void Mainwindow::mouseMoveEvent(QMouseEvent *event) {
         dyMap += mouseY-event->y();
         mouseX=event->x();
         mouseY=event->y();
-        isScreenUp2Date = false;
+//        isScreenUp2Date = false;
+    }
+}
+void Mainwindow::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_Space)
+    {
+        short   x=this->mapFromGlobal(QCursor::pos()).x();
+        short   y=this->mapFromGlobal(QCursor::pos()).y();
+        float xRadar = (x - scrCtX+dx) ;//coordinates in  radar xy system
+        float yRadar = -(y - scrCtY+dy);
+        processing->radarData->addTrackManual(xRadar,yRadar);
+        ui->toolButton_manual_track->setChecked(false);
+
+//        isScreenUp2Date = false;
     }
 }
 void Mainwindow::mousePressEvent(QMouseEvent *event)
@@ -186,7 +200,8 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
             float xRadar = (mouseX - scrCtX+dx) ;//coordinates in  radar xy system
             float yRadar = -(mouseY - scrCtY+dy);
             processing->radarData->addTrackManual(xRadar,yRadar);
-            isScreenUp2Date = false;
+            ui->toolButton_manual_track->setChecked(false);
+//            isScreenUp2Date = false;
         }
         else
         isDraging = true;
@@ -820,7 +835,7 @@ void Mainwindow::drawAisTarget(QPainter *p)
 void Mainwindow::paintEvent(QPaintEvent *event)
 {
     event = event;
-    isScreenUp2Date = true;
+//    isScreenUp2Date = true;
     QPainter p(this);
 
     p.setRenderHint(QPainter::Antialiasing, true);
@@ -1125,7 +1140,7 @@ void Mainwindow::setScaleNM(unsigned short rangeNM)
     DrawMap();
     /*currMaxRange = (sqrtf(dx*dx+dy*dy)+scrCtY)/signsize;
     if(currMaxRange>RADAR_MAX_RESOLUTION)currMaxRange = RADAR_MAX_RESOLUTION;*/
-    isScreenUp2Date = false;
+//    isScreenUp2Date = false;
 }
 short waittimer =0;
 void Mainwindow::UpdateRadarData()
@@ -1645,7 +1660,7 @@ void Mainwindow::on_actionAddTarget_toggled(bool arg1)
 void Mainwindow::on_actionClear_data_triggered()
 {
     processing->radarData->resetData();
-    isScreenUp2Date = false;
+//    isScreenUp2Date = false;
 }
 
 void Mainwindow::on_actionView_grid_triggered(bool checked)
@@ -1865,7 +1880,7 @@ void Mainwindow::UpdateScale()
     }
     ui->toolButton_grid->setText(QString::fromUtf8("Vòng cự ly(")+QString::number(rangeStep)+"NM)");
     isScaleChanged = true;
-    isScreenUp2Date = false;
+//    isScreenUp2Date = false;
 
     //dx /=short(scale/oldScale);
     //dy /=short(scale/oldScale);
@@ -2182,10 +2197,10 @@ void Mainwindow::updateTargets()
         if(processing->radarData->mTrackList.at(targetList.at(i)->trackId).state == 0)
         {
             targetList.at(i)->isUsed = false;
-            ui->label_status_warning->setText(QString::fromUtf8("Mất MT số:")+QString::number(i+1));
-            warningList.append(QString::fromUtf8("Mất MT số:")+QString::number(i+1));
-            ui->label_status_warning->setStyleSheet("background-color: rgb(255, 100, 50,255);");
-            targetList.at(i)->hide();
+            ui->label_status_warning->setText(QString::fromUtf8("M?t MT s?:")+QString::number(i+1));
+            warningList.append(QString::fromUtf8("M?t MT s?:")+QString::number(i+1));
+            ui->label_status_warning->setStyleSheet("background-color: rgb(255, 150, 50,255);");
+            targetList.at(i)->isLost=true;
             continue;
         }
         float x	= targetList.at(i)->x*scale + scrCtX-dx ;
@@ -2246,7 +2261,7 @@ void Mainwindow::on_toolButton_centerView_clicked()
     dx = 0;
     dy = 0;
     DrawMap();
-    isScreenUp2Date = false;
+//    isScreenUp2Date = false;
 }
 
 void Mainwindow::on_comboBox_currentIndexChanged(int index)
@@ -2553,5 +2568,10 @@ void Mainwindow::on_label_status_warning_clicked()
 
 void Mainwindow::on_toolButton_delete_target_clicked()
 {
-    processing->radarData->mTrackList.at(targetList.at(selected_target_index)->trackId).state = 0;
+    if(targetList.at(selected_target_index)->isLost)
+    {
+        targetList.at(selected_target_index)->hide();
+    }
+
+    else processing->radarData->mTrackList.at(targetList.at(selected_target_index)->trackId).state = 0;
 }

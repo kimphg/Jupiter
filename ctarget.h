@@ -13,7 +13,7 @@ public:
     float x,y;
     float azi,range;
     short trackId;
-    bool isUsed,isManual;
+    bool isUsed,isManual,isLost;
     bool selected, clicked,doubleClicked;
     void setCoordinates(float lat, float lon, float rg, float az);
     void setPosistion(float x, float y);

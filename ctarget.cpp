@@ -11,6 +11,7 @@ CTarget::CTarget(QWidget *parent) : QFrame(parent)
     selected = false;
     clicked = false;
     doubleClicked = false;
+    isLost = false
     //resetView();
 }
 void CTarget::setCoordinates(float lat,float lon,float rg,float az)
@@ -46,6 +47,11 @@ void CTarget::hoverMove(QHoverEvent *)
 }
 void CTarget::paintEvent(QPaintEvent *event)
 {
+    if(isLost)
+    {
+        this->setStyleSheet("background-color: rgba(0,0,0,0);border : 2px dashed  cyan;");
+    }
+    else
     if(isManual)this->setStyleSheet("border: 2px dashed magenta;");
     else this->setStyleSheet("background-color: rgba(0,0,0,0);border : 2px dashed  cyan;");
     //QFrame::paintEvent(event);
