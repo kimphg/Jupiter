@@ -104,6 +104,7 @@ public:
     float estWeightX,estWeightY;
     float mesA,oldA;
     float mesR,oldR;
+    float speed;
     float course, velocity;
     char state;
     float dTime;
@@ -112,6 +113,7 @@ public:
     //QDateTime time;
     bool isProcessed;
     bool isUpdated;
+    float heading;
     void updateTime()
     {
 
@@ -132,12 +134,15 @@ public:
         estWeightX = 2;
         estWeightY = 2;
         velocity = 0;
+        speed = 0;
+        heading = 0;
         course = 0;
         confirmed = false;
         isProcessed = true;
         isTracking = false;
         state = 3;
         dTime = 5;
+
         if( object->isManual)
         {
             //printf("debug new man\n");
@@ -158,6 +163,7 @@ public:
         isTracking = true;
         estWeightX = 2;
         estWeightY = 2;
+
         float pmax = 0;
         short k=-1;
         for(unsigned short i=0;i<suspect_list.size();i++)
@@ -237,35 +243,12 @@ public:
                     if(dcourse>0)dcourse-=PI_NHAN2;
                     else dcourse+=PI_NHAN2;
                 }
-                course+=dcourse/2;
+                course+=dcourse/3;
                 if(course<0)course+=PI_NHAN2;
                 if(course>PI_NHAN2)course-=PI_NHAN2;
             }
-            if(!velocity)velocity = new_velo;else velocity+= (new_velo-velocity)/2;
-            if(object_list.size()>2)
-            {
-                dx = ((sinf(course)))*velocity;
-                dy = ((cosf(course)))*velocity;
-                estX+=dx;
-                estY+=dy;
-                if(estY!=0)
-                {
-                    estA = atanf(estX/estY);
-                    if(estY<0 )
-                    {
-                        estA+=PI;
-                        if(estA>PI_NHAN2)estA-=PI_NHAN2;
-                    }
-                    estR = sqrt(estX*estX + estY*estY);
-                }
-            }
-            else
-            {
-                oldA = estA;
-                oldR = estR;
-                estA = (mesA+oldA)/2;
-                estR = (mesR+oldR)/2;
-            }
+            if(!velocity)velocity = new_velo;else velocity+= (new_velo-velocity)/3;
+            predict();
         }
         else
         {
@@ -273,16 +256,46 @@ public:
             obj.x = estX;
             obj.y = estY;
             this->object_list.push_back(obj);
+            predict();
+        }
+        if(object_list.size()>12)
+        {
+            float dxt = object_list.at(object_list.size()-1).x - object_list.at(object_list.size()-12).x;
+            float dyt = object_list.at(object_list.size()-1).y - object_list.at(object_list.size()-12).y;
+            speed = sqrt(dxt*dxt + dyt*dyt)*SIGNAL_SCALE_3/45.0f*3600/1.852;
+            heading = atanf(dxt/dyt);
+            if(dyt<0)heading+=PI;
+            if(heading<0)heading += PI_NHAN2;
         }
 
     }
     void predict()
     {
-//        oldA = estA;
-//        oldR = estR;
-//        estA = (mesA+oldA)/2;
-//        estR = (mesR+oldR)/2;
-//        return;
+        if(object_list.size()>2)
+        {
+            float dx = ((sinf(course)))*velocity;
+            float dy = ((cosf(course)))*velocity;
+            estX+=dx;
+            estY+=dy;
+            if(estY!=0)
+            {
+                estA = atanf(estX/estY);
+                if(estY<0 )
+                {
+                    estA+=PI;
+                    if(estA>PI_NHAN2)estA-=PI_NHAN2;
+                }
+                estR = sqrt(estX*estX + estY*estY);
+            }
+        }
+        else
+        {
+            oldA = estA;
+            oldR = estR;
+            estA = (mesA+oldA)/2;
+            estR = (mesR+oldR)/2;
+        }
+        return;
         estX += ((sinf(course)))*velocity;
         estY += ((cosf(course)))*velocity;
         estA = atanf(estX/estY);

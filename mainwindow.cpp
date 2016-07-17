@@ -601,16 +601,22 @@ void Mainwindow::DrawTarget(QPainter* p)
                 else p->setPen(penTargetBlue);
                 short k=0;
                 short sx,sy;
-                for(short j=(processing->radarData->mTrackList.at(trackId).object_list.size()-1);j>0;j--)
+                for(short j=(processing->radarData->mTrackList.at(trackId).object_list.size()-1);j>0;j-=3)
                 {
                     k++;
-                    if(k>40)break;
+                    if(k>20)break;
 
                     sx = processing->radarData->mTrackList.at(trackId).object_list.at(j).x*processing->radarData->scale_ppi + scrCtX - dx;
                     sy = -processing->radarData->mTrackList.at(trackId).object_list.at(j).y*processing->radarData->scale_ppi + scrCtY - dy;
                     p->drawPoint(sx,sy);
                 }
                 p->drawText(sx+10,sy+10,300,40,0,QString::number(tid+1));
+                if(processing->radarData->mTrackList.at(trackId).object_list.size()>12)
+                {
+                    sx = processing->radarData->mTrackList.at(trackId).estX*processing->radarData->scale_ppi + scrCtX - dx;
+                    sy =-processing->radarData->mTrackList.at(trackId).estY*processing->radarData->scale_ppi + scrCtY - dy;
+                    p->drawLine(sx,sy,sx+15*sinf(processing->radarData->mTrackList.at(trackId).heading),sy-15*cosf(processing->radarData->mTrackList.at(trackId).heading));
+                }
 //                j--;
 //                if(j<0)continue;
                 //printf("red");
@@ -2214,12 +2220,15 @@ void Mainwindow::updateTargets()
         }
         if(selected_target_index == i)
         {
+            float tmpazi = processing->radarData->mTrackList.at(targetList.at(i)->trackId).estA/PI*180;
+            if(tmpazi<0)tmpazi+=360;
             ui->label_radar_id->setText(QString::number(i+1));
             ui->label_radar_range->setText(QString::number(processing->radarData->mTrackList.at(targetList.at(i)->trackId).estR*processing->radarData->scale_ppi/scale/1.852f)+"Nm");
-            ui->label_radar_azi->setText( QString::number(processing->radarData->mTrackList.at(targetList.at(i)->trackId).estA/PI*180)+"\xB0");
+            ui->label_radar_azi->setText( QString::number(tmpazi)+"\xB0");
             ui->label_radar_lat->setText( QString::number((short)targetList.at(i)->m_lat)+"\xB0"+QString::number((targetList.at(i)->m_lat-(short)targetList.at(i)->m_lat)*60,'g',4)+"N");
             ui->label_radar_long->setText(QString::number((short)targetList.at(i)->m_lon)+"\xB0"+QString::number((targetList.at(i)->m_lon-(short)targetList.at(i)->m_lon)*60,'g',4)+"E");
-            //ui->label_status_speed_radar->setText(QString::number(targetList.at(i)->speed)+"Kn");
+            ui->label_radar_speed->setText(QString::number(processing->radarData->mTrackList.at(targetList.at(i)->trackId).speed,'g',5)+"Kn");
+            ui->label_radar_heading->setText(QString::number(processing->radarData->mTrackList.at(targetList.at(i)->trackId).heading*180/PI)+"\xB0");
         }
         else
         {
@@ -2540,4 +2549,9 @@ void Mainwindow::on_label_status_warning_clicked()
         ui->label_status_warning->setText(QString::fromUtf8("Không cảnh báo"));
         ui->label_status_warning->setStyleSheet("background-color: rgb(20, 40, 60,255);");
     }
+}
+
+void Mainwindow::on_toolButton_delete_target_clicked()
+{
+    processing->radarData->mTrackList.at(targetList.at(selected_target_index)->trackId).state = 0;
 }

@@ -242,6 +242,8 @@ private slots:
 
     void on_label_status_warning_clicked();
 
+    void on_toolButton_delete_target_clicked();
+
 private:
     void initActionsConnections();
 };
