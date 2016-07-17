@@ -4,7 +4,7 @@
 //#define mapWidth 2000
 //#define mapWidth mapWidth
 //#define mapHeight mapWidth
-#define CONST_NM 1.825f
+#define CONST_NM 1.901f
 #define MAX_VIEW_RANGE_KM 50
 
 #include <queue>
@@ -2197,10 +2197,11 @@ void Mainwindow::updateTargets()
         if(processing->radarData->mTrackList.at(targetList.at(i)->trackId).state == 0)
         {
             targetList.at(i)->isUsed = false;
-            ui->label_status_warning->setText(QString::fromUtf8("M?t MT s?:")+QString::number(i+1));
-            warningList.append(QString::fromUtf8("M?t MT s?:")+QString::number(i+1));
+            ui->label_status_warning->setText(QString::fromUtf8("Mất MT số:")+QString::number(i+1));
+            warningList.append(QString::fromUtf8("Mất MT số:")+QString::number(i+1));
             ui->label_status_warning->setStyleSheet("background-color: rgb(255, 150, 50,255);");
-            targetList.at(i)->isLost=true;
+            targetList.at(i)->hide();
+            //targetList.at(i)->isLost=true;
             continue;
         }
         float x	= targetList.at(i)->x*scale + scrCtX-dx ;
@@ -2242,7 +2243,7 @@ void Mainwindow::updateTargets()
             ui->label_radar_azi->setText( QString::number(tmpazi)+"\xB0");
             ui->label_radar_lat->setText( QString::number((short)targetList.at(i)->m_lat)+"\xB0"+QString::number((targetList.at(i)->m_lat-(short)targetList.at(i)->m_lat)*60,'g',4)+"N");
             ui->label_radar_long->setText(QString::number((short)targetList.at(i)->m_lon)+"\xB0"+QString::number((targetList.at(i)->m_lon-(short)targetList.at(i)->m_lon)*60,'g',4)+"E");
-            ui->label_radar_speed->setText(QString::number(processing->radarData->mTrackList.at(targetList.at(i)->trackId).speed,'g',5)+"Kn");
+            ui->label_radar_speed->setText(QString::number(processing->radarData->mTrackList.at(targetList.at(i)->trackId).speed,'g',3)+"Kn");
             ui->label_radar_heading->setText(QString::number(processing->radarData->mTrackList.at(targetList.at(i)->trackId).heading*180/PI)+"\xB0");
         }
         else
@@ -2297,16 +2298,19 @@ void Mainwindow::on_comboBox_img_mode_currentIndexChanged(int index)
 
 void Mainwindow::on_toolButton_send_command_clicked()
 {
-    unsigned char        bytes[8];
-    hex2bin(ui->lineEdit_byte_1->text().toStdString().data(),&bytes[0]);
-    hex2bin(ui->lineEdit_byte_2->text().toStdString().data(),&bytes[1]);
-    hex2bin(ui->lineEdit_byte_3->text().toStdString().data(),&bytes[2]);
-    hex2bin(ui->lineEdit_byte_4->text().toStdString().data(),&bytes[3]);
-    hex2bin(ui->lineEdit_byte_5->text().toStdString().data(),&bytes[4]);
-    hex2bin(ui->lineEdit_byte_6->text().toStdString().data(),&bytes[5]);
-    hex2bin(ui->lineEdit_byte_7->text().toStdString().data(),&bytes[6]);
-    hex2bin(ui->lineEdit_byte_8->text().toStdString().data(),&bytes[7]);
-    udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+    if(ui->lineEdit_password->text()=="cndt3108")
+    {
+        unsigned char        bytes[8];
+        hex2bin(ui->lineEdit_byte_1->text().toStdString().data(),&bytes[0]);
+        hex2bin(ui->lineEdit_byte_2->text().toStdString().data(),&bytes[1]);
+        hex2bin(ui->lineEdit_byte_3->text().toStdString().data(),&bytes[2]);
+        hex2bin(ui->lineEdit_byte_4->text().toStdString().data(),&bytes[3]);
+        hex2bin(ui->lineEdit_byte_5->text().toStdString().data(),&bytes[4]);
+        hex2bin(ui->lineEdit_byte_6->text().toStdString().data(),&bytes[5]);
+        hex2bin(ui->lineEdit_byte_7->text().toStdString().data(),&bytes[6]);
+        hex2bin(ui->lineEdit_byte_8->text().toStdString().data(),&bytes[7]);
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+    }
 }
 
 void Mainwindow::on_toolButton_map_toggled(bool checked)
@@ -2380,14 +2384,20 @@ void Mainwindow::on_dial_valueChanged(int value)
 
 void Mainwindow::on_toolButton_set_heading_clicked()
 {
+    if(ui->lineEdit_password->text()=="cndt3108")
+    {
     float heading = ui->textEdit_heading->text().toFloat();
     config.m_config.trueN = heading;
     processing->radarData->setTrueN(config.m_config.trueN);
+    }
 }
 
 void Mainwindow::on_toolButton_gps_update_clicked()
 {
-    SetGPS(ui->text_latInput_2->text().toFloat(),ui->text_longInput_2->text().toFloat());
+    if(ui->lineEdit_password->text()=="cndt3108")
+    {
+        SetGPS(ui->text_latInput_2->text().toFloat(),ui->text_longInput_2->text().toFloat());
+    }
 }
 
 void Mainwindow::on_comboBox_code_type_currentIndexChanged(const QString &arg1)
@@ -2500,12 +2510,18 @@ void Mainwindow::on_toolButton_tx_clicked(bool checked)
         bytes[3] = 0x00;
         udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
         Sleep(100);
-        bytes[0] = 0x1a;
-        bytes[2] = 0x20;//set up auto noise level
-        bytes[3] = 0x00;
+
+        bytes[0] = 0x01;
+        bytes[2] = 0x04;//set up auto noise level
+        bytes[3] = 0x01;
         udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
         Sleep(100);
         //tx on
+        bytes[0] = 0x14;
+        bytes[2] = 0xff;//set up auto noise level
+        bytes[3] = 0x01;
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
 
         bytes[0] = 0xaa;
         bytes[2] = 0x02;
@@ -2525,6 +2541,11 @@ void Mainwindow::on_toolButton_tx_clicked(bool checked)
         udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
         Sleep(100);
         //ui->toolButton_tx->setChecked(false);
+        bytes[0] = 0x1a;
+        bytes[2] = 0x20;//set up auto noise level
+        bytes[3] = 0x00;
+        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        Sleep(100);
     }
     else
     {
@@ -2568,10 +2589,11 @@ void Mainwindow::on_label_status_warning_clicked()
 
 void Mainwindow::on_toolButton_delete_target_clicked()
 {
-    if(targetList.at(selected_target_index)->isLost)
+    /*if(targetList.at(selected_target_index)->isLost)
     {
         targetList.at(selected_target_index)->hide();
     }
 
-    else processing->radarData->mTrackList.at(targetList.at(selected_target_index)->trackId).state = 0;
+    else*/
+    processing->radarData->mTrackList.at(targetList.at(selected_target_index)->trackId).state = 0;
 }

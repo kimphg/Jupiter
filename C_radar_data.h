@@ -228,26 +228,30 @@ public:
             object_list.at(object_list.size()-1).y = estY;
             dx = estX - oldX;
             dy = estY - oldY;
-            float new_course = atanf(dx/dy);
-            if(dy<0)new_course+=PI;
-            if(new_course<0)new_course += PI_NHAN2;
-            float new_velo = sqrt(dx*dx+dy*dy);
-            if(!course)
-                course = new_course;
-            else
-
+            if(dy)
             {
-                float dcourse = (new_course-course);
-                if(abs(dcourse>PI))
+                float new_course = atanf(dx/dy);
+                if(dy<0)new_course+=PI;
+                if(new_course<0)new_course += PI_NHAN2;
+                float new_velo = sqrt(dx*dx+dy*dy);
+                if(!course)
+                    course = new_course;
+                else
+
                 {
-                    if(dcourse>0)dcourse-=PI_NHAN2;
-                    else dcourse+=PI_NHAN2;
+                    float dcourse = (new_course-course);
+                    if(abs(dcourse>PI))
+                    {
+                        if(dcourse>0)dcourse-=PI_NHAN2;
+                        else dcourse+=PI_NHAN2;
+                    }
+                    course+=dcourse/3;
+                    if(course<0)course+=PI_NHAN2;
+                    if(course>PI_NHAN2)course-=PI_NHAN2;
                 }
-                course+=dcourse/3;
-                if(course<0)course+=PI_NHAN2;
-                if(course>PI_NHAN2)course-=PI_NHAN2;
+                //if(!velocity)velocity = new_velo;else velocity+= (new_velo-velocity)/10;
             }
-            if(!velocity)velocity = new_velo;else velocity+= (new_velo-velocity)/3;
+
             predict();
         }
         else
@@ -258,14 +262,18 @@ public:
             this->object_list.push_back(obj);
             predict();
         }
-        if(object_list.size()>12)
+        if(object_list.size()>15)
         {
-            float dxt = object_list.at(object_list.size()-1).x - object_list.at(object_list.size()-12).x;
-            float dyt = object_list.at(object_list.size()-1).y - object_list.at(object_list.size()-12).y;
-            speed = sqrt(dxt*dxt + dyt*dyt)*SIGNAL_SCALE_3/45.0f*3600/1.852;
-            heading = atanf(dxt/dyt);
-            if(dyt<0)heading+=PI;
-            if(heading<0)heading += PI_NHAN2;
+            float dxt = object_list.at(object_list.size()-1).x - object_list.at(object_list.size()-15).x;
+            float dyt = object_list.at(object_list.size()-1).y - object_list.at(object_list.size()-15).y;
+            if(dyt)
+            {
+                speed = sqrt(dxt*dxt + dyt*dyt)*SIGNAL_SCALE_3/70.0f*3600/1.852;
+                velocity = sqrt(dxt*dxt + dyt*dyt)/14.0f;
+                heading = atanf(dxt/dyt);
+                if(dyt<0)heading+=PI;
+                if(heading<0)heading += PI_NHAN2;
+            }
         }
 
     }
