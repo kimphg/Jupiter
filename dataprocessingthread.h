@@ -28,8 +28,9 @@ class dataProcessingThread:public QThread
 {
     Q_OBJECT
 public:
-    bool isDrawn;
-    bool isRunning;
+    bool    isDrawn;
+    bool    isRunning;
+    unsigned char    connect_timeout;
     QMutex  mutex;
     unsigned short    playRate;
     DataBuff*   dataBuff;
@@ -53,6 +54,10 @@ public:
     {
        if(!isDrawn){isDrawn = true;return false;}
        else return true;
+    }
+    bool isConnected()
+    {
+        return bool(connect_timeout);
     }
 private:
 

@@ -13,6 +13,13 @@ dataProcessingThread::~dataProcessingThread()
 }
 void dataProcessingThread::ReadDataBuffer()
 {
+    if(iRec!=iRead)
+    {
+        connect_timeout = 4;
+    }else
+    {
+        if(connect_timeout)connect_timeout--;
+    }
     while(iRec!=iRead)
     {
         //nread++;
@@ -32,7 +39,9 @@ dataProcessingThread::dataProcessingThread()
 {
     dataBuff = &dataB[0];
     iRec=0;iRead=0;
+    connect_timeout = 0;
     pIsDrawn = &isDrawn;
+    isDrawn = true;
     pIsPlaying = &isPlaying;
 //    udpSendSocket = new QUdpSocket(this);
 //    udpSendSocket->bind(2000);

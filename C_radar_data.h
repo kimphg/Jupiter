@@ -385,7 +385,7 @@ public:
 
     void                    updateZoomRect(float ctx, float cty);
     unsigned short          sn_stat;
-    bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled;
+    bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled,filter2of3;
     bool                    isFilting,rgs_auto,bo_bang_0;
     float                   krain,kgain,ksea,brightness;
     float                   krain_auto,kgain_auto,ksea_auto;

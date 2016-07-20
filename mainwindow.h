@@ -235,15 +235,20 @@ private slots:
 
     void on_toolButton_reset_2_clicked();
 
-    void on_toolButton_scan_clicked(bool checked);
-
-    void on_toolButton_tx_clicked(bool checked);
-
     void on_toolButton_vet_clicked(bool checked);
 
     void on_label_status_warning_clicked();
 
     void on_toolButton_delete_target_clicked();
+
+    void on_toolButton_tx_clicked();
+
+
+    void on_toolButton_tx_off_clicked();
+
+    void on_toolButton_filter2of3_clicked(bool checked);
+
+
 
 private:
     void initActionsConnections();

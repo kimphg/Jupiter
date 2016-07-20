@@ -17,7 +17,7 @@ QT       += core gui
 QT       += network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-TARGET = HR2D_1.0
+TARGET = Jupiter_2.2
 TEMPLATE = app
 SOURCES += main.cpp\
     mainwindow.cpp \

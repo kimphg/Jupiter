@@ -92,7 +92,6 @@ void Mainwindow::sendToRadar(unsigned char* hexdata)
 {
 
     udpSendSocket->writeDatagram((char*)hexdata,8,QHostAddress("192.168.0.44"),2572);
-    //delete[] sendBuff;
 
 }
 
@@ -937,7 +936,7 @@ void Mainwindow::InitSetting()
 {
     setMouseTracking(true);
     QRect rec = QApplication::desktop()->screenGeometry(0);
-    setFixedSize(1920, 1080);
+
     if((rec.height()==1080)&&(rec.width()==1920))
     {
         this->showFullScreen();
@@ -1159,26 +1158,18 @@ void Mainwindow::UpdateRadarData()
             ui->comboBox_radar_resolution->setCurrentIndex(processing->radarData->clk_adc);
             processing->radarData->setScalePPI(scale);
             this->UpdateScale();
-            printf("\nsetScale:%d",processing->radarData->clk_adc);
+//            printf("\nsetScale:%d",processing->radarData->clk_adc);
             processing->radarData->isClkAdcChanged = false;
         }
         processing->radarData->redrawImg();
-        //updateTargets();
-        waittimer = 0;
-
-        if(radar_state==DISCONNECTED)setRadarState(CONNECTED);
+        update();
     }
+    if(processing->isConnected())
+        setRadarState(CONNECTED);
     else
-    {
+        setRadarState(DISCONNECTED);
 
-        if(waittimer<100 )waittimer++;else
-        {
-            setRadarState(DISCONNECTED);
-        }
 
-    }
-
-    update();
 
 
     /*QStandardItemModel* model = new QStandardItemModel(processing->radarData->mTrackList.size(), 5);
@@ -1210,7 +1201,7 @@ void Mainwindow::InitTimer()
 //    fullScreenTimer->start(1000);
     connect(syncTimer1s, SIGNAL(timeout()), this, SLOT(sync1()));
     syncTimer1s->start(1000);
-    syncTimer1s->moveToThread(t);
+    //syncTimer1s->moveToThread(t);
     //
     connect(readBuffTimer,SIGNAL(timeout()),this,SLOT(readBuffer()));
     readBuffTimer->start(50);
@@ -1396,6 +1387,7 @@ void Mainwindow::sync1()//period 1 second
 {
     // display radar temperature:
     ui->label_temp->setText(QString::number(processing->radarData->tempType)+"|"+QString::number(processing->radarData->temp)+"\260C");
+
 //    int n = 32*256.0f/((processing->radarData->noise_level[0]*256 + processing->radarData->noise_level[1]));
 //    int m = 256.0f*((processing->radarData->noise_level[2]*256 + processing->radarData->noise_level[3]))
 //            /((processing->radarData->noise_level[4]*256 + processing->radarData->noise_level[5]));
@@ -1475,21 +1467,29 @@ void Mainwindow::sync1()//period 1 second
     switch(radar_state)
     {
     case DISCONNECTED:
-        ui->label_status->setText(QString::fromUtf8("Chưa kết nối"));
-        ui->toolButton_tx->setEnabled(false);
-        ui->toolButton_scan->setEnabled(false);
-        ui->label_command->setText(QString::fromUtf8("Chưa kết nối"));
+        ui->label_status->setText(QString::fromUtf8("Chưa k. nối"));
+        //ui->toolButton_tx->setEnabled(false);
+//        ui->toolButton_scan->setEnabled(false);
+        if(ui->label_command->isHidden())
+        {
+            ui->label_command->setText(QString::fromUtf8("Chưa kết nối radar"));
+            ui->label_command->setHidden(false);
+        }
+        else
+        {
+            ui->label_command->setText(QString::fromUtf8("Chưa kết nối radar"));
+            ui->label_command->setHidden(true);
+        }
+        printf("\ns_idle");
         //ui->label_status_warning->setStyleSheet("background-color: rgb(255, 100, 50,255);");
         break;
     case CONNECTED:
+        printf("\ns_tx");
         ui->label_status->setText(QString::number(processing->radarData->overload));
-
-        ui->toolButton_tx->setEnabled(true);
-        ui->toolButton_scan->setEnabled(true);
+        ui->label_command->setHidden(false);
 
         ui->label_command->setText(QString(array.toHex()));
-        //ui->label_status_warning->setStyleSheet("background-color: rgb(20, 40, 60,255);");
-        //ui->label_status_warning->setText(QString::fromUtf8("Không cảnh báo"));
+
         break;
     case CONNECTED_ROTATE12_TXON:
         ui->label_status->setText(QString::fromUtf8("Phát 12v/p"));
@@ -1520,31 +1520,7 @@ void Mainwindow::setRadarState(radarSate radarState)
         radar_state = radarState;
         //display radar state
 
-        switch(radar_state)
-        {
-        case DISCONNECTED:
-            ui->label_status->setText(QString::fromUtf8("Chưa kết nối"));
-            ui->toolButton_tx->setEnabled(false);
-            ui->toolButton_scan->setEnabled(false);
-            ui->label_command->setText(QString::fromUtf8("Chưa kết nối"));
-            //ui->label_status_warning->setStyleSheet("background-color: rgb(255, 100, 50,255);");
-            break;
-        case CONNECTED:
-            ui->label_status->setText(QString::number(processing->radarData->overload));
 
-            ui->toolButton_tx->setEnabled(true);
-            ui->toolButton_scan->setEnabled(true);
-
-            //ui->label_status_warning->setStyleSheet("background-color: rgb(20, 40, 60,255);");
-            //ui->label_status_warning->setText(QString::fromUtf8("Không cảnh báo"));
-            break;
-        case CONNECTED_ROTATE12_TXON:
-            ui->label_status->setText(QString::fromUtf8("Phát 12v/p"));
-            break;
-        case CONNECTED_ROTATE12_TXOFF:
-            ui->label_status->setText(QString::fromUtf8("Quay 12v/p"));
-            break;
-        }
     }
 }
 
@@ -2471,102 +2447,8 @@ void Mainwindow::on_toolButton_reset_2_clicked()
     processing->radarData->resetSled();
 }
 
-void Mainwindow::on_toolButton_scan_clicked(bool checked)
-{
-    if(checked)
-    {
-        unsigned char        bytes[8] = {0xaa,0xab,0x03,0x02,0x00,0x00,0x00};
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
 
-    }
-    else
-    {
-        unsigned char        bytes[8] = {0xaa,0xab,0x03,0x00,0x00,0x00,0x00};
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
 
-    }
-}
-
-void Mainwindow::on_toolButton_tx_clicked(bool checked)
-{
-    if(checked)
-
-    {   //first set up
-        unsigned char        bytes[8] = {0x04,0xab,0x00,0x05,0x00,0x00,0x00};//set 1280
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        bytes[0] = 0x08;//set resolution 60m
-        bytes[2] = 0x03;
-        bytes[3] = 0x00;
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-
-        bytes[0] = 0x01;
-        bytes[2] = 0x04;//set up auto noise level
-        bytes[3] = 0x01;
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        //tx on
-        bytes[0] = 0x14;
-        bytes[2] = 0xff;//set up auto noise level
-        bytes[3] = 0x01;
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-
-        bytes[0] = 0xaa;
-        bytes[2] = 0x02;
-        bytes[3] = 0x01;//tx on 1
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        bytes[2] = 0x00;//tx on 2
-
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        //ui->toolButton_tx->setChecked(false);
-        bytes[0] = 0x1a;
-        bytes[2] = 0x20;//set up auto noise level
-        bytes[3] = 0x00;
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-    }
-    else
-    {
-
-        unsigned char        bytes[8] = {0xaa,0xab,0x00,0x00,0x00,0x00,0x00};
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        bytes[2] = 0x02;// = {0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-        Sleep(100);
-        //ui->toolButton_tx->setChecked(true);
-    }
-}
 
 void Mainwindow::on_toolButton_vet_clicked(bool checked)
 {
@@ -2597,3 +2479,79 @@ void Mainwindow::on_toolButton_delete_target_clicked()
     else*/
     processing->radarData->mTrackList.at(targetList.at(selected_target_index)->trackId).state = 0;
 }
+
+void Mainwindow::on_toolButton_tx_clicked()
+{
+
+    unsigned char        bytes[8] = {0xaa,0xab,0x03,0x02,0x00,0x00,0x00};//rotation on
+    sendToRadar(bytes); Sleep(100);
+    sendToRadar(bytes); Sleep(100);
+    sendToRadar(bytes); Sleep(100);
+
+    bytes[0] = 0x04;//set 1280
+    bytes[2] = 0x00;
+    bytes[3] = 0x05;
+    sendToRadar(bytes);
+    Sleep(100);
+    bytes[0] = 0x08;//set resolution 60m
+    bytes[2] = 0x03;
+    bytes[3] = 0x00;
+    sendToRadar(bytes);
+    Sleep(100);
+
+    bytes[0] = 0x01;
+    bytes[2] = 0x04;//set up auto noise level
+    bytes[3] = 0x01;
+    sendToRadar(bytes);
+    Sleep(100);
+    //tx on
+    bytes[0] = 0x14;
+    bytes[2] = 0xff;//set up auto noise level
+    bytes[3] = 0x01;
+    sendToRadar(bytes);
+    Sleep(100);
+
+    bytes[0] = 0xaa;
+    bytes[2] = 0x02;
+    bytes[3] = 0x01;//tx on 1
+    sendToRadar(bytes);Sleep(100);
+    sendToRadar(bytes);Sleep(100);
+    sendToRadar(bytes);Sleep(100);
+    bytes[2] = 0x00;//tx on 2
+
+    sendToRadar(bytes);    Sleep(100);
+    sendToRadar(bytes);    Sleep(100);
+    sendToRadar(bytes);    Sleep(100);
+    //ui->toolButton_tx->setChecked(false);
+    bytes[0] = 0x1a;
+    bytes[2] = 0x20;//set up auto noise level
+    bytes[3] = 0x00;
+    sendToRadar(bytes);    Sleep(100);
+
+}
+
+
+void Mainwindow::on_toolButton_tx_off_clicked()
+{
+    unsigned char        bytes[8] = {0xaa,0xab,0x00,0x00,0x00,0x00,0x00};
+    sendToRadar(bytes);    Sleep(100);
+    sendToRadar(bytes);    Sleep(100);
+    sendToRadar(bytes);    Sleep(100);
+    bytes[2] = 0x02;// = {0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
+    sendToRadar(bytes);    Sleep(100);
+    sendToRadar(bytes);    Sleep(100);
+    sendToRadar(bytes);    Sleep(100);
+
+
+    bytes[2] = 0x03;
+    sendToRadar(bytes);    Sleep(100);
+    sendToRadar(bytes);    Sleep(100);
+    sendToRadar(bytes);    Sleep(100);
+}
+
+void Mainwindow::on_toolButton_filter2of3_clicked(bool checked)
+{
+    processing->radarData->filter2of3 = checked;
+}
+
+

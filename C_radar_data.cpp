@@ -53,6 +53,7 @@ C_radar_data::C_radar_data()
     bo_bang_0 = false;
     xl_dopler = false;
     cut_thresh = false;
+    filter2of3 = false;
     clk_adc = 0;
     noiseAverage = 0;
     noiseVar = 0;
@@ -503,7 +504,7 @@ void C_radar_data::ProcessData(unsigned short azi)
                 }
 
             }
-            cutoff = data_mem.hot_disp[azi][r_pos]<2;
+            if(filter2of3)cutoff = data_mem.hot_disp[azi][r_pos]<2;
 //            if(cutoff)
 //            {
 //                data_mem.sled[azi][r_pos]-= (data_mem.sled[azi][r_pos])/100.0f;
@@ -528,8 +529,8 @@ void C_radar_data::ProcessData(unsigned short azi)
                 }
                 else
                 rainLevel += 0.4*(data_mem.level[azi][r_pos]-rainLevel);
-                if(rainLevel>(noiseAverage+6*noiseVar))rainLevel = noiseAverage + 6*noiseVar;
-                thresh = rainLevel - noiseVar*6;
+                if(rainLevel>(noiseAverage+4*noiseVar))rainLevel = noiseAverage + 4*noiseVar;
+                thresh = rainLevel - noiseVar*4;
                 if(data_mem.level[azi][r_pos]>(thresh))
                     data_mem.level_disp[azi][r_pos] = data_mem.level[azi][r_pos] - (thresh);
                 else data_mem.level_disp[azi][r_pos] = 0;
@@ -561,18 +562,11 @@ void C_radar_data::ProcessData(unsigned short azi)
         }
         if(rainLevel>(noiseAverage+9*noiseVar))rainLevel = noiseAverage + 9*noiseVar;
         thresh = rainLevel + noiseVar*3;//kgain = 3
-
+        bool cutoff = data_mem.level[azi][r_pos]<thresh;
 //            short dvar;
 //            dvar = abs(data_mem.dopler[azi][r_pos]-data_mem.dopler_old[azi][r_pos]);
 //            if(dvar>8)dvar = 16-dvar;
-        if(data_mem.level[azi][r_pos]>thresh)//&&(dvar<2))
-        {
-            if(data_mem.hot[azi][r_pos]<3)
-            {
-                data_mem.hot[azi][r_pos]++;
-            }
-        }
-        else
+        if(cutoff)//&&(dvar<2))
         {
             if(data_mem.hot[azi][r_pos])
             {
@@ -580,8 +574,40 @@ void C_radar_data::ProcessData(unsigned short azi)
             }
 
         }
+        else
+        {
+            if(data_mem.hot[azi][r_pos]<3)
+            {
+                data_mem.hot[azi][r_pos]++;
+            }
+        }
 
-        if(data_mem.hot[azi][r_pos]<2)
+
+
+        if(data_mem.hot[azi][r_pos]>1)
+        {
+            cutoff = false;
+
+
+        }
+        else if(!cutoff)
+        {
+            if(r_pos>1)
+            {
+                if((data_mem.hot[azi][r_pos+1])>1||(data_mem.hot[azi][r_pos-1]>1))
+                {
+                    cutoff = false;
+                    data_mem.hot[azi][r_pos] = 2;
+                }
+                else cutoff = true;
+
+            }
+            else cutoff = true;
+        }
+        else cutoff = true;
+
+
+        if(cutoff)
         {
             if(isFilting&&rgs_auto)data_mem.level_disp[azi][r_pos]= 0;
             data_mem.sled[azi][r_pos]-= (data_mem.sled[azi][r_pos])/100.0f;
@@ -589,12 +615,15 @@ void C_radar_data::ProcessData(unsigned short azi)
         else
         {
             data_mem.sled[azi][r_pos] += (255 - data_mem.sled[azi][r_pos])/10.0f;
-
         }
+
 
         if(r_pos>RANGE_MIN)
         {
-            data_mem.detect[azi][r_pos] = data_mem.hot[azi][r_pos]>1;
+
+            data_mem.detect[azi][r_pos] = !cutoff;
+
+
 
             if(data_mem.detect[azi][r_pos])
             {
