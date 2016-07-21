@@ -1810,7 +1810,12 @@ void Mainwindow::UpdateScale()
         bytes[2]=8-range;
         if(bytes[2]>0x05)bytes[2] = 0x05;
         sendToRadar(bytes);
-
+        processing->radarData->resetTrack();
+        for(short i = 0;i<targetList.size();i++)
+        {
+            targetList.at(i)->deleteLater();
+        }
+        targetList.clear();
     }
     ui->toolButton_grid->setText(QString::fromUtf8("Vòng cự ly(")+QString::number(rangeStep)+"NM)");
     isScaleChanged = true;

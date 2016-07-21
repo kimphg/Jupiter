@@ -66,7 +66,7 @@ C_radar_data::C_radar_data()
     avtodetect = true;
     isClkAdcChanged = true;
     isSled = false;
-    terrain_init_time = 5;
+    terrain_init_time = 2;
     dataOver = max_s_m_200;
     curAzir = 0;
     raw_map_init();
@@ -1468,7 +1468,7 @@ uint C_radar_data::getColor(unsigned char pvalue,unsigned char dopler,unsigned c
 }
 void C_radar_data::resetTrack()
 {
-    terrain_init_time = 5;
+    terrain_init_time = 2;
     for(unsigned short i=0;i<mTrackList.size();i++)
     {
         if(mTrackList.at(i).state)
