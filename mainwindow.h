@@ -98,7 +98,7 @@ private:
     void SendCommandControl();
     void SetGPS(float mlat,float mlong);
 public slots:
-    void UpdateSetting();
+//    void UpdateSetting();
 //    void UpdateSignScale();
     void UpdateScale();
     void setCodeType(short index);

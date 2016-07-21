@@ -30,7 +30,7 @@ static short                scrCtX, scrCtY, dx =0,dy=0,dxMap=0,dyMap=0;//mouseX,
 static short                mousePointerX,mousePointerY,mouseX,mouseY;
 static char                 gridOff = false;
 static char                 udpFailure = 0;//config file !!!
-static bool                 isSettingUp2Date,isDraging = false;
+static bool                 isDraging = false;
 static bool                 isScaleChanged =true;
 float           scale;
 static QStandardItemModel   modelTargetList;
@@ -92,6 +92,7 @@ void Mainwindow::sendToRadar(unsigned char* hexdata)
 {
 
     udpSendSocket->writeDatagram((char*)hexdata,8,QHostAddress("192.168.0.44"),2572);
+    //printf("\a");
 
 }
 
@@ -143,15 +144,15 @@ void Mainwindow::wheelEvent(QWheelEvent *event)
 }
 void Mainwindow::mouseMoveEvent(QMouseEvent *event) {
     //draw mouse coordinates
-    float azi,range;
-    processing->radarData->getPolar((mousePointerX - scrCtX+dx)/scale,-(mousePointerY - scrCtY+dy)/scale,&azi,&range);
-    if(azi<0)azi+=PI_NHAN2;
-    azi = azi/PI*180.0;
-    range = range/CONST_NM;
+//    float azi,range;
+//    processing->radarData->getPolar((mousePointerX - scrCtX+dx)/scale,-(mousePointerY - scrCtY+dy)/scale,&azi,&range);
+//    if(azi<0)azi+=PI_NHAN2;
+//    azi = azi/PI*180.0;
+//    range = range/CONST_NM;
 //    p.drawText(mousePointerX+5,mousePointerY+5,100,20,0,QString::number(range,'g',4)+"|"+QString::number(azi,'g',4),0);
-    ui->label_cursor_range->setText(QString::number(range,'g',6));
-    ui->label_cursor_azi->setText(QString::number(azi,'g',6));
-    //
+//    ui->label_cursor_range->setText(QString::number(range,'g',6));
+//    ui->label_cursor_azi->setText(QString::number(azi,'g',6));
+//    //
 
     if(isDraging&&(event->buttons() & Qt::LeftButton)) {
 
@@ -249,56 +250,9 @@ Mainwindow::Mainwindow(QWidget *parent) :
 
 void Mainwindow::DrawSignal(QPainter *p)
 {
-    //QRectF signRect(RAD_M_PULSE_RES-(scrCtX-dx),RAD_M_PULSE_RES-(scrCtY-dy),width(),height());
-    //QRectF screen(0,0,width(),height());
-
-    //p->drawImage(screen,*processing->radarData->img_ppi,signRect,Qt::AutoColor);
-    switch(drawMode)
-    {
-        case SGN_IMG_DRAW:
-        {
-            QRectF signRect(DISPLAY_RES-(scrCtX-dx),DISPLAY_RES-(scrCtY-dy),width(),height());
-            QRectF screen(0,0,width(),height());
-            p->drawImage(screen,*processing->radarData->img_ppi,signRect,Qt::AutoColor);
-
-            break;
-        }
-        case SGN_DIRECT_DRAW:
-    {/*
-        // _________direct drawing(without Qimage)
-        QPen pensgn(Qt::green);
-        QPen pentrr(QColor(0,50,60));
-        //pentrr.setWidth(((short)signsize)+1);
-        //pensgn.setWidth(((short)signsize)+1);
-        //QMutexLocker locker(&processing->mutex);
-        short ctX=scrCtX-dx;
-        short ctY=scrCtY-dy;
-        for(short azi = 1;azi<MAX_AZIR;++azi)
-        {
-            for(unsigned short range = 0;range < RAD_M_PULSE_RES;range++)
-            {
-                if(processing->radarData->signal_map.frame[azi].raw_map[range].displaylevel)
-                {
-                    pensgn.setColor(QColor(processing->radarData->signal_map.frame[azi].raw_map[range].displaylevel,255,0));
-                    p->setPen(pensgn);
-                    p->drawPoint((processing->radarData->signal_map.frame[azi].raw_map[range].x-RAD_M_PULSE_RES)*signsize+ctX,
-                                         (processing->radarData->signal_map.frame[azi].raw_map[range].y-RAD_M_PULSE_RES)*signsize+ctY);
-                }
-                else if(processing->radarData->signal_map.frame[azi].raw_map[range].vet)
-                {
-                    p->setPen(pentrr);
-                    p->drawPoint((processing->radarData->signal_map.frame[azi].raw_map[range].x - RAD_M_PULSE_RES)*signsize+ctX,
-                                         (processing->radarData->signal_map.frame[azi].raw_map[range].y - RAD_M_PULSE_RES)*signsize+ctY);
-                }
-
-            }
-        }*/
-
-
-    }
-    default:
-        break;
-    }
+    QRectF signRect(DISPLAY_RES-(scrCtX-dx),DISPLAY_RES-(scrCtY-dy),width(),height());
+    QRectF screen(0,0,width(),height());
+    p->drawImage(screen,*processing->radarData->img_ppi,signRect,Qt::AutoColor);
 }
 
 //void MainWindow::createMenus()
@@ -855,7 +809,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
                          dxMap,dyMap,height(),height());
     }
     //draw signal
-    DrawSignal(&p);
+    if(radar_state==CONNECTED)DrawSignal(&p);
 
     DrawTarget(&p);
     //drawAisTarget(&p);
@@ -962,6 +916,10 @@ void Mainwindow::InitSetting()
     mousePointerY = height()/2;
     dxMax = height()/4-10;
     dyMax = height()/4-10;
+    scrCtX = height()/2+50;//+ ui->toolBar_Main->width()+20;//ENVDEP
+    scrCtY = height()/2;
+    UpdateScale();
+
     processing->radarData->setTrueN(config.m_config.trueN);
     //ui->horizontalSlider_2->setValue(config.m_config.cfarThresh);
 
@@ -996,18 +954,10 @@ void Mainwindow::InitSetting()
 void Mainwindow::ReloadSetting()
 {
 
-        scrCtX = height()/2+50;//+ ui->toolBar_Main->width()+20;//ENVDEP
-        scrCtY = height()/2;
 
-
-    UpdateScale();
-    isSettingUp2Date = true;
 
 }
-void Mainwindow::UpdateSetting()
-{
-    isSettingUp2Date = false;
-}
+
 
 void Mainwindow::DrawViewFrame(QPainter* p)
 {
@@ -1147,13 +1097,6 @@ void Mainwindow::setScaleNM(unsigned short rangeNM)
 short waittimer =0;
 void Mainwindow::UpdateRadarData()
 {
-
-    //SendCommandControl();
-    if(!isSettingUp2Date)
-    {
-        ReloadSetting();
-    }
-
     if(!processing->getIsDrawn())
     {
         if(processing->radarData->isClkAdcChanged)
@@ -1194,12 +1137,15 @@ void Mainwindow::readBuffer()
 }
 void Mainwindow::InitTimer()
 {
+
     scrUpdateTimer = new QTimer();
     syncTimer1s = new QTimer();
     readBuffTimer = new QTimer();
     dataPlaybackTimer = new QTimer();
     t = new QThread();
     t1 = new QThread();
+    processing = new dataProcessingThread();
+
 //    connect(fullScreenTimer, SIGNAL(timeout()), this, SLOT(UpdateSetting()));
 //    fullScreenTimer->setSingleShot(true);
 //    fullScreenTimer->start(1000);
@@ -1215,7 +1161,8 @@ void Mainwindow::InitTimer()
 
     scrUpdateTimer->start(30);//ENVDEP
     scrUpdateTimer->moveToThread(t);
-    processing = new dataProcessingThread();
+
+
     processing->start();
     connect(this,SIGNAL(destroyed()),processing,SLOT(deleteLater()));
     connect(dataPlaybackTimer,SIGNAL(timeout()),processing,SLOT(playbackRadarData()));
@@ -1519,13 +1466,10 @@ void Mainwindow::sync1()//period 1 second
 }
 void Mainwindow::setRadarState(radarSate radarState)
 {
-    if(radarState != radar_state)
-    {
+
         radar_state = radarState;
         //display radar state
 
-
-    }
 }
 
 void Mainwindow::on_actionTx_On_triggered()
@@ -1806,12 +1750,12 @@ void Mainwindow::UpdateScale()
 {
     //float oldScale = scale;
     switch(range)
-
     {
     case 0:
         scale = (height()/2-5)/(CONST_NM*1.5f );
         rangeStep = 1.5f/6.0f;
         ui->label_range->setText("1.5 NM");
+        sendToRadar("08ab");
         break;
     case 1:
         scale = (height()/2-5)/(CONST_NM*3 );
@@ -1857,6 +1801,16 @@ void Mainwindow::UpdateScale()
         scale = (height()/2-5)/(90 );
         ui->label_range->setText("48 NM");
         break;
+    }
+    if(ui->toolButton_adaptiv_scale->isChecked())
+
+    {
+        unsigned char bytes[8] = {0x08,0xab,0x00,0x00,0x00,0x00,0x00,0x00};
+
+        bytes[2]=8-range;
+        if(bytes[2]>0x05)bytes[2] = 0x05;
+        sendToRadar(bytes);
+
     }
     ui->toolButton_grid->setText(QString::fromUtf8("Vòng cự ly(")+QString::number(rangeStep)+"NM)");
     isScaleChanged = true;
@@ -2269,7 +2223,8 @@ void Mainwindow::on_toolButton_send_command_clicked()
         hex2bin(ui->lineEdit_byte_6->text().toStdString().data(),&bytes[5]);
         hex2bin(ui->lineEdit_byte_7->text().toStdString().data(),&bytes[6]);
         hex2bin(ui->lineEdit_byte_8->text().toStdString().data(),&bytes[7]);
-        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        sendToRadar((char*)&bytes[0]);
+        //udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
     }
 }
 

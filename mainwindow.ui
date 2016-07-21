@@ -2605,6 +2605,22 @@
         </item>
        </widget>
       </item>
+      <item row="3" column="0">
+       <widget class="QCustomButton" name="toolButton_adaptiv_scale">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Độ phân giải thích nghi</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
     <widget class="QWidget" name="tab2">
@@ -23706,9 +23722,9 @@
     <property name="geometry">
      <rect>
       <x>1210</x>
-      <y>310</y>
+      <y>330</y>
       <width>161</width>
-      <height>241</height>
+      <height>221</height>
      </rect>
     </property>
     <property name="title">
@@ -23807,7 +23823,7 @@
       <x>1210</x>
       <y>170</y>
       <width>161</width>
-      <height>121</height>
+      <height>131</height>
      </rect>
     </property>
     <property name="sizePolicy">
