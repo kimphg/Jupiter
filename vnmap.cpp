@@ -151,7 +151,7 @@ void Q_vnmap::LoadBinFile(const char* fileName)
 void Q_vnmap::LoadPlaces(const char* binfileName)
 {
 
-/*	int len = strlen(binfileName);
+    int len = strlen(binfileName);
 	char *fileName = new char[len+1]; 
 	strncpy(fileName,binfileName,len);
 	fileName[len-3]='t';
@@ -206,7 +206,7 @@ void Q_vnmap::LoadPlaces(const char* binfileName)
 		else i=pos+1;
 		
 	
-    }*/
+    }
 
 
 }

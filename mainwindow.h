@@ -164,11 +164,11 @@ private slots:
 
     //void on_toolButton_setting_clicked();
 
-    void on_toolButton_scan_clicked();
+//    void on_toolButton_scan_clicked();
 
     void on_toolButton_tx_toggled(bool checked);
 
-    void on_toolButton_scan_toggled(bool checked);
+//    void on_toolButton_scan_toggled(bool checked);
 
     void on_toolButton_xl_nguong_toggled(bool checked);
 
@@ -180,7 +180,7 @@ private slots:
 
     void on_toolButton_open_record_clicked();
 
-    void on_toolButton_alphaView_toggled(bool checked);
+//    void on_toolButton_alphaView_toggled(bool checked);
 
     //void on_toolButton_replay_2_clicked();
 
@@ -199,15 +199,15 @@ private slots:
 
     void on_toolButton_zoom_out_clicked();
 
-    void on_toolButton_reset_clicked();
+//    void on_toolButton_reset_clicked();
 
 
-    void on_toolButton_send_command_2_clicked();
+//    void on_toolButton_send_command_2_clicked();
 
 
     void on_toolButton_map_select_clicked();
 
-    void on_dial_valueChanged(int value);
+//    void on_dial_valueChanged(int value);
 
     void on_toolButton_set_heading_clicked();
 
@@ -217,7 +217,7 @@ private slots:
 
     void on_comboBox_code_type_currentIndexChanged(int index);
 
-    void on_toolButton_centerZoom_clicked();
+//    void on_toolButton_centerZoom_clicked();
 
     void on_toolButton_xl_dopler_clicked();
 
@@ -229,7 +229,7 @@ private slots:
 
     void on_toolButton_xl_dopler_2_toggled(bool checked);
 
-    void on_toolButton_auto_tracking_clicked();
+
 
     void on_toolButton_reset_3_clicked();
 

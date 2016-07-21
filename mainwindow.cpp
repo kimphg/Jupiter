@@ -387,88 +387,97 @@ void Mainwindow::DrawMap()
     QPainter p(pMap);
     pMap->fill(QColor(0,0,0,255));
     //pMap->fill(Qt::transparent);
-    if(ui->toolButton_map->isChecked()==false)return;
-    QPen pen(QColor(255,255,255,180));
-    QColor color[5];
-    color[0].setRgb(143,137,87,255);//land
-    color[1].setRgb( 34,52,60,255);//lake
-    color[2].setRgb(60,50,10,255);//building
-    color[3].setRgb( 34,52,60,255);//river
-    color[4].setRgb(70,70,70,150);//road
-    //color[0].setRgb(120,120,120,150);//land
-    //color[1].setRgb( 120,120,120,150);//lake
-    //color[2].setRgb(120,120,120,150);//building
-    //color[3].setRgb( 120,120,120,150);//river
-    //color[4].setRgb(0,100,120,150);//road
+    if(ui->toolButton_map->isChecked())
+    {
+        QPen pen(QColor(255,255,255,180));
+        QColor color[5];
+        color[0].setRgb(143,137,87,255);//land
+        color[1].setRgb( 34,52,60,255);//lake
+        color[2].setRgb(60,50,10,255);//building
+        color[3].setRgb( 34,52,60,255);//river
+        color[4].setRgb(70,70,70,150);//road
+        //color[0].setRgb(120,120,120,150);//land
+        //color[1].setRgb( 120,120,120,150);//lake
+        //color[2].setRgb(120,120,120,150);//building
+        //color[3].setRgb( 120,120,120,150);//river
+        //color[4].setRgb(0,100,120,150);//road
 
-    short centerX = pMap->width()/2-dx;
-    short centerY = pMap->height()/2-dy;
-    p.setRenderHint(QPainter::Antialiasing, true);
-    p.setPen(pen);
-    //-----draw provinces in polygons
+        short centerX = pMap->width()/2-dx;
+        short centerY = pMap->height()/2-dy;
+        p.setRenderHint(QPainter::Antialiasing, true);
+        p.setPen(pen);
+        //-----draw provinces in polygons
 
 
-    for(uint i = 0; i < N_LAYER; i++) {
-        //printf("vnmap.layers[%d].size()%d\n",i,vnmap.layers[i].size());
-        if(i<3)
-        {
-            for(uint j = 0; j < vnmap.layers[i].size(); j++) {
-                QPolygon poly;
-                for(uint k = 0; k < vnmap.layers[i][j].size(); k++) { // Polygon
-                    QPoint int_point;
-                    float x,y;
-                    vnmap.ConvDegToScr(&x,&y,&vnmap.layers[i][j][k].m_Long,&vnmap.layers[i][j][k].m_Lat);
-                    int_point.setX((int)(x*scale)+centerX);
-                    int_point.setY((int)(y*scale)+centerY);
-                    poly<<int_point;
+        for(uint i = 0; i < N_LAYER; i++) {
+            //printf("vnmap.layers[%d].size()%d\n",i,vnmap.layers[i].size());
+            if(i<3)
+            {
+                for(uint j = 0; j < vnmap.layers[i].size(); j++) {
+                    QPolygon poly;
+                    for(uint k = 0; k < vnmap.layers[i][j].size(); k++) { // Polygon
+                        QPoint int_point;
+                        float x,y;
+                        vnmap.ConvDegToScr(&x,&y,&vnmap.layers[i][j][k].m_Long,&vnmap.layers[i][j][k].m_Lat);
+                        int_point.setX((int)(x*scale)+centerX);
+                        int_point.setY((int)(y*scale)+centerY);
+                        poly<<int_point;
+                    }
+                    p.setBrush(color[i]);
+                    pen.setColor(color[i]);
+                    p.setPen(pen);
+                    p.drawPolygon(poly);
                 }
-                p.setBrush(color[i]);
-                pen.setColor(color[i]);
+            }else
+            {
+                //pen.setColor(color[i]);
+                if(i==3)pen.setWidth(2);else pen.setWidth(1);
                 p.setPen(pen);
-                p.drawPolygon(poly);
-            }
-        }else
-        {
-            //pen.setColor(color[i]);
-            if(i==3)pen.setWidth(2);else pen.setWidth(1);
-            p.setPen(pen);
-            for(uint j = 0; j < vnmap.layers[i].size(); j++) {
+                for(uint j = 0; j < vnmap.layers[i].size(); j++) {
 
-                QPoint old_point;
+                    QPoint old_point;
 
-                for(uint k = 0; k < vnmap.layers[i][j].size(); k++) { // Polygon
-                    QPoint int_point;
-                    float x,y;
-                    vnmap.ConvDegToScr(&x,&y,&vnmap.layers[i][j][k].m_Long,&vnmap.layers[i][j][k].m_Lat);
-                    int_point.setX((int)(x*scale)+centerX);
-                    int_point.setY((int)(y*scale)+centerY);
-                    if(k)p.drawLine(old_point,int_point);
-                    old_point=int_point;
+                    for(uint k = 0; k < vnmap.layers[i][j].size(); k++) { // Polygon
+                        QPoint int_point;
+                        float x,y;
+                        vnmap.ConvDegToScr(&x,&y,&vnmap.layers[i][j][k].m_Long,&vnmap.layers[i][j][k].m_Lat);
+                        int_point.setX((int)(x*scale)+centerX);
+                        int_point.setY((int)(y*scale)+centerY);
+                        if(k)p.drawLine(old_point,int_point);
+                        old_point=int_point;
+                    }
+                    //p.setBrush(color[i]);
+
+
                 }
-                //p.setBrush(color[i]);
-
-
             }
-        }
 
+        }
     }
     //DrawGrid(&p,centerX,centerY);
     //draw text
-    pen.setColor(QColor(150,130,110,150));
-    pen.setWidth(2);
-    pen.setStyle(Qt::SolidLine);
-    p.setPen(pen);
-    //QPen pen2(Qt::red);
-    //pen2.setWidth(2);
-    for(uint i = 0; i < vnmap.placeList.size(); i++) {
-            QPoint int_point;
-            float x,y;
-            vnmap.ConvDegToScr(&x,&y,&vnmap.placeList[i].m_Long,&vnmap.placeList[i].m_Lat);
-            int_point.setX((int)(x*scale)+centerX);
-            int_point.setY((int)(y*scale)+centerY);
-            //p.drawEllipse(int_point,2,2);
-            p.drawText(int_point.x()+5,int_point.y(),QString::fromWCharArray(vnmap.placeList[i].text.c_str()));
-            //printf("toa do hien tai lat %f long %f\n",m_textList[i].m_Lat,m_textList[i].m_Long);
+    if(ui->toolButton_map_2->isChecked())
+    {
+        QPen pen;
+        pen.setColor(QColor(200,200,200));
+        pen.setWidth(2);
+        pen.setStyle(Qt::SolidLine);
+        short centerX = pMap->width()/2-dx;
+        short centerY = pMap->height()/2-dy;
+        p.setPen(pen);
+        QFont font ;
+        font.setPointSize(12);
+        p.setFont(font);
+        for(uint i = 0; i < vnmap.placeList.size(); i++) {
+                QPoint int_point;
+                float x,y;
+                vnmap.ConvDegToScr(&x,&y,&vnmap.placeList[i].m_Long,&vnmap.placeList[i].m_Lat);
+                int_point.setX((int)(x*scale)+centerX);
+                int_point.setY((int)(y*scale)+centerY);
+                //p.drawEllipse(int_point,2,2);
+                p.drawText(int_point.x()+5,int_point.y(),QString::fromWCharArray(vnmap.placeList[i].text.c_str()));
+                //printf("toa do hien tai lat %f long %f\n",m_textList[i].m_Lat,m_textList[i].m_Long);
+        }
     }
 
 }
@@ -852,13 +861,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     //drawAisTarget(&p);
     //draw cursor
     QPen penmousePointer(QColor(0x50ffffff));
-    /*if(!isDraging)
-    {
-        pencurPos.setWidth(1);
-        p.setPen(pencurPos);
-        p.drawLine(mouseX-10,mouseY,mouseX+10,mouseY);
-        p.drawLine(mouseX,mouseY-10,mouseX,mouseY+10);
-    }*/
+
     penmousePointer.setWidth(2);
     p.setPen(penmousePointer);
     p.drawLine(mousePointerX-15,mousePointerY,mousePointerX-10,mousePointerY);
@@ -936,7 +939,7 @@ void Mainwindow::InitSetting()
 {
     setMouseTracking(true);
     QRect rec = QApplication::desktop()->screenGeometry(0);
-
+    setFixedSize(1920,1080);
     if((rec.height()==1080)&&(rec.width()==1920))
     {
         this->showFullScreen();
@@ -1162,8 +1165,9 @@ void Mainwindow::UpdateRadarData()
             processing->radarData->isClkAdcChanged = false;
         }
         processing->radarData->redrawImg();
-        update();
+
     }
+    update();
     if(processing->isConnected())
         setRadarState(CONNECTED);
     else
@@ -1373,7 +1377,7 @@ void Mainwindow::ExitProgram()
     config.SaveToFile();
     QApplication::quit();
 #ifdef _WIN32
-    //QProcess::startDetached("shutdown -s -f -t 0");
+    QProcess::startDetached("shutdown -s -f -t 0");
 #else
     //system("/sbin/halt -p");
 #endif
@@ -1387,6 +1391,7 @@ void Mainwindow::sync1()//period 1 second
 {
     // display radar temperature:
     ui->label_temp->setText(QString::number(processing->radarData->tempType)+"|"+QString::number(processing->radarData->temp)+"\260C");
+
 
 //    int n = 32*256.0f/((processing->radarData->noise_level[0]*256 + processing->radarData->noise_level[1]));
 //    int m = 256.0f*((processing->radarData->noise_level[2]*256 + processing->radarData->noise_level[3]))
@@ -1480,8 +1485,7 @@ void Mainwindow::sync1()//period 1 second
             ui->label_command->setText(QString::fromUtf8("Chưa kết nối radar"));
             ui->label_command->setHidden(true);
         }
-        printf("\ns_idle");
-        //ui->label_status_warning->setStyleSheet("background-color: rgb(255, 100, 50,255);");
+        udpSendSocket->writeDatagram("d",1,QHostAddress("127.0.0.1"),8089);
         break;
     case CONNECTED:
         printf("\ns_tx");
@@ -1489,7 +1493,7 @@ void Mainwindow::sync1()//period 1 second
         ui->label_command->setHidden(false);
 
         ui->label_command->setText(QString(array.toHex()));
-
+        udpSendSocket->writeDatagram("c",1,QHostAddress("127.0.0.1"),8089);
         break;
     case CONNECTED_ROTATE12_TXON:
         ui->label_status->setText(QString::fromUtf8("Phát 12v/p"));
@@ -1602,11 +1606,11 @@ void Mainwindow::on_actionOpen_map_triggered()
 }
 void Mainwindow::showTime()
 {
-    /*QDateTime time = QDateTime::currentDateTime();
+    QDateTime time = QDateTime::currentDateTime();
     QString text = time.toString("hh:mm:ss");
     ui->label_date->setText(text);
     text = time.toString("dd/MM/yy");
-    ui->label_time->setText(text);*/
+    ui->label_time->setText(text);
 }
 
 void Mainwindow::on_actionSaveMap_triggered()
@@ -2068,10 +2072,6 @@ void Mainwindow::on_toolButton_exit_clicked()
 //    this->on_actionSetting_triggered();
 //}
 
-void Mainwindow::on_toolButton_scan_clicked()
-{
-
-}
 
 void Mainwindow::on_toolButton_tx_toggled(bool checked)
 {
@@ -2099,22 +2099,6 @@ void Mainwindow::on_toolButton_tx_toggled(bool checked)
 
 }
 
-void Mainwindow::on_toolButton_scan_toggled(bool checked)
-{
-//    if(checked)
-//    {
-//        unsigned char        bytes[8] = {0xaa,0xab,0x03,0x02,0x00,0x00,0x00};
-//        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-
-//    }
-//    else
-//    {
-//        unsigned char        bytes[8] = {0xaa,0xab,0x03,0x00,0x00,0x00,0x00};
-//        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-
-//    }
-
-}
 
 
 void Mainwindow::on_toolButton_xl_nguong_toggled(bool checked)
@@ -2151,11 +2135,11 @@ void Mainwindow::on_toolButton_open_record_clicked()
 
 
 
-void Mainwindow::on_toolButton_alphaView_toggled(bool checked)
-{
-    displayAlpha = checked;
-    processing->radarData->isDisplayAlpha = checked;
-}
+//void Mainwindow::on_toolButton_alphaView_toggled(bool checked)
+//{
+//    displayAlpha = checked;
+//    processing->radarData->isDisplayAlpha = checked;
+//}
 
 
 void Mainwindow::updateTargets()
@@ -2308,25 +2292,25 @@ void Mainwindow::on_toolButton_zoom_out_clicked()
     DrawMap();
 }
 
-void Mainwindow::on_toolButton_reset_clicked()
-{
-    processing->radarData->resetSled();
-}
+//void Mainwindow::on_toolButton_reset_clicked()
+//{
+//    processing->radarData->resetSled();
+//}
 
-void Mainwindow::on_toolButton_send_command_2_clicked()
-{
-    unsigned char        bytes[8] = {0xaa,0xab,0x02,0x02,0x0a,0,0,0};
-    udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-//    bytes[0] = 0xaa;
-//    bytes[1] = 0xab;
-//    bytes[2] = 0x02;
-//    bytes[3] = 0x02;
-//    bytes[4] = 0x0a;
-//    bytes[5] = 0x00;
-//    bytes[6] = 0x00;
-//    bytes[7] = 0x00;
+//void Mainwindow::on_toolButton_send_command_2_clicked()
+//{
+//    unsigned char        bytes[8] = {0xaa,0xab,0x02,0x02,0x0a,0,0,0};
+//    udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+////    bytes[0] = 0xaa;
+////    bytes[1] = 0xab;
+////    bytes[2] = 0x02;
+////    bytes[3] = 0x02;
+////    bytes[4] = 0x0a;
+////    bytes[5] = 0x00;
+////    bytes[6] = 0x00;
+////    bytes[7] = 0x00;
 
-}
+//}
 
 void Mainwindow::SetGPS(float mlat,float mlong)
 {
@@ -2351,29 +2335,27 @@ void Mainwindow::on_toolButton_map_select_clicked()
     repaint();
 }
 
-void Mainwindow::on_dial_valueChanged(int value)
-{
-    float heading = value/100.0f;
-    ui->textEdit_heading->setText(QString::number(heading));
+//void Mainwindow::on_dial_valueChanged(int value)
+//{
+//    float heading = value/100.0f;
+//    ui->textEdit_heading->setText(QString::number(heading));
 
-}
+//}
 
 void Mainwindow::on_toolButton_set_heading_clicked()
 {
-    if(ui->lineEdit_password->text()=="cndt3108")
-    {
+
     float heading = ui->textEdit_heading->text().toFloat();
     config.m_config.trueN = heading;
     processing->radarData->setTrueN(config.m_config.trueN);
-    }
+
 }
 
 void Mainwindow::on_toolButton_gps_update_clicked()
 {
-    if(ui->lineEdit_password->text()=="cndt3108")
-    {
-        SetGPS(ui->text_latInput_2->text().toFloat(),ui->text_longInput_2->text().toFloat());
-    }
+
+    SetGPS(ui->text_latInput_2->text().toFloat(),ui->text_longInput_2->text().toFloat());
+
 }
 
 void Mainwindow::on_comboBox_code_type_currentIndexChanged(const QString &arg1)
@@ -2387,10 +2369,10 @@ void Mainwindow::on_comboBox_code_type_currentIndexChanged(int index)
     setCodeType(config.m_config.codeType);
 }
 
-void Mainwindow::on_toolButton_centerZoom_clicked()
-{
-    processing->radarData->updateZoomRect(mousePointerX - scrCtX+dx,mousePointerY - scrCtY+dy);
-}
+//void Mainwindow::on_toolButton_centerZoom_clicked()
+//{
+//    processing->radarData->updateZoomRect(mousePointerX - scrCtX+dx,mousePointerY - scrCtY+dy);
+//}
 
 void Mainwindow::on_toolButton_xl_dopler_clicked()
 {
@@ -2423,11 +2405,6 @@ void Mainwindow::on_groupBox_3_currentChanged(int index)
 void Mainwindow::on_toolButton_xl_dopler_2_toggled(bool checked)
 {
     processing->radarData->bo_bang_0 = checked;
-}
-
-void Mainwindow::on_toolButton_auto_tracking_clicked()
-{
-
 }
 
 
@@ -2553,5 +2530,6 @@ void Mainwindow::on_toolButton_filter2of3_clicked(bool checked)
 {
     processing->radarData->filter2of3 = checked;
 }
+
 
 
