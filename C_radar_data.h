@@ -23,12 +23,14 @@
 #define RAD_S_PULSE_RES             256
 #define DISPLAY_RES                 768
 #define RAD_FULL_RES                1792
-#define SIGNAL_SCALE_0      0.157539f//0.1464f//0.094523077
-#define SIGNAL_SCALE_1      0.126031f//0.094523077
-#define SIGNAL_SCALE_2      0.094523f//0.09669f//0.063015385
-#define SIGNAL_SCALE_3      0.063015f//0.031507692
-#define SIGNAL_SCALE_4      0.031508f
-#define SIGNAL_SCALE_5      0.015754f
+#define SIGNAL_SCALE_7      0.21538461538461538f//215.38461538461538461538461538461
+#define SIGNAL_SCALE_6      0.18461538461538462f//184.61538461538461538461538461538
+#define SIGNAL_SCALE_5      0.15384615384615385f//153.84615384615384615384615384615
+#define SIGNAL_SCALE_4      0.12307692307692308f// 123.07692307692307692307692307692
+#define SIGNAL_SCALE_3      0.09230769230769231f//92.307692307692307692307692307692
+#define SIGNAL_SCALE_2      0.06153846153846154f//61.538461538461538461538461538462
+#define SIGNAL_SCALE_1      0.03076923076923077f//30.769230769230769230769230769231
+#define SIGNAL_SCALE_0      0.01538461538461538f//15.384615384615384615384615384615
 #define TERRAIN_GAIN        0.9f
 #define TERRAIN_GAIN_1      0.1f
 #define TERRAIN_THRESH      0.5f
@@ -386,7 +388,7 @@ public:
     void                    updateZoomRect(float ctx, float cty);
     unsigned short          sn_stat;
     bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled,filter2of3;
-    bool                    isFilting,rgs_auto,bo_bang_0;
+    bool                    isManualTune,rgs_auto,bo_bang_0;
     float                   krain,kgain,ksea,brightness;
     float                   krain_auto,kgain_auto,ksea_auto;
     void setAutorgs( bool aut)

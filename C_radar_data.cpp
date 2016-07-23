@@ -48,7 +48,7 @@ C_radar_data::C_radar_data()
     size_thresh = 4;
     isProcessing = true;
     imgMode = VALUE_ORANGE_BLUE;
-    isFilting = true;
+    isManualTune = false;
     rgs_auto = false;
     bo_bang_0 = false;
     xl_dopler = false;
@@ -432,7 +432,7 @@ void C_radar_data::ProcessData(unsigned short azi)
     }
     for(short r_pos=0;r_pos<range_max;r_pos++)
     {
-        if(isFilting&&(!rgs_auto))
+        if(isManualTune&&(!rgs_auto))
         {
             // apply the  threshholding algorithm
             bool cutoff = false;
@@ -609,7 +609,7 @@ void C_radar_data::ProcessData(unsigned short azi)
 
         if(cutoff)
         {
-            if(isFilting&&rgs_auto)data_mem.level_disp[azi][r_pos]= 0;
+            if(isManualTune&&rgs_auto)data_mem.level_disp[azi][r_pos]= 0;
             data_mem.sled[azi][r_pos]-= (data_mem.sled[azi][r_pos])/100.0f;
         }
         else
@@ -660,16 +660,11 @@ void C_radar_data::ProcessDataFrame()
     if(clk_adc != n_clk_adc)
     {
         // clock adc
-        if((n_clk_adc<=5))
-        {
+
             clk_adc = n_clk_adc;
             isClkAdcChanged = true;
             resetData();
-        }else
-        {
-            printf("\nClock adc is wrong.");
-            return;
-        }
+
     }
     temp = dataBuff[3]/4.0f;//
     tempType = dataBuff[2];
@@ -1285,6 +1280,11 @@ void C_radar_data::setScalePPI(float scale)
         break;
     case 5:
         sn_scale = SIGNAL_SCALE_5;//printf("2");
+    case 6:
+        sn_scale = SIGNAL_SCALE_6;//printf("2");
+        break;
+    case 7:
+        sn_scale = SIGNAL_SCALE_7;//printf("2");
         break;
     default:
         sn_scale = SIGNAL_SCALE_0;
@@ -1315,6 +1315,9 @@ void C_radar_data::setScaleZoom(float scale)
         break;
     case 5:
         sn_scale = SIGNAL_SCALE_5;//printf("2");
+        break;
+    case 6:
+        sn_scale = SIGNAL_SCALE_6;//printf("2");
         break;
     default:
         sn_scale = SIGNAL_SCALE_0;

@@ -23823,7 +23823,7 @@
       <x>1210</x>
       <y>170</y>
       <width>161</width>
-      <height>131</height>
+      <height>141</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -23893,6 +23893,27 @@
        </property>
        <property name="text">
         <string>Địa danh</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCustomButton" name="toolButton_measuring">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Đo khoảng cách</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
