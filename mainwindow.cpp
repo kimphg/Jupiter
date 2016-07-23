@@ -436,7 +436,7 @@ void Mainwindow::DrawMap()
                 vnmap.ConvDegToScr(&x,&y,&vnmap.placeList[i].m_Long,&vnmap.placeList[i].m_Lat);
                 int_point.setX((int)(x*scale)+centerX);
                 int_point.setY((int)(y*scale)+centerY);
-                //p.drawEllipse(int_point,2,2);
+                p.drawEllipse(int_point,2,2);
                 p.drawText(int_point.x()+5,int_point.y(),QString::fromWCharArray(vnmap.placeList[i].text.c_str()));
                 //printf("toa do hien tai lat %f long %f\n",m_textList[i].m_Lat,m_textList[i].m_Long);
         }
@@ -2321,7 +2321,7 @@ void Mainwindow::SetGPS(float mlat,float mlong)
     config.m_config.m_long = mlong;
     ui->text_latInput_2->setText(QString::number(mlat));
     ui->text_longInput_2->setText(QString::number(mlong));
-    vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 200,config.m_config.mapFilename.data());
+    vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 300,config.m_config.mapFilename.data());
     DrawMap();
     update();
 }
@@ -2333,7 +2333,7 @@ void Mainwindow::on_toolButton_map_select_clicked()
     vnmap.ClearData();
     if(pMap)delete pMap;
     pMap = new QPixmap(height(),height());
-    vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 200,config.m_config.mapFilename.data());//100km  max range
+    vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 300,config.m_config.mapFilename.data());//100km  max range
     DrawMap();
     repaint();
 }
