@@ -32,8 +32,10 @@ static char                 gridOff = false;
 static char                 udpFailure = 0;//config file !!!
 static bool                 isDraging = false;
 static bool                 isScaleChanged =true;
-float           scale;
+float                   scale;
+
 static QStandardItemModel   modelTargetList;
+struct
 CConfig         config;
 QStringList warningList;
 short selected_target_index;
@@ -49,6 +51,29 @@ float rangeStep = 1;
 //typedef std::queue<Command_Control> CommandList;
 //static CommandList command_queue;
 bool isDrawSubTg = true;
+
+
+class guard_zone_t
+{
+public:
+    guard_zone_t(){}
+    ~guard_zone_t(){}
+    short x1,y1,x2,y2;
+    float maxAzi,minAzi;
+    float maxR,minR;
+    char  isActive;
+    void update()
+    {
+        float azi,rg;
+        processing->radarData->getPolar((x1 - scrCtX+dx)/scale,-(y1 - scrCtY+dy)/scale,&minAzi,&minR);
+        processing->radarData->getPolar((x2 - scrCtX+dx)/scale,-(y2 - scrCtY+dy)/scale,&maxAzi,&maxR);
+        if(minAzi<0)minAzi += PI_NHAN2;
+        minAzi = minAzi/PI*180.0;
+        if(maxAzi<0)maxAzi += PI_NHAN2;
+        maxAzi = maxAzi/PI*180.0;
+    }
+};
+guard_zone_t gz1,gz2,gz3;
 //static unsigned short cur_object_index = 0;
 short lon2x(float lon)
 {
@@ -79,7 +104,7 @@ void Mainwindow::mouseDoubleClickEvent( QMouseEvent * e )
         processing->radarData->updateZoomRect(mousePointerX - scrCtX+dx,mousePointerY - scrCtY+dy);
     }
 }
-void Mainwindow::sendToRadar(const char* hexdata)
+void Mainwindow::sendToRadarHS(const char* hexdata)
 {
     short len = strlen(hexdata)/2+1;
     unsigned char* sendBuff = new unsigned char[len];
@@ -182,6 +207,7 @@ void Mainwindow::mouseMoveEvent(QMouseEvent *event) {
 }
 void Mainwindow::keyPressEvent(QKeyEvent *event)
 {
+    this->setFocus();
     if(event->key() == Qt::Key_Space)
     {
         short   x=this->mapFromGlobal(QCursor::pos()).x();
@@ -208,7 +234,25 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
             ui->toolButton_manual_track->setChecked(false);
 //            isScreenUp2Date = false;
         }
+        else if(ui->toolButton_create_zone->isChecked())
+        {
+            gz1.isActive = 1;
 
+            gz1.x1 = event->x();
+            gz1.y1 = event->y();
+        }
+        else if(ui->toolButton_create_zone_2->isChecked())
+        {
+            gz2.isActive = 1;
+            gz2.x1 = event->x();
+            gz2.y1 = event->y();
+        }
+        else if(ui->toolButton_create_zone_3->isChecked())
+        {
+            gz3.isActive = 1;
+            gz3.x1 = event->x();
+            gz3.y1 = event->y();
+        }
         else
         {
             isDraging = true;
@@ -918,6 +962,10 @@ void Mainwindow::SaveBinFile()
 void Mainwindow::InitSetting()
 {
     setMouseTracking(true);
+    //init the guard zone
+    gz1.isActive = 0;
+    gz2.isActive = 0;
+    gz3.isActive = 0;
     QRect rec = QApplication::desktop()->screenGeometry(0);
     setFixedSize(1920,1080);
     if((rec.height()==1080)&&(rec.width()==1920))
@@ -1790,7 +1838,7 @@ void Mainwindow::UpdateScale()
         rangeStep = 1.5f/6.0f;
         byte2 = 0x00;
         ui->label_range->setText("1.5 NM");
-        sendToRadar("08ab");
+
         break;
     case 1:
         scale = (height()/2-5)/(CONST_NM*3 );
@@ -2550,4 +2598,10 @@ void Mainwindow::on_toolButton_filter2of3_clicked(bool checked)
 void Mainwindow::on_comboBox_radar_resolution_currentIndexChanged(int index)
 {
 
+}
+
+void Mainwindow::on_toolButton_create_zone_2_clicked(bool checked)
+{
+    if(checked)
+        gz2.isActive = false;
 }

@@ -59,7 +59,7 @@ private:
     void CameraControl(int x,int y, int zoom);
     void CameraControl(int direction);
     void InitSetting();
-    void sendToRadar(const char *hexdata);
+    void sendToRadarHS(const char *hexdata);
     void sendToRadar(unsigned char* hexdata);
 //    void SetSnScale(short value);
     Ui::MainWindow* ui;
@@ -251,6 +251,8 @@ private slots:
 
 
     void on_comboBox_radar_resolution_currentIndexChanged(int index);
+
+    void on_toolButton_create_zone_2_clicked(bool checked);
 
 private:
     void initActionsConnections();
