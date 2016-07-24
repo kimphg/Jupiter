@@ -1782,61 +1782,72 @@ void MainWindow::on_toolButton_13_clicked()
 void Mainwindow::UpdateScale()
 {
     float oldScale = scale;
+    char byte2;
     switch(range)
     {
     case 0:
         scale = (height()/2-5)/(CONST_NM*1.5f );
         rangeStep = 1.5f/6.0f;
+        byte2 = 0x00;
         ui->label_range->setText("1.5 NM");
         sendToRadar("08ab");
         break;
     case 1:
         scale = (height()/2-5)/(CONST_NM*3 );
         rangeStep = 3/6.0f;
+        byte2 = 0x00;
         ui->label_range->setText("3 NM");
         break;
     case 2:
         scale = (height()/2-5)/(CONST_NM*6 );
         rangeStep = 6/6.0f;
+        byte2 = 0x00;
         ui->label_range->setText("6 NM");
         break;
     case 3:
         scale = (height()/2-5)/(CONST_NM*12 );
         rangeStep = 12/6.0f;
+        byte2 = 0x00;
         ui->label_range->setText("12 NM");
         break;
     case 4:
         scale = (height()/2-5)/(CONST_NM*24 );
         rangeStep = 24/6.0f;
+        byte2 = 0x01;
         ui->label_range->setText("24 NM");
         break;
     case 5:
         scale = (height()/2-5)/(CONST_NM*36 );
         rangeStep = 36/6.0f;
+        byte2 = 0x02;
         ui->label_range->setText("36 NM");
         break;
     case 6:
         scale = (height()/2-5)/(CONST_NM*48 );
         rangeStep = 48/6.0f;
+        byte2 = 0x03;
         ui->label_range->setText("48 NM");
         break;
     case 7:
         scale = (height()/2-5)/(CONST_NM*72 );
         rangeStep = 72/6.0f;
+        byte2 = 0x04;
         ui->label_range->setText("72 NM");
         break;
     case 8:
         scale = (height()/2-5)/(CONST_NM*96 );
         rangeStep = 96/6.0f;
+        byte2 = 0x05;
         ui->label_range->setText("96 NM");
         break;
     case 9:
         scale = (height()/2-5)/(CONST_NM*120 );
         rangeStep = 120/6.0f;
+        byte2 = 0x06;
         ui->label_range->setText("120 NM");
         break;
     default:
-        scale = (height()/2-5)/(90 );
+        scale = (height()/2-5)/(CONST_NM*48  );
         ui->label_range->setText("48 NM");
         break;
     }
@@ -1845,8 +1856,7 @@ void Mainwindow::UpdateScale()
     {
         unsigned char bytes[8] = {0x08,0xab,0x00,0x00,0x00,0x00,0x00,0x00};
 
-        bytes[2]=8-range;
-        if(bytes[2]>0x05)bytes[2] = 0x05;
+        bytes[2]=byte2;
         sendToRadar(bytes);
         processing->radarData->resetTrack();
         for(short i = 0;i<targetList.size();i++)
@@ -2271,7 +2281,7 @@ void Mainwindow::on_toolButton_send_command_clicked()
         hex2bin(ui->lineEdit_byte_6->text().toStdString().data(),&bytes[5]);
         hex2bin(ui->lineEdit_byte_7->text().toStdString().data(),&bytes[6]);
         hex2bin(ui->lineEdit_byte_8->text().toStdString().data(),&bytes[7]);
-        sendToRadar((char*)&bytes[0]);
+        sendToRadar((unsigned char*)&bytes[0]);
         //udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
     }
 }
@@ -2536,3 +2546,8 @@ void Mainwindow::on_toolButton_filter2of3_clicked(bool checked)
 
 
 
+
+void Mainwindow::on_comboBox_radar_resolution_currentIndexChanged(int index)
+{
+
+}

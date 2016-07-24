@@ -250,6 +250,8 @@ private slots:
 
 
 
+    void on_comboBox_radar_resolution_currentIndexChanged(int index);
+
 private:
     void initActionsConnections();
 };
