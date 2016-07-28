@@ -384,7 +384,7 @@ public:
 
     unsigned char           size_thresh,overload, terrain_init_time, clk_adc;
     float                   scale_ppi,scale_zoom;
-
+    short                   curAzir;
     void                    updateZoomRect(float ctx, float cty);
     unsigned short          sn_stat;
     bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled,filter2of3;
@@ -471,7 +471,7 @@ private:
     unsigned char command_feedback[8];
     void        polarToXY(float *x, float *y, float azi, float range);
     bool        isProcessing;
-    short       curAzir;
+
     float       noiseAverage,rainLevel,noiseVar;
     void        getNoiseLevel();
     void        procPix(short proc_azi,short range);

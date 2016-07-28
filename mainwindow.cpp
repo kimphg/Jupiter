@@ -4,7 +4,7 @@
 //#define mapWidth 2000
 //#define mapWidth mapWidth
 //#define mapHeight mapWidth
-#define CONST_NM 1.852f
+#define CONST_NM 1.845f
 #define MAX_VIEW_RANGE_KM 50
 
 #include <queue>
@@ -15,7 +15,7 @@ static QPixmap              *pMap=NULL;
 dataProcessingThread *processing;
 static Q_vnmap              vnmap;
 QTimer*                     scrUpdateTimer,*readBuffTimer ;
-QTimer*                     syncTimer1s ;
+QTimer*                     syncTimer1s,*syncTimer10s ;
 QTimer*                     dataPlaybackTimer ;
 QThread*                    t,*t1 ;
 bool displayAlpha = false;
@@ -391,7 +391,7 @@ void Mainwindow::DrawMap()
     dxMap = 0;
     dyMap = 0;
     QPainter p(pMap);
-    pMap->fill(QColor(30,50,60,255));
+    pMap->fill(QColor(10,18,25,255));
     //pMap->fill(Qt::transparent);
     if(ui->toolButton_map->isChecked())
     {
@@ -465,7 +465,7 @@ void Mainwindow::DrawMap()
     if(ui->toolButton_map_2->isChecked())
     {
         QPen pen;
-        pen.setColor(QColor(200,200,200));
+        pen.setColor(QColor(255,255,255));
         pen.setWidth(2);
         pen.setStyle(Qt::SolidLine);
         short centerX = pMap->width()/2-dx;
@@ -481,7 +481,9 @@ void Mainwindow::DrawMap()
                 int_point.setX((int)(x*scale)+centerX);
                 int_point.setY((int)(y*scale)+centerY);
                 p.drawEllipse(int_point,2,2);
-                p.drawText(int_point.x()+5,int_point.y(),QString::fromWCharArray(vnmap.placeList[i].text.c_str()));
+                QString str = QString::fromStdWString(vnmap.placeList[i].text);
+                str.chop(2);
+                p.drawText(int_point.x()+5,int_point.y(),str);
                 //printf("toa do hien tai lat %f long %f\n",m_textList[i].m_Lat,m_textList[i].m_Long);
         }
     }
@@ -490,14 +492,14 @@ void Mainwindow::DrawMap()
 void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
 {
     //return;
-    QPen pen(QColor(0x8f,0x8f,0x8f,0x7f));
-    pen.setStyle(Qt::SolidLine);
+    QPen pen(QColor(0x8f,0x8f,0x8f,0xff));
+    pen.setStyle(Qt::DashLine);
     p->setBrush(QBrush(Qt::NoBrush));
     p->setPen(pen);
     p->drawLine(centerX-5,centerY,centerX+5,centerY);
     p->drawLine(centerX,centerY-5,centerX,centerY+5);
     //pen.setColor(QColor(30,90,150,120));
-    pen.setWidth(2);
+    pen.setWidth(1);
     p->setPen(pen);
     for(short i = 1;i<8;i++)
     {
@@ -910,8 +912,9 @@ void Mainwindow::paintEvent(QPaintEvent *event)
         QRect rect = ui->tabWidget_2->geometry();
         if(range>2)
         {
+
             short zoom_size = ui->tabWidget_2->width()/processing->radarData->scale_zoom*processing->radarData->scale_ppi;
-            p.setPen(QPen(QColor(0,0,0,150),0,Qt::DashLine));
+            p.setPen(QPen(QColor(255,255,255,200),0,Qt::DashLine));
             p.drawRect(mousePointerX-zoom_size/2.0,mousePointerY-zoom_size/2.0,zoom_size,zoom_size);
         }
 
@@ -992,7 +995,7 @@ void Mainwindow::InitSetting()
     mousePointerX = scrCtX = height()/2+50;//+ ui->toolBar_Main->width()+20;//ENVDEP
     mousePointerY = scrCtY = height()/2;
     UpdateScale();
-
+    ui->textEdit_heading->setText(QString::number(config.m_config.trueN));
     processing->radarData->setTrueN(config.m_config.trueN);
     //ui->horizontalSlider_2->setValue(config.m_config.cfarThresh);
 
@@ -1221,6 +1224,7 @@ void Mainwindow::InitTimer()
 
     scrUpdateTimer = new QTimer();
     syncTimer1s = new QTimer();
+    syncTimer10s = new QTimer();
     readBuffTimer = new QTimer();
     dataPlaybackTimer = new QTimer();
     t = new QThread();
@@ -1232,6 +1236,8 @@ void Mainwindow::InitTimer()
 //    fullScreenTimer->start(1000);
     connect(syncTimer1s, SIGNAL(timeout()), this, SLOT(sync1()));
     syncTimer1s->start(1000);
+    connect(syncTimer10s, SIGNAL(timeout()), this, SLOT(sync10()));
+    syncTimer10s->start(300000);
     //syncTimer1s->moveToThread(t);
     //
     connect(readBuffTimer,SIGNAL(timeout()),this,SLOT(readBuffer()));
@@ -1415,6 +1421,26 @@ void Mainwindow::on_actionConnect_triggered()
 {
 
 }
+void Mainwindow::sync10()//period 10 second
+{
+
+    if(radar_state!=DISCONNECTED)
+    {
+        QFile logFile;
+        QDateTime now = QDateTime::currentDateTime();
+        if(!QDir("C:\\logs\\"+now.toString("\\dd.MM\\")).exists())
+        {
+            QDir().mkdir("C:\\logs\\"+now.toString("\\dd.MM\\"));
+        }
+        logFile.setFileName("C:\\logs\\"+now.toString("\\dd.MM\\")+now.toString("dd.MM-hh.mm.ss")+"_radar_online.log");
+        logFile.open(QIODevice::WriteOnly);
+
+        logFile.close();
+
+    }
+
+}
+
 void Mainwindow::sync1()//period 1 second
 {
     // display radar temperature:
@@ -1516,7 +1542,7 @@ void Mainwindow::sync1()//period 1 second
         udpSendSocket->writeDatagram("d",1,QHostAddress("127.0.0.1"),8089);
         break;
     case CONNECTED:
-        printf("\ns_tx");
+        //printf("\ns_tx");
         ui->label_status->setText(QString::number(processing->radarData->overload));
         ui->label_command->setHidden(false);
 
@@ -1530,17 +1556,49 @@ void Mainwindow::sync1()//period 1 second
         ui->label_status->setText(QString::fromUtf8("Quay 12v/p"));
         break;
     }
-    switch(processing->radarData->sn_stat&0x07)
+
+    switch((processing->radarData->sn_stat>>8)&0x07)
     {
     case 4:
-        ui->label_sn_type->setText("Mã DTTT");
-        ui->label_sn_param->setText(QString::number((((processing->radarData->sn_stat>>3)&0x07)+1)*128));
-
+        ui->label_sn_type->setText("Ma DTTT");
+        ui->label_sn_param->setText(QString::number((((processing->radarData->sn_stat)&0x07)+1)*128));
+        break;
+    case 0:
+        ui->label_sn_type->setText("Xung don");
+        ui->label_sn_param->setText(QString::number((((processing->radarData->sn_stat)&0x07))));
+        break;
+    case 2:
+        ui->label_sn_type->setText("Ma M");
+        ui->label_sn_param->setText(QString::number((((processing->radarData->sn_stat)&0x07))));
+        break;
+    case 3:
+        ui->label_sn_type->setText("Ma ngau nhien");
+        ui->label_sn_param->setText(QString::number((((processing->radarData->sn_stat)&0x07))));
+        break;
+    case 1:
+        ui->label_sn_type->setText("Ma baker");
+        ui->label_sn_param->setText(QString::number((((processing->radarData->sn_stat)&0x07))));
         break;
     default:
-        ui->label_sn_param->setText(QString::number(((processing->radarData->sn_stat>>3)&0x07)));
+        ui->label_sn_param->setText(QString::number(((processing->radarData->sn_stat)&0x07)));
         break;
     }
+    switch((processing->radarData->rotation_speed)&0x07)
+    {
+    case 0:
+        ui->label_speed->setText(QString::fromUtf8("Dừng quay"));break;
+    case 1:
+        ui->label_speed->setText("9 v/p");break;
+    case 2:
+        ui->label_speed->setText("12 v/p");break;
+    case 3:
+        ui->label_speed->setText("0 v/p");break;
+
+    default:
+
+        break;
+    }
+
 
 
 
@@ -2318,7 +2376,7 @@ void Mainwindow::on_comboBox_img_mode_currentIndexChanged(int index)
 
 void Mainwindow::on_toolButton_send_command_clicked()
 {
-    if(ui->lineEdit_password->text()=="cndt3108")
+    if(ui->lineEdit_password->text()=="ccndt3108")
     {
         unsigned char        bytes[8];
         hex2bin(ui->lineEdit_byte_1->text().toStdString().data(),&bytes[0]);
@@ -2526,13 +2584,13 @@ void Mainwindow::on_toolButton_tx_clicked()
     sendToRadar(bytes); Sleep(100);
     sendToRadar(bytes); Sleep(100);
 
-    bytes[0] = 0x04;//set 1280
+    bytes[0] = 0x04;//set 1536
     bytes[2] = 0x00;
-    bytes[3] = 0x05;
+    bytes[3] = 0x06;
     sendToRadar(bytes);
     Sleep(100);
     bytes[0] = 0x08;//set resolution 60m
-    bytes[2] = 0x03;
+    bytes[2] = 0x02;
     bytes[3] = 0x00;
     sendToRadar(bytes);
     Sleep(100);
@@ -2542,13 +2600,13 @@ void Mainwindow::on_toolButton_tx_clicked()
     bytes[3] = 0x01;
     sendToRadar(bytes);
     Sleep(100);
-    //tx on
+    // do trong
     bytes[0] = 0x14;
-    bytes[2] = 0xff;//set up auto noise level
+    bytes[2] = 0xff;
     bytes[3] = 0x01;
     sendToRadar(bytes);
     Sleep(100);
-
+    //tx on
     bytes[0] = 0xaa;
     bytes[2] = 0x02;
     bytes[3] = 0x01;//tx on 1
@@ -2556,15 +2614,29 @@ void Mainwindow::on_toolButton_tx_clicked()
     sendToRadar(bytes);Sleep(100);
     sendToRadar(bytes);Sleep(100);
     bytes[2] = 0x00;//tx on 2
-
     sendToRadar(bytes);    Sleep(100);
     sendToRadar(bytes);    Sleep(100);
     sendToRadar(bytes);    Sleep(100);
     //ui->toolButton_tx->setChecked(false);
     bytes[0] = 0x1a;
     bytes[2] = 0x20;//set up auto noise level
-    bytes[3] = 0x00;
+    bytes[3] = 0x01;
     sendToRadar(bytes);    Sleep(100);
+    if(radar_state!=DISCONNECTED)
+    {
+        QFile logFile;
+        QDateTime now = QDateTime::currentDateTime();
+        if(!QDir("C:\\logs\\"+now.toString("\\dd.MM\\")).exists())
+        {
+            QDir().mkdir("C:\\logs\\"+now.toString("\\dd.MM\\"));
+        }
+        logFile.setFileName("C:\\logs\\"+now.toString("\\dd.MM\\")+now.toString("dd.MM-hh.mm.ss")+"_tx_on.log");
+
+        logFile.open(QIODevice::WriteOnly);
+        //logFile.p
+        logFile.close();
+
+    }
 
 }
 
@@ -2575,6 +2647,7 @@ void Mainwindow::on_toolButton_tx_off_clicked()
     sendToRadar(bytes);    Sleep(100);
     sendToRadar(bytes);    Sleep(100);
     sendToRadar(bytes);    Sleep(100);
+
     bytes[2] = 0x02;// = {0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
     sendToRadar(bytes);    Sleep(100);
     sendToRadar(bytes);    Sleep(100);
@@ -2585,6 +2658,20 @@ void Mainwindow::on_toolButton_tx_off_clicked()
     sendToRadar(bytes);    Sleep(100);
     sendToRadar(bytes);    Sleep(100);
     sendToRadar(bytes);    Sleep(100);
+    if(radar_state!=DISCONNECTED)
+    {
+        QFile logFile;
+        QDateTime now = QDateTime::currentDateTime();
+        if(!QDir("C:\\logs\\"+now.toString("\\dd.MM\\")).exists())
+        {
+            QDir().mkdir("C:\\logs\\"+now.toString("\\dd.MM\\"));
+        }
+        logFile.setFileName("C:\\logs\\"+now.toString("\\dd.MM\\")+now.toString("dd.MM-hh.mm.ss")+"_tx_off.log");
+        logFile.open(QIODevice::WriteOnly);
+        //logFile.p
+        logFile.close();
+
+    }
 }
 
 void Mainwindow::on_toolButton_filter2of3_clicked(bool checked)
@@ -2604,4 +2691,52 @@ void Mainwindow::on_toolButton_create_zone_2_clicked(bool checked)
 {
     if(checked)
         gz2.isActive = false;
+}
+
+void Mainwindow::on_toolButton_measuring_clicked()
+{
+    mouseX = scrCtX-dx;
+    mouseY = scrCtY-dy;
+}
+
+void Mainwindow::on_toolButton_map_2_clicked()
+{
+    DrawMap();
+}
+
+void Mainwindow::on_comboBox_2_currentIndexChanged(int index)
+{
+    switch (index)
+    {
+    case 0:
+        //sendToRadarHS("aaab030302000000");
+        break;
+    case 1:
+        sendToRadarHS("aaab030100000000");
+        Sleep(100);
+        sendToRadarHS("aaab030100000000");
+        Sleep(100);
+        sendToRadarHS("aaab030100000000");
+        Sleep(100);
+        break;
+    case 2:
+        sendToRadarHS("aaab030200000000");
+        Sleep(100);
+        sendToRadarHS("aaab030200000000");
+        Sleep(100);
+        sendToRadarHS("aaab030200000000");
+        Sleep(100);
+        break;
+    case 3:
+        break;
+    case 4 :
+        break;
+    default:
+        break;
+    }
+}
+
+void Mainwindow::on_toolButton_measuring_clicked(bool checked)
+{
+    ui->toolButton_grid->setChecked(true);
 }

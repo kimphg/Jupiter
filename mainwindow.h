@@ -109,6 +109,7 @@ public:
 private slots:
     void readBuffer();
     void sync1();
+    void sync10();
     void ExitProgram();
     void gpsOption();
     void processFrame();
@@ -253,6 +254,14 @@ private slots:
     void on_comboBox_radar_resolution_currentIndexChanged(int index);
 
     void on_toolButton_create_zone_2_clicked(bool checked);
+
+    void on_toolButton_measuring_clicked();
+
+    void on_toolButton_map_2_clicked();
+
+    void on_comboBox_2_currentIndexChanged(int index);
+
+    void on_toolButton_measuring_clicked(bool checked);
 
 private:
     void initActionsConnections();
