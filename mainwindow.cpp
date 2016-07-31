@@ -2740,3 +2740,8 @@ void Mainwindow::on_toolButton_measuring_clicked(bool checked)
 {
     ui->toolButton_grid->setChecked(true);
 }
+
+void Mainwindow::on_toolButton_export_data_clicked(bool checked)
+{
+    processing->radarData->data_export = checked;
+}

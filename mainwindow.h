@@ -263,6 +263,8 @@ private slots:
 
     void on_toolButton_measuring_clicked(bool checked);
 
+    void on_toolButton_export_data_clicked(bool checked);
+
 private:
     void initActionsConnections();
 };

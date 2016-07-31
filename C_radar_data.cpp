@@ -51,6 +51,7 @@ C_radar_data::C_radar_data()
     isManualTune = false;
     rgs_auto = false;
     bo_bang_0 = false;
+    data_export = false;
     xl_dopler = false;
     cut_thresh = false;
     filter2of3 = false;
@@ -365,6 +366,7 @@ void C_radar_data::drawAzi(short azi)
 short waitForData = 0;
 unsigned char curFrameId;
 unsigned char dataBuff[RADAR_DATA_HEADER + RADAR_DATA_MAX_SIZE];
+QFile *exp_file = NULL;
 void C_radar_data::ProcessData(unsigned short azi)
 {
     if(azi==0)if(terrain_init_time)terrain_init_time--;
@@ -640,6 +642,29 @@ void C_radar_data::ProcessData(unsigned short azi)
 
 
     memcpy(&data_mem.dopler_old[azi][0],&data_mem.dopler[azi][0],range_max);
+    if(data_export)
+    {
+        if(!exp_file)
+        {
+            exp_file = new QFile();
+            exp_file->setFileName("export_data_dopler.dat");
+            exp_file->open(QIODevice::WriteOnly);
+        }
+        if(azi==550)
+        {
+            exp_file->write((char*)&data_mem.dopler_old[azi][0],RAD_M_PULSE_RES);
+            memset((char*)&data_mem.level_disp[azi][0],0xff,RAD_M_PULSE_RES);
+        }
+    }
+    else
+    {
+        if(exp_file)
+        {
+            exp_file->close();
+            delete exp_file;
+            exp_file = NULL;
+        }
+    }
     return ;
 }
 

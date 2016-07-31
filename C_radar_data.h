@@ -43,6 +43,7 @@
 #include <math.h>
 #include <QImage>
 #include <QDateTime>
+#include <QFile>
 //#include <QDebug> //REMLATER
 //#ifdef _WIN32
 //#include <armadilloWin32/armadillo>
@@ -388,7 +389,7 @@ public:
     void                    updateZoomRect(float ctx, float cty);
     unsigned short          sn_stat;
     bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled,filter2of3;
-    bool                    isManualTune,rgs_auto,bo_bang_0;
+    bool                    isManualTune,rgs_auto,bo_bang_0,data_export;
     float                   krain,kgain,ksea,brightness;
     float                   krain_auto,kgain_auto,ksea_auto;
     void setAutorgs( bool aut)
