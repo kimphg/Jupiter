@@ -190,7 +190,7 @@ public:	// For history points
 //	void		CopyHist(C2_Track *);
 //	bool		MakeHist();						// Make history
 };
-typedef QList< C2_Track *> C2_TrackLst;
+typedef std::vector< const C2_Track > C2_TrackLst;
 
 
 

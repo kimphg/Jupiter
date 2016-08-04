@@ -8,7 +8,9 @@
 #define	AFX_C2DEFFINE_H_
 #include <QWidget>
 typedef  unsigned char BYTE;
-typedef  unsigned short UINT;
+#ifndef UINT
+typedef  unsigned int UINT;
+#endif
 //----------------------
 #define		PORT_LIST_BATE		21200		// ...     BaTe listen
 #define		PORT_SESS_BATE		21290		// Session port of BaTe session

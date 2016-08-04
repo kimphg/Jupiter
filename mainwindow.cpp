@@ -109,14 +109,14 @@ void Mainwindow::sendToRadarHS(const char* hexdata)
     short len = strlen(hexdata)/2+1;
     unsigned char* sendBuff = new unsigned char[len];
     hex2bin(hexdata,sendBuff);
-    udpSendSocket->writeDatagram((char*)sendBuff,8,QHostAddress("192.168.0.44"),2572);
+    m_udpSocket->writeDatagram((char*)sendBuff,8,QHostAddress("192.168.0.44"),2572);
     delete[] sendBuff;
 
 }
 void Mainwindow::sendToRadar(unsigned char* hexdata)
 {
 
-    udpSendSocket->writeDatagram((char*)hexdata,8,QHostAddress("192.168.0.44"),2572);
+    m_udpSocket->writeDatagram((char*)hexdata,8,QHostAddress("192.168.0.44"),2572);
     //printf("\a");
 
 }
@@ -830,23 +830,25 @@ void Mainwindow::drawAisTarget(QPainter *p)
 {
 
     //draw radar  target:
-    QPen penTargetRed(Qt::red);
-    penTargetRed.setWidth(3);
+    QPen penTargetRed(Qt::cyan);
+    penTargetRed.setWidth(0);
 
-    float fx,fy;
-    for(uint i=0;i<arpa_data.ais_track_list.size();i++)
+    for(uint i=0;i<m_trackList.size();i++)
     {
             p->setPen(penTargetRed);
             short j;
             //draw track:
-            for(j=0;j<((short)arpa_data.ais_track_list[i].object_list.size());j++)
-            {
-                vnmap.ConvDegToScr(&fx,&fy,&arpa_data.ais_track_list[i].object_list[j].mlong,&arpa_data.ais_track_list[i].object_list[j].mlat);
+            float fx,fy;
+            float mlat = m_trackList.at(i).m_Lat * WGS_RAD * 180/M_PI ;
+            float mlon = m_trackList.at(i).m_Long * WGS_RAD * 180/M_PI ;
+                vnmap.ConvDegToScr(&fx,&fy,&mlon,&mlat);
+
                 short x = (fx*scale)+scrCtX-dx;
                 short y = (fy*scale)+scrCtY-dy;
-                p->drawPoint(x,y);
+                p->drawEllipse(x-5,y-5,10,10);
+                p->drawText(x+5,y+5,QString::fromAscii((char*)&m_trackList.at(i).m_MMSI[0],9));
                 //printf("\nj:%d,%d,%d,%f,%f",j,x,y,arpa_data.ais_track_list[i].object_list[j].mlong,arpa_data.ais_track_list[i].object_list[j].mlat);
-            }
+
     }
 }
 void Mainwindow::paintEvent(QPaintEvent *event)
@@ -867,7 +869,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     DrawSignal(&p);
 
     DrawTarget(&p);
-    //drawAisTarget(&p);
+    drawAisTarget(&p);
     //draw cursor
     QPen penmousePointer(QColor(0x50ffffff));
 
@@ -1271,42 +1273,46 @@ void Mainwindow::InitNetwork()
 //    connect(udpSocket, SIGNAL(readyRead()),
 //            this, SLOT(processFrame()));
 
-        udpSendSocket = new QUdpSocket(this);
-        if(!udpSendSocket->bind(8900))
+        m_udpSocket = new QUdpSocket(this);
+        if(!m_udpSocket->bind(8900))
         {
-            if(!udpSendSocket->bind(8901))
+            if(!m_udpSocket->bind(8901))
             {
-                udpSendSocket->bind(8902);
+                m_udpSocket->bind(8902);
             }
         }
-        udpSendSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 10);
+        m_udpSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 10);
 
 //    udpARPA = new QUdpSocket(this);
 //    udpARPA->bind(1990,QUdpSocket::ShareAddress);
-//    connect(udpARPA, SIGNAL(readyRead()),
-//            this, SLOT(processARPA()));
+    connect(m_udpSocket, SIGNAL(readyRead()),
+            this, SLOT(processARPA()));
 
 }
 void Mainwindow::processARPA()
 {
-    /*
-    while (udpARPA->hasPendingDatagrams())
+
+    while (m_udpSocket->hasPendingDatagrams())
     {
         QByteArray datagram;
-        datagram.resize(udpARPA->pendingDatagramSize());
-        udpARPA->readDatagram(datagram.data(), datagram.size());
+        datagram.resize(m_udpSocket->pendingDatagramSize());
+        m_udpSocket->readDatagram(datagram.data(), datagram.size());
         //printf(datagram.data());
 		QString str(datagram.data());
         QStringList list = str.split(",");
-        if(*list.begin()=="$RATTM")
+        if(list.first()=="$RATTM")
         {
-            short tNum = (*(list.begin()+1)).toInt();
-            float tDistance = (*(list.begin()+2)).toFloat();
-            float tRange = (*(list.begin()+3)).toFloat();
-            arpa_data.addARPA(tNum,tDistance,tRange);
+//            short tNum = (*(list.begin()+1)).toInt();
+//            float tDistance = (*(list.begin()+2)).toFloat();
+//            float tRange = (*(list.begin()+3)).toFloat();
+//            arpa_data.addARPA(tNum,tDistance,tRange);
+        }
+        else if(list.first().contains("AI"))
+        {
+            ProcDataAIS((BYTE*)datagram.data(), datagram.size());
         }
     }
-    */
+
 }
 void Mainwindow::processFrame()
 {
@@ -1539,7 +1545,7 @@ void Mainwindow::sync1()//period 1 second
             ui->label_command->setText(QString::fromUtf8("Chưa kết nối radar"));
             ui->label_command->setHidden(true);
         }
-        udpSendSocket->writeDatagram("d",1,QHostAddress("127.0.0.1"),8089);
+        m_udpSocket->writeDatagram("d",1,QHostAddress("127.0.0.1"),8089);
         break;
     case CONNECTED:
         //printf("\ns_tx");
@@ -1547,7 +1553,7 @@ void Mainwindow::sync1()//period 1 second
         ui->label_command->setHidden(false);
 
         ui->label_command->setText(QString(array.toHex()));
-        udpSendSocket->writeDatagram("c",1,QHostAddress("127.0.0.1"),8089);
+        m_udpSocket->writeDatagram("c",1,QHostAddress("127.0.0.1"),8089);
         break;
     case CONNECTED_ROTATE12_TXON:
         ui->label_status->setText(QString::fromUtf8("Phát 12v/p"));
@@ -2758,14 +2764,44 @@ bool Mainwindow::ProcDataAIS(BYTE *szBuff, int nLeng )
          return 0;
      for(short i = 0;i<m_trackList.size();i++)
      {
-         if(m_trackList.at(i)->CheckMMSI(nTkNew.m_MMSI))
+         if(m_trackList.at(i).CheckMMSI(nTkNew.m_MMSI))
          {
-             m_trackList.at(i)->Update(&nTkNew);
+             (&m_trackList.at(i))->Update(&nTkNew);
              nIndex = i;
+             return true;
          }
      }
-     if(nIndex>=0)
+     if(nIndex<0)
      {
-
+        m_trackList.push_back(nTkNew);
      }
+     return true;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

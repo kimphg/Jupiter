@@ -13,7 +13,7 @@
 #include <QtGui>
 #include <vnmap.h>
 //#include <CpView.h>
-
+#include <CLocal.h>
 #include <Config.h>
 #include <gpsdialog.h>
 #include <dataprocessingthread.h>
@@ -58,6 +58,7 @@ private:
     void DrawGrid(QPainter* p,short centerX,short centerY);
     void CameraControl(int x,int y, int zoom);
     void CameraControl(int direction);
+
     void InitSetting();
     void sendToRadarHS(const char *hexdata);
     void sendToRadar(unsigned char* hexdata);
@@ -73,8 +74,10 @@ private:
 
     //network
     //QUdpSocket      *udpSocket;//raymarine
-    QUdpSocket      *udpARPA;//ARPA
-    QUdpSocket      *udpSendSocket;//radar control
+//    QUdpSocket      *udpARPA;//ARPA
+    QUdpSocket      *m_udpSocket;//socket for radar control
+    C2_Local          m_CLocal;
+    C2_TrackLst m_trackList;
     //
     //CConfig         m_config;
     //CpView  *       m_view;
@@ -104,6 +107,7 @@ public slots:
     void setCodeType(short index);
 private:
     void setRadarState(radarSate radarState);
+    bool ProcDataAIS(BYTE *szBuff, int nLeng );
 public:
     void setScaleNM(unsigned short rangeNM);
 private slots:

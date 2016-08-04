@@ -11,7 +11,7 @@
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
-#define new DEBUG_NEW
+//#define new DEBUG_NEW
 #endif
 
 //-----------------------------------------------------------------------------
@@ -19,10 +19,8 @@ static char THIS_FILE[]=__FILE__;
 //-----------------------------------------------------------------------------
 int MakeStrCode(BYTE *szStr, int nLeng)
 {
-	BYTE	szKey[ 16] = {'C','o','n','g',' ','t','y',' ','A','I','C',' ','B','o','Q','P'};
-	BYTE *	szTmp;
-	
-	szTmp = new BYTE[nLeng];
+    BYTE	szKey[16] = {'C','o','n','g',' ','t','y',' ','A','I','C',' ','B','o','Q','P'};
+    unsigned char *	szTmp = new unsigned char[10];
 	if (!szTmp)
 		return 0;
 	

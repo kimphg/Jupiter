@@ -28,7 +28,7 @@ typedef struct {
     std::wstring text;
 } Place_t;
 
-typedef vector<Place_t> C2_PlaceList;
+typedef vector<Place_t> PlaceList;
 typedef vector<Point_t> C2_Poly;
 typedef vector<C2_Poly> C2_PolyList;
 
@@ -42,7 +42,7 @@ public:
     //int mouseX,mouseY;
     C2_PolyList		layers[N_LAYER];
     //CC_MapVN pCC_MapVN;
-    C2_PlaceList placeList;
+    PlaceList placeList;
     //int dx,dy;
     //void OpenShpFile(const char* filename, short layerIndex);
     void setUp(float ctLat, float ctLong,unsigned short size,const char* fileName);

@@ -115,7 +115,7 @@ typedef QList< C2_Place *> C2_PlaceList;
 class CC_Place
 {
 private:
-	C2_PlaceList	m_ListPlace;				// List of points
+    C2_PlaceList	m_ListPlace;				// List of points
 
 public:
 	CC_Place ();
