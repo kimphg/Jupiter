@@ -34,7 +34,10 @@ SOURCES += main.cpp\
     qcustomgroupbox.cpp \
     qcustomtabwidget.cpp \
     ctarget.cpp \
-    CLocal.cpp
+    CLocal.cpp \
+    CTrack.cpp \
+    CPoints.cpp \
+    CDefine.cpp
 HEADERS  += mainwindow.h \
     vnmap.h \
     Config.h \
@@ -50,7 +53,10 @@ HEADERS  += mainwindow.h \
     qcustomtabwidget.h \
     pkp.h \
     ctarget.h \
-    CLocal.h
+    CLocal.h \
+    CTrack.h \
+    CPoints.h \
+    CDefine.h
 
 FORMS    += mainwindow.ui \
     gpsdialog.ui \

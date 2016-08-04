@@ -2745,3 +2745,27 @@ void Mainwindow::on_toolButton_export_data_clicked(bool checked)
 {
     processing->radarData->data_export = checked;
 }
+bool Mainwindow::ProcDataAIS(BYTE *szBuff, int nLeng )
+ {
+     C2_Track       nTkNew;                              // New receive Track
+     short nIndex = -1;
+
+     // Connect 2 buffer is fragment
+     if(!m_CLocal.OnLinkBuff(szBuff, nLeng))
+         return 0;
+
+     if(!m_CLocal.GetTrackAIS(m_CLocal.m_Buff, m_CLocal.m_Leng, &nTkNew))
+         return 0;
+     for(short i = 0;i<m_trackList.size();i++)
+     {
+         if(m_trackList.at(i)->CheckMMSI(nTkNew.m_MMSI))
+         {
+             m_trackList.at(i)->Update(&nTkNew);
+             nIndex = i;
+         }
+     }
+     if(nIndex>=0)
+     {
+
+     }
+}
