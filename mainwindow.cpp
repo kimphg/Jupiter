@@ -839,8 +839,10 @@ void Mainwindow::drawAisTarget(QPainter *p)
             short j;
             //draw track:
             float fx,fy;
-            float mlat = m_trackList.at(i).m_Lat * WGS_RAD * 180/M_PI ;
-            float mlon = m_trackList.at(i).m_Long * WGS_RAD * 180/M_PI ;
+            float mlat = m_trackList.at(i).m_Lat ;
+            mlat =  mlat/bit23* 180.0f ;
+            float mlon = m_trackList.at(i).m_Long;
+            mlon = mlon/bit23* 180.0f ;
                 vnmap.ConvDegToScr(&fx,&fy,&mlon,&mlat);
 
                 short x = (fx*scale)+scrCtX-dx;
@@ -2766,7 +2768,7 @@ bool Mainwindow::ProcDataAIS(BYTE *szBuff, int nLeng )
      {
          if(m_trackList.at(i).CheckMMSI(nTkNew.m_MMSI))
          {
-             (&m_trackList.at(i))->Update(&nTkNew);
+             m_trackList.at(i).Update(&nTkNew);
              nIndex = i;
              return true;
          }
