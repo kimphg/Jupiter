@@ -4,6 +4,7 @@
 #define earthRadiusKm 6371.0
 #include <math.h>
 // This function converts decimal degrees to radians
+
 inline int char2int( char input)
 {
   if(input >= '0' && input <= '9')

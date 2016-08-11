@@ -1,6 +1,12 @@
 #ifndef C_RAW_DATA_H
 #define C_RAW_DATA_H
-
+//----------------------------------------------------------//
+//HR2D signal processing class and EKF tracking algorithm   //
+//First release: November 2015                              //
+//Project:https://github.com/kimphg/Jupiter                 //
+//Last update: August 2016                                  //
+//Author: Phung Kim Phuong                                  //
+//----------------------------------------------------------//
 #define ARMA_USE_LAPACK
 #define ARMA_USE_BLAS
 #define ARMA_BLAS_UNDERSCORE
@@ -23,14 +29,14 @@
 #define RAD_S_PULSE_RES             256
 #define DISPLAY_RES                 768
 #define RAD_FULL_RES                1792
-#define SIGNAL_SCALE_7      0.21538461538461538f//215.38461538461538461538461538461
-#define SIGNAL_SCALE_6      0.18461538461538462f//184.61538461538461538461538461538
-#define SIGNAL_SCALE_5      0.15384615384615385f//153.84615384615384615384615384615
-#define SIGNAL_SCALE_4      0.12307692307692308f// 123.07692307692307692307692307692
-#define SIGNAL_SCALE_3      0.09230769230769231f//92.307692307692307692307692307692
-#define SIGNAL_SCALE_2      0.06153846153846154f//61.538461538461538461538461538462
-#define SIGNAL_SCALE_1      0.03076923076923077f//30.769230769230769230769230769231
-#define SIGNAL_SCALE_0      0.01538461538461538f//15.384615384615384615384615384615
+#define SIGNAL_SCALE_7      0.21538461538461538f //215.38461538461538461538461538461
+#define SIGNAL_SCALE_6      0.18461538461538462f //184.61538461538461538461538461538
+#define SIGNAL_SCALE_5      0.15384615384615385f //153.84615384615384615384615384615
+#define SIGNAL_SCALE_4      0.12307692307692308f // 123.07692307692307692307692307692
+#define SIGNAL_SCALE_3      0.09230769230769231f //92.307692307692307692307692307692
+#define SIGNAL_SCALE_2      0.06153846153846154f //61.538461538461538461538461538462
+#define SIGNAL_SCALE_1      0.03076923076923077f //30.769230769230769230769230769231
+#define SIGNAL_SCALE_0      0.01538461538461538f //15.384615384615384615384615384615
 #define TERRAIN_GAIN        0.9f
 #define TERRAIN_GAIN_1      0.1f
 #define TERRAIN_THRESH      0.5f
@@ -40,19 +46,22 @@
 #define DISPLAY_RES_ZOOM            5120
 #define DISPLAY_SCALE_ZOOM           4
 #include <vector>
-#include <math.h>
 #include <QImage>
 #include <QDateTime>
 #include <QFile>
+#include <Eigen/Dense>
+
+
 //#include <QDebug> //REMLATER
 //#ifdef _WIN32
-//#include <armadilloWin32/armadillo>
+//#include <armadillo>
 //#else
 //#include <armadilloLinux/armadillo>
 //#endif
 //using namespace arma;
 //#include <list>
-using namespace std;
+//using namespace std;
+using namespace Eigen;
 /*typedef struct {
     short x,y;
     unsigned char level;
@@ -89,7 +98,50 @@ typedef struct  {
 }object_t;
 typedef std::vector<plot_t> plotList;
 typedef std::vector<object_t> objectList;
+using Eigen::MatrixXf;
+//class matrix_t
+//{
+//public:
+//    float *data;
+//    short row,col;
+//    matrix_t()
+//    {
+//        data = 0;
+//        row = 0;
+//        col = 0;
+//    }
+//    void init(short irow,short icol) {
 
+//        data = new float[irow*icol];
+//        memset(data,0,irow*icol);
+//        row = irow;
+//        col = icol;
+
+//    }
+//    ~matrix_t() {
+//        if(data)delete[] data;
+//    }
+//    float* at(short r,short c)
+//    {
+//        if(r>row||c>col) return 0;
+//        return &data[col*r+c];
+//    }
+//    matrix_t mul(matrix_t *mat)
+//    {
+//        short r1 = this->row;
+//        short c1 = this->col;
+//        short c2 = mat->col;
+//        matrix_t m;
+//        m.init(r1,c2);
+//        if(c1!=mat->row)return m;
+
+//        for(short i=0; i<r1; ++i)
+//        for(short j=0; j<c2; ++j)
+//        for(short k=0; k<c1; ++k)
+//        *(m.at(i,j)) += (*this->at(i,k))*(*mat->at(k,j));
+//        return m;
+//    }
+//};
 //______________________________________//
 class track_t {
 public:
@@ -97,21 +149,29 @@ public:
     {
 
     }
-    qint64 currentTimeMs;
+
+    //
+    MatrixXf q1;
+    MatrixXf q2;
+    MatrixXf h;
+    MatrixXf p;
+    MatrixXf x;
+    //
+    //qint64 currentTimeMs;
     bool confirmed;
     objectList suspect_list,object_list;
     char terrain;
     float deltaAzi;
-    float estX ,estY,oldX,oldY,Vx,Vy;
+    float estX ,estY;
     float estA, estR;
-    float estWeightX,estWeightY;
-    float mesA,oldA;
-    float mesR,oldR;
+    float mesA;
+    float mesR;
     float speed;
-    float course, velocity;
+    float course;
     char state;
     float dTime;
     bool isTracking,isManual;
+    bool isManeuvering;
     char dopler;
     //QDateTime time;
     bool isProcessed;
@@ -119,23 +179,39 @@ public:
     float heading;
     void updateTime()
     {
-
-//        qint64 newTimeMs = time.currentMSecsSinceEpoch();
-//        dTime = (((long long int)newTimeMs - (long long int)currentTimeMs))/1000.f;
-//        currentTimeMs = newTimeMs;
-
     }
     void init(object_t *object)
     {
+        q1.resize(4,4);
+        q1<<    0 ,  0 ,  0 ,  0 ,
+                0 ,  0 ,  0 ,  0 ,
+                0 ,  0 ,  4 ,  0 ,
+                0 ,  0 ,  0 ,  4 ;
+
+        q2.resize(4,4);
+        q2<<    0 ,  0 ,  0 ,  0 ,
+                0 ,  0 ,  0 ,  0 ,
+                0 ,  0 ,  12,  0 ,
+                0 ,  0 ,  0 , 12 ;
+        h.resize(2,4);
+        h <<    1 ,  0 ,  0 ,  0 ,
+                0 ,  1 ,  0 ,  0 ,
+
+        p.resize(4,4);
+        p <<   100,  0 ,  0 ,  0 ,
+                0 , 100,  0 ,  0 ,
+                0 ,  0 , 200,  0 ,
+                0 ,  0 ,  0 , 200;
+
+        x.resize(4,1);
+        x<< 0,0,0,0;
         object_list.clear();
+        suspect_list.clear();
         this->object_list.push_back(*object);
-        this->dopler=object->dopler;
-        mesA = estA = object->az;
-        mesR = estR = object->rg;
-        estX = ((sinf(estA)))*estR;
-        estY = ((cosf(estA)))*estR;
-        estWeightX = 2;
-        estWeightY = 2;
+        this->dopler = object->dopler;
+        estA = object->az;
+        estR = object->rg;
+        deltaAzi = 0;
         velocity = 0;
         speed = 0;
         heading = 0;
@@ -157,24 +233,17 @@ public:
         {
             isManual = false;
         }
-
-
     }
     void update()
     {
 
         isTracking = true;
-        estWeightX = 2;
-        estWeightY = 2;
-
         float pmax = 0;
         short k=-1;
         for(unsigned short i=0;i<suspect_list.size();i++)
         {
             if(suspect_list.at(i).isManual)
             {
-                estWeightX = 10;
-                estWeightY = 10;
                 isManual = true;
                 confirmed  = true;
                 state = 5;
@@ -207,8 +276,6 @@ public:
             isUpdated = false;
             if(state)state--;
         }
-
-        //update
         if(!confirmed)
         {
             if(object_list.size()>10)
@@ -216,53 +283,36 @@ public:
                 if(state>TRACK_STABLE_STATE)confirmed = true;
             }
         }
+
         if(isUpdated)
         {
 
-            float mesX = ((sinf(mesA)))*mesR;
-            float mesY = ((cosf(mesA)))*mesR;
-            oldX = estX;
-            oldY = estY;
-            float dx = mesX - estX;
-            float dy = mesY - estY;
-            estX+=dx/estWeightX;
-            estY+=dy/estWeightY;
-            object_list.at(object_list.size()-1).x = estX;
-            object_list.at(object_list.size()-1).y = estY;
-            dx = estX - oldX;
-            dy = estY - oldY;
-            if(dy)
-            {
-                float new_course = atanf(dx/dy);
-                if(dy<0)new_course+=PI;
-                if(new_course<0)new_course += PI_NHAN2;
-                float new_velo = sqrt(dx*dx+dy*dy);
-                if(!course)
-                    course = new_course;
-                else
-
-                {
-                    float dcourse = (new_course-course);
-                    if(abs(dcourse>PI))
-                    {
-                        if(dcourse>0)dcourse-=PI_NHAN2;
-                        else dcourse+=PI_NHAN2;
-                    }
-                    course+=dcourse/3;
-                    if(course<0)course+=PI_NHAN2;
-                    if(course>PI_NHAN2)course-=PI_NHAN2;
-                }
-                //if(!velocity)velocity = new_velo;else velocity+= (new_velo-velocity)/10;
-            }
-
+//          thuat toan loc Kalman
+            float cc = mesR*cosf(mesA-estA)-estR;//DR
+            float dd = mesR*tanf(mesA-estA);     //
+            MatrixXf z(2,1);// vector gia tri do
+            z<<cc,dd;
+            Matrix2f r(2,2);
+            r<< 2, 0 ,0, estR*estR ; // ma tran hiep bien do
+            MatrixXf k(4,2) ;
+            k = p*h.transpose()*((h*p*h.transpose() + r).inverse());
+            x = x+k*(z-h*x);
+            deltaAzi = atanf(x(3,0)/estR);
+            estA += deltaAzi;
+            estR += x(2,0);
+            estX = object_list[object_list.size()-1].x = ((sinf(estA)))*estR;
+            estY = object_list[object_list.size()-1].y = ((cosf(estA)))*estR;
+            p = p - k*h*p;
             predict();
         }
         else
         {
-            object_t obj;
-            obj.x = estX;
-            obj.y = estY;
-            this->object_list.push_back(obj);
+            if(state)state--;
+            deltaAzi = atan(x(3,0)/estR);
+            estA += deltaAzi;
+            estR += x(2,0);
+            estX = object_list[object_list.size()-1].x = ((sinf(estA)))*estR;
+            estY = object_list[object_list.size()-1].y = ((cosf(estA)))*estR;
             predict();
         }
         if(object_list.size()>15)
@@ -271,7 +321,8 @@ public:
             float dyt = object_list.at(object_list.size()-1).y - object_list.at(object_list.size()-15).y;
             if(dyt)
             {
-                speed = sqrt(dxt*dxt + dyt*dyt)*SIGNAL_SCALE_3/70.0f*3600/1.852;
+                float nspeed = sqrt(dxt*dxt + dyt*dyt)*SIGNAL_SCALE_3/70.0f*3600/1.852;
+                speed=500;//!!!
                 velocity = sqrt(dxt*dxt + dyt*dyt)/14.0f;
                 heading = atanf(dxt/dyt);
                 if(dyt<0)heading+=PI;
@@ -282,37 +333,50 @@ public:
     }
     void predict()
     {
-        if(object_list.size()>2)
-        {
-            float dx = ((sinf(course)))*velocity;
-            float dy = ((cosf(course)))*velocity;
-            estX+=dx;
-            estY+=dy;
-            if(estY!=0)
-            {
-                estA = atanf(estX/estY);
-                if(estY<0 )
-                {
-                    estA+=PI;
-                    if(estA>PI_NHAN2)estA-=PI_NHAN2;
-                }
-                estR = sqrt(estX*estX + estY*estY);
-            }
-        }
-        else
-        {
-            oldA = estA;
-            oldR = estR;
-            estA = (mesA+oldA)/2;
-            estR = (mesR+oldR)/2;
-        }
-        return;
-        estX += ((sinf(course)))*velocity;
-        estY += ((cosf(course)))*velocity;
-        estA = atanf(estX/estY);
-        if(estY<0)estA += PI;
-        if(estA<0)estA += PI_NHAN2;
-        estR = sqrt(estX*estX + estY*estY);
+        float aa = cos(deltaAzi);
+        float bb = sin(deltaAzi);//NIM
+        isManeuvering = (deltaAzi>0.001);
+        //printf("\n delta azi:%f",deltaAzi);
+        MatrixXf a(4,4);// jacobian matrix
+        a <<  0 ,  0 ,  aa,  bb,
+              0 ,  0 , -bb,  aa,
+              0 ,  0 ,  aa,  bb,
+              0 ,  0 , -bb,  aa;
+        x = a*x;
+        //predict error covariance:
+        if(isManeuvering)p = a*p*a.transpose()+q2;
+        else p = a*p*a.transpose()+q1;
+//        if(object_list.size()>2)
+//        {
+//            float dx = ((sinf(course)))*velocity;
+//            float dy = ((cosf(course)))*velocity;
+//            estX+=dx;
+//            estY+=dy;
+//            if(estY!=0)
+//            {
+//                estA = atanf(estX/estY);
+//                if(estY<0 )
+//                {
+//                    estA+=PI;
+//                    if(estA>PI_NHAN2)estA-=PI_NHAN2;
+//                }
+//                estR = sqrt(estX*estX + estY*estY);
+//            }
+//        }
+//        else
+//        {
+//            oldA = estA;
+//            oldR = estR;
+//            estA = (mesA+oldA)/2;
+//            estR = (mesR+oldR)/2;
+//        }
+//        return;
+//        estX += ((sinf(course)))*velocity;
+//        estY += ((cosf(course)))*velocity;
+//        estA = atanf(estX/estY);
+//        if(estY<0)estA += PI;
+//        if(estA<0)estA += PI_NHAN2;
+//        estR = sqrt(estX*estX + estY*estY);
     }
     bool checkProb(object_t* object)
     {

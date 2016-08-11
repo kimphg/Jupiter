@@ -5,7 +5,7 @@
 #include "C_radar_data.h"
 #include "c_arpa_data.h"
 #include <vector>
-#include <QMutexLocker>
+//#include <QMutexLocker>
 #include <QFile>
 #include <QUdpSocket>
 #include <QStringList>
@@ -31,7 +31,7 @@ public:
     bool    isDrawn;
     bool    isRunning;
     unsigned char    connect_timeout;
-    QMutex  mutex;
+//    QMutex  mutex;
     unsigned short    playRate;
     DataBuff*   dataBuff;
     float   k_vet;

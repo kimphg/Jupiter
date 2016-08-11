@@ -16,7 +16,7 @@
 QT       += core gui
 QT       += network
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+#greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = Jupiter_2.3
 TEMPLATE = app
 SOURCES += main.cpp\
@@ -68,11 +68,14 @@ FORMS    += mainwindow.ui \
 
 INCLUDEPATH += $$PWD/../WpdPack/Include
 DEPENDPATH += $$PWD/../WpdPack/Include
-RESOURCES +=
-INCLUDEPATH += $$PWD/../
-DEPENDPATH += $$PWD/../
+#RESOURCES +=
+#INCLUDEPATH += $$PWD/../armadillo/include
+#DEPENDPATH += $$PWD/../armadillo/include
 #win32:LIBS += -L$$PWD/../armadilloWin32/lib_winx86/ -lblas_win32_MT
 #win32:LIBS += -L$$PWD/../armadilloWin32/lib_winx86/ -llapack_win32_MT
+#win32:LIBS += -L$$PWD/../armadillo/lib_winx86/ -lcbia.lib.blas.dyn.rel.x86.12
+#win32:LIBS += -L$$PWD/../armadillo/lib_winx86/ -lcbia.lib.lapack.dyn.rel.x86.12
+
 #unix: LIBS += -larmadillo
 win32:LIBS += -L$$PWD/../WpdPack/Lib/ -lPacket
 win32:LIBS += -L$$PWD/../WpdPack/Lib/ -lwpcap
@@ -82,13 +85,13 @@ win32:LIBS += -L$$PWD/../WpdPack/Lib/ -lwpcap
 #win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_imgproc249
 #win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_videoio249
 
-LIBS +=
+#LIBS +=
 
 #win32:CONFIG(release, debug|release):INCLUDEPATH += $$PWD/armadillo/lib_winx86
 #win32:CONFIG(release, debug|release):DEPENDPATH += $$PWD/armadillo/lib_winx86
 
-unix:QMAKE_CXXFLAGS += -O2
-unix:QMAKE_CXXFLAGS += -l -DARMA_DONT_USE_WRAPPER -lblas -llapack
+#unix:QMAKE_CXXFLAGS += -O2
+#unix:QMAKE_CXXFLAGS += -l -DARMA_DONT_USE_WRAPPER -lblas -llapack
 DISTFILES += \
     appIcon.rc
 win32:RC_FILE += appIcon.rc
