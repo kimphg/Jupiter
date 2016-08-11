@@ -198,10 +198,10 @@ public:
                 0 ,  1 ,  0 ,  0 ,
 
         p.resize(4,4);
-        p <<   100,  0 ,  0 ,  0 ,
-                0 , 100,  0 ,  0 ,
-                0 ,  0 , 200,  0 ,
-                0 ,  0 ,  0 , 200;
+        p <<  9000,  0 ,  0 ,  0 ,
+                0 ,9000,  0 ,  0 ,
+                0 ,  0 ,9000,  0 ,
+                0 ,  0 ,  0 ,9000;
 
         x.resize(4,1);
         x<< 0,0,0,0;
@@ -212,7 +212,6 @@ public:
         estA = object->az;
         estR = object->rg;
         deltaAzi = 0;
-        velocity = 0;
         speed = 0;
         heading = 0;
         course = 0;
