@@ -633,21 +633,22 @@ void Mainwindow::DrawTarget(QPainter* p)
                 else p->setPen(penTargetBlue);
                 short k=0;
                 short sx,sy;
-                for(short j=(trackListPt->at(trackId).object_list.size()-1);j>0;j-=3)
+                p->drawText(sx+10,sy+10,300,40,0,QString::number(tid+1));
+                for(short j=(trackListPt->at(trackId).object_list.size()-1);j>0;j-=1)
                 {
                     k++;
-                    if(k>20)break;
+                    if(k>40)break;
 
                     sx = trackListPt->at(trackId).object_list.at(j).x*processing->radarData->scale_ppi + scrCtX - dx;
                     sy = -trackListPt->at(trackId).object_list.at(j).y*processing->radarData->scale_ppi + scrCtY - dy;
                     p->drawPoint(sx,sy);
                 }
-                p->drawText(sx+10,sy+10,300,40,0,QString::number(tid+1));
+
                 if(trackListPt->at(trackId).object_list.size()>12)
                 {
                     sx = trackListPt->at(trackId).estX*processing->radarData->scale_ppi + scrCtX - dx;
                     sy =-trackListPt->at(trackId).estY*processing->radarData->scale_ppi + scrCtY - dy;
-                    p->drawLine(sx,sy,sx+15*sinf(trackListPt->at(trackId).heading),sy-15*cosf(trackListPt->at(trackId).heading));
+                    p->drawLine(sx,sy,sx+15*sinf(trackListPt->at(trackId).head_r),sy-15*cosf(trackListPt->at(trackId).head_r));
                 }
 //                j--;
 //                if(j<0)continue;
@@ -2330,7 +2331,7 @@ void Mainwindow::updateTargets()
             ui->label_radar_lat->setText( QString::number((short)targetList.at(i)->m_lat)+"\xB0"+QString::number((targetList.at(i)->m_lat-(short)targetList.at(i)->m_lat)*60,'g',4)+"N");
             ui->label_radar_long->setText(QString::number((short)targetList.at(i)->m_lon)+"\xB0"+QString::number((targetList.at(i)->m_lon-(short)targetList.at(i)->m_lon)*60,'g',4)+"E");
             ui->label_radar_speed->setText(QString::number(trackListPt->at(targetList.at(i)->trackId).speed,'g',3)+"Kn");
-            ui->label_radar_heading->setText(QString::number(trackListPt->at(targetList.at(i)->trackId).heading*180/PI)+"\xB0");
+            ui->label_radar_heading->setText(QString::number(trackListPt->at(targetList.at(i)->trackId).head_r*180/PI)+"\xB0");
         }
         else
         {

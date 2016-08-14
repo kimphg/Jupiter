@@ -161,7 +161,7 @@ public:
     bool confirmed;
     objectList suspect_list,object_list;
     char terrain;
-    float deltaAzi;
+    float rotA_r;
     float estX ,estY;
     float estA, estR;
     float mesA;
@@ -176,7 +176,7 @@ public:
     //QDateTime time;
     bool isProcessed;
     bool isUpdated;
-    float heading;
+    float head_r;
     void updateTime()
     {
     }
@@ -198,10 +198,10 @@ public:
                 0 ,  1 ,  0 ,  0 ,
 
         p.resize(4,4);
-        p <<  9000,  0 ,  0 ,  0 ,
-                0 ,9000,  0 ,  0 ,
-                0 ,  0 ,9000,  0 ,
-                0 ,  0 ,  0 ,9000;
+        p <<  100,  0 ,  0 ,  0 ,
+                0 ,100,  0 ,  0 ,
+                0 ,  0 ,4,  0 ,
+                0 ,  0 ,  0 ,4;
 
         x.resize(4,1);
         x<< 0,0,0,0;
@@ -211,9 +211,9 @@ public:
         this->dopler = object->dopler;
         estA = object->az;
         estR = object->rg;
-        deltaAzi = 0;
+        rotA_r = 0;
         speed = 0;
-        heading = 0;
+        head_r = 0;
         course = 0;
         confirmed = false;
         isProcessed = true;
@@ -238,7 +238,7 @@ public:
 
         isTracking = true;
         float pmax = 0;
-        short k=-1;
+        short ip=-1;
         for(unsigned short i=0;i<suspect_list.size();i++)
         {
             if(suspect_list.at(i).isManual)
@@ -246,22 +246,22 @@ public:
                 isManual = true;
                 confirmed  = true;
                 state = 5;
-                k=i;
+                ip=i;
                 break;
             }
             if(pmax<suspect_list.at(i).p)
             {
-                k=i;
+                ip=i;
                 pmax=suspect_list.at(i).p;
             }
         }
-        if(k>=0)
+        if(ip>=0)
         {
-            mesA = suspect_list[k].az;
-            mesR = suspect_list[k].rg;
-            object_list.push_back(suspect_list[k]);
-            dopler = suspect_list[k].dopler;
-            terrain = suspect_list[k].terrain;
+            mesA = suspect_list[ip].az;
+            mesR = suspect_list[ip].rg;
+            object_list.push_back(suspect_list[ip]);
+            dopler = suspect_list[ip].dopler;
+            terrain = suspect_list[ip].terrain;
             isUpdated = true;
             if(state<12)
             {
@@ -285,6 +285,14 @@ public:
 
         if(isUpdated)
         {
+//            float x1;
+//            float x2;
+//            float x3;
+//            float x0;
+            if(isManual)
+            {
+                int a = 8;
+            }
 
 //          thuat toan loc Kalman
             float cc = mesR*cosf(mesA-estA)-estR;//DR
@@ -292,49 +300,73 @@ public:
             MatrixXf z(2,1);// vector gia tri do
             z<<cc,dd;
             Matrix2f r(2,2);
-            r<< 2, 0 ,0, estR*estR ; // ma tran hiep bien do
+            r<< 2, 0 ,0, estR*estR*0.0002 ; //0.7*(2*pi/360)^2=0.0002
+            // ma tran hiep bien do
             MatrixXf k(4,2) ;
             k = p*h.transpose()*((h*p*h.transpose() + r).inverse());
-            x = x+k*(z-h*x);
-            deltaAzi = atanf(x(3,0)/estR);
-            estA += deltaAzi;
+            float k00 = k(0,0);
+             k00 = k(0,1);
+             k00 = k(1,0);
+             k00 = k(1,1);
+             k00 = k(2,0);
+             k00 = k(2,1);
+             k00 = k(3,0);
+             k00 = k(3,1);
+            float x00 = x(0,0);
+            x00 = x(1,0);
+            x00 = x(2,0);
+            x00 = x(3,0);
+            MatrixXf xx = x;
+            xx = x+k*(z-h*x);
+            x = xx;
+            x00 = x(0,0);
+            x00 = x(1,0);
+            x00 = x(2,0);
+            x00 = x(3,0);
+            rotA_r = atanf(x(3,0)/estR);
+            estA += rotA_r;
             estR += x(2,0);
             estX = object_list[object_list.size()-1].x = ((sinf(estA)))*estR;
             estY = object_list[object_list.size()-1].y = ((cosf(estA)))*estR;
-            p = p - k*h*p;
-            predict();
+            Matrix4f pp ;
+            pp = p - k*h*p;
+            p = pp;// !!!!!!
+
         }
         else
         {
             if(state)state--;
-            deltaAzi = atan(x(3,0)/estR);
-            estA += deltaAzi;
+            rotA_r = atan(x(3,0)/estR);
+            estA += rotA_r;
             estR += x(2,0);
             estX = object_list[object_list.size()-1].x = ((sinf(estA)))*estR;
             estY = object_list[object_list.size()-1].y = ((cosf(estA)))*estR;
-            predict();
+
         }
-        if(object_list.size()>15)
+        if(object_list.size()>3)
         {
-            float dxt = object_list.at(object_list.size()-1).x - object_list.at(object_list.size()-15).x;
-            float dyt = object_list.at(object_list.size()-1).y - object_list.at(object_list.size()-15).y;
-            if(dyt)
+            predict();
+            if(object_list.size()>15)
             {
-                float nspeed = sqrt(dxt*dxt + dyt*dyt)*SIGNAL_SCALE_3/70.0f*3600/1.852;
-                speed=500;//!!!
-                velocity = sqrt(dxt*dxt + dyt*dyt)/14.0f;
-                heading = atanf(dxt/dyt);
-                if(dyt<0)heading+=PI;
-                if(heading<0)heading += PI_NHAN2;
+                float dxt = object_list.at(object_list.size()-1).x - object_list.at(object_list.size()-15).x;
+                float dyt = object_list.at(object_list.size()-1).y - object_list.at(object_list.size()-15).y;
+                if(dyt)
+                {
+                    //                float nspeed = sqrt(dxt*dxt + dyt*dyt)*SIGNAL_SCALE_3/70.0f*3600/1.852;
+                    speed=500; // !!!
+                    //                velocity = sqrt(dxt*dxt + dyt*dyt)/14.0f;
+                    head_r = atanf(dxt/dyt);
+                    if(dyt<0)head_r+=PI;
+                    if(head_r<0)head_r += PI_NHAN2;
+                }
             }
         }
-
     }
     void predict()
     {
-        float aa = cos(deltaAzi);
-        float bb = sin(deltaAzi);//NIM
-        isManeuvering = (deltaAzi>0.001);
+        float aa = cos(rotA_r);
+        float bb = sin(rotA_r);//NIM
+        isManeuvering = false;//(rotA_r>0.001);
         //printf("\n delta azi:%f",deltaAzi);
         MatrixXf a(4,4);// jacobian matrix
         a <<  0 ,  0 ,  aa,  bb,
@@ -342,7 +374,7 @@ public:
               0 ,  0 ,  aa,  bb,
               0 ,  0 , -bb,  aa;
         x = a*x;
-        //predict error covariance:
+        //update error covariance:
         if(isManeuvering)p = a*p*a.transpose()+q2;
         else p = a*p*a.transpose()+q1;
 //        if(object_list.size()>2)
