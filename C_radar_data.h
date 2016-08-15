@@ -239,6 +239,7 @@ public:
         isTracking = true;
         float pmax = 0;
         short ip=-1;
+
         for(unsigned short i=0;i<suspect_list.size();i++)
         {
             if(suspect_list.at(i).isManual)
@@ -285,14 +286,8 @@ public:
 
         if(isUpdated)
         {
-//            float x1;
-//            float x2;
-//            float x3;
-//            float x0;
-            if(isManual)
-            {
-                int a = 8;
-            }
+
+
 
 //          thuat toan loc Kalman
             float cc = mesR*cosf(mesA-estA)-estR;//DR
@@ -300,50 +295,42 @@ public:
             MatrixXf z(2,1);// vector gia tri do
             z<<cc,dd;
             Matrix2f r(2,2);
-            r<< 2, 0 ,0, estR*estR*0.0002 ; //0.7*(2*pi/360)^2=0.0002
+            r<< 4, 0 ,0, estR*estR*0.0002 ; //0.7*(2*pi/360)^2=0.0002
             // ma tran hiep bien do
             MatrixXf k(4,2) ;
-            k = p*h.transpose()*((h*p*h.transpose() + r).inverse());
-            float k00 = k(0,0);
-             k00 = k(0,1);
-             k00 = k(1,0);
-             k00 = k(1,1);
-             k00 = k(2,0);
-             k00 = k(2,1);
-             k00 = k(3,0);
-             k00 = k(3,1);
-            float x00 = x(0,0);
-            x00 = x(1,0);
-            x00 = x(2,0);
-            x00 = x(3,0);
+            Matrix2f tmp;
+            tmp = (h*p*h.transpose() + r).inverse();
+            k = p*h.transpose()*(tmp);
+
+
+//            if(isManual)
+//            {
+//                int a = 8;
+//                float x0 = x(0,0);
+//                float x1 = x(1,0);
+//                float x2 = x(2,0);
+//                float x3 = x(3,0);;
+//                float h1 = k(0,0);
+//                float h2 = k(1,1);
+//                float h3 = k(0,1);
+//                float h4 = k(1,0);
+//                h1=h2;
+//            }
             MatrixXf xx = x;
             xx = x+k*(z-h*x);
             x = xx;
-            x00 = x(0,0);
-            x00 = x(1,0);
-            x00 = x(2,0);
-            x00 = x(3,0);
-            rotA_r = atanf(x(3,0)/estR);
-            estA += rotA_r;
-            estR += x(2,0);
-            estX = object_list[object_list.size()-1].x = ((sinf(estA)))*estR;
-            estY = object_list[object_list.size()-1].y = ((cosf(estA)))*estR;
             Matrix4f pp ;
             pp = p - k*h*p;
-            p = pp;// !!!!!!
+            p = pp;
 
         }
         else
         {
             if(state)state--;
-            rotA_r = atan(x(3,0)/estR);
-            estA += rotA_r;
-            estR += x(2,0);
-            estX = object_list[object_list.size()-1].x = ((sinf(estA)))*estR;
-            estY = object_list[object_list.size()-1].y = ((cosf(estA)))*estR;
+
 
         }
-        if(object_list.size()>3)
+        if(object_list.size()>2)
         {
             predict();
             if(object_list.size()>15)
@@ -364,6 +351,11 @@ public:
     }
     void predict()
     {
+        rotA_r = atanf(x(3,0)/estR);
+        estA += rotA_r;
+        estR += x(2,0);
+        estX = object_list[object_list.size()-1].x = ((sinf(estA)))*estR;
+        estY = object_list[object_list.size()-1].y = ((cosf(estA)))*estR;
         float aa = cos(rotA_r);
         float bb = sin(rotA_r);//NIM
         isManeuvering = false;//(rotA_r>0.001);
