@@ -33,11 +33,302 @@ typedef struct  {
     short xzoom[MAX_AZIR_DRAW][DISPLAY_RES_ZOOM];
     short yzoom[MAX_AZIR_DRAW][DISPLAY_RES_ZOOM];
 } signal_map_t;
-
+float sn_scale;
+float rot_period_sec = 0;
+qint64 cur_timeMSecs = 0;//QDateTime::currentMSecsSinceEpoch();
 signal_map_t data_mem;
 //static period_t                curPeriod;
 //static std::queue<period_t>    period_cache;
 //static unsigned short cur_mark_index = 0;
+
+// -------------------Radar tracking class-------------
+void track_t::init(object_t *object)
+{
+    q1.resize(4,4);
+    q1<<    0 ,  0 ,  0 ,  0 ,
+            0 ,  0 ,  0 ,  0 ,
+            0 ,  0 ,  1 ,  0 ,
+            0 ,  0 ,  0 ,  1 ;
+
+    q2.resize(4,4);
+    q2<<    0 ,  0 ,  0 ,  0 ,
+            0 ,  0 ,  0 ,  0 ,
+            0 ,  0 ,  4,  0 ,
+            0 ,  0 ,  0 , 4 ;
+    h.resize(2,4);
+    h <<    1 ,  0 ,  0 ,  0 ,
+            0 ,  1 ,  0 ,  0 ,
+
+    p.resize(4,4);
+    p <<   10 ,  0 ,  0 ,  0 ,
+            0 ,  10,  0 ,  0 ,
+            0 ,  0 , 10 ,  0 ,
+            0 ,  0 ,  0 ,  10;
+
+    x.resize(4,1);
+    x<< 0,0,0,0;
+    object_list.clear();
+    suspect_list.clear();
+    this->object_list.push_back(*object);
+    this->dopler = object->dopler;
+    estA = object->az;
+    estR = object->rg;
+    rotA_r = 0;
+    speed = 0;
+    head_r = 0;
+    course = 0;
+    confirmed = false;
+    isProcessed = true;
+    isTracking = false;
+    state = 3;
+    dTime = 5;
+
+    if( object->isManual)
+    {
+        //printf("debug new man\n");
+        isManual = true;
+
+        state = 5;
+    }
+    else
+    {
+        isManual = false;
+    }
+}
+void track_t::update()
+{
+
+    isTracking = true;
+    float pmax = 0;
+    short ip=-1;
+
+    for(unsigned short i=0;i<suspect_list.size();i++)
+    {
+        if(suspect_list.at(i).isManual)
+        {
+            isManual = true;
+            confirmed  = true;
+            state = 5;
+            ip=i;
+            break;
+        }
+        if(pmax<suspect_list.at(i).p)
+        {
+            ip=i;
+            pmax=suspect_list.at(i).p;
+        }
+    }
+    if(ip>=0)
+    {
+        mesA = suspect_list[ip].az;
+        mesR = suspect_list[ip].rg;
+        object_list.push_back(suspect_list[ip]);
+
+        dopler = suspect_list[ip].dopler;
+        terrain = suspect_list[ip].terrain;
+        isUpdated = true;
+        if(state<12)
+        {
+            if(confirmed)state+=3;
+            else state+=2;
+        }
+        suspect_list.clear();
+    }
+    else
+    {
+        isUpdated = false;
+        if(state)state--;
+    }
+    if(!confirmed)
+    {
+        if(trackLen>10)
+        {
+            if(state>TRACK_STABLE_STATE)confirmed = true;
+        }
+    }
+    trackLen = object_list.size();
+    if(isUpdated)
+    {
+//          thuat toan loc Kalman
+        float cc = mesR*cosf(mesA-estA)-estR;//DR
+        float dd = mesR*tanf(mesA-estA);     //
+        MatrixXf z(2,1);// vector gia tri do
+        z<<cc,dd;
+        Matrix2f r(2,2);
+        r<< 4, 0 ,0, estR*estR*0.0002 ; //0.7*(2*pi/360)^2=0.0002
+        // ma tran hiep bien do
+        MatrixXf k(4,2) ;
+        Matrix2f tmp;
+        tmp = (h*p*h.transpose() + r).inverse();
+        k = p*h.transpose()*(tmp);
+
+
+//            if(isManual)
+//            {
+//                int a = 8;
+//                float x0 = x(0,0);
+//                float x1 = x(1,0);
+//                float x2 = x(2,0);
+//                float x3 = x(3,0);;
+//                float h1 = k(0,0);
+//                float h2 = k(1,1);
+//                float h3 = k(0,1);
+//                float h4 = k(1,0);
+//                h1=h2;
+//            }
+        MatrixXf xx = x+k*(z-h*x);
+        x = xx;
+        Matrix4f pp ;
+        pp = p - k*h*p;
+        p = pp;
+
+    }
+    else
+    {
+        if(state)state--;
+
+
+    }
+    if(trackLen)
+    {
+        predict();
+        float dxt = 0 ;
+        float dyt = 0 ;
+        if(trackLen<10)
+        {
+            dxt = (object_list.at(trackLen-1).x - object_list.at(0).x)/(trackLen-1);
+            dyt = (object_list.at(trackLen-1).y - object_list.at(0).y)/(trackLen-1);
+        }
+        if(trackLen>15)
+        {
+            dxt = (object_list.at(trackLen-1).x - object_list.at(trackLen-10).x)/9.0f;
+            dyt = (object_list.at(trackLen-1).y - object_list.at(trackLen-10).y)/9.0f;
+
+        }
+        if(dyt)
+        {
+
+            if(rot_period_sec)
+            {
+               float nspeed = sqrt(dxt*dxt + dyt*dyt)*sn_scale/rot_period_sec*3600.0f/1.852f;
+               speed+=(nspeed-speed)*0.3f;
+            }
+            head_r = atanf(dxt/dyt);
+            if(dyt < 0) head_r += PI;
+            if(head_r<0)head_r += PI_NHAN2;
+        }
+    }
+}
+
+void track_t::predict()
+{
+
+    estR += x(2,0);
+    rotA_r = atanf(x(3,0)/estR);
+    estA += rotA_r;
+
+
+    estX = ((sinf(estA)))*estR;
+    estY =  ((cosf(estA)))*estR;
+    object_list.at(trackLen-1).x = estX;
+    object_list.at(trackLen-1).y = estY;
+    float aa = cos(rotA_r);
+    float bb = sin(rotA_r);//NIM
+    isManeuvering = false;//(rotA_r>0.001);
+    //printf("\n delta azi:%f",deltaAzi);
+    MatrixXf a(4,4);// jacobian matrix
+    a <<  0 ,  0 ,  aa,  bb,
+          0 ,  0 , -bb,  aa,
+          0 ,  0 ,  aa,  bb,
+          0 ,  0 , -bb,  aa;
+    x = a*x;
+    //update error covariance:
+    if(isManeuvering)p = a*p*a.transpose()+q2;
+    else p = a*p*a.transpose()+q1;
+//        if(trackLen>2)
+//        {
+//            float dx = ((sinf(course)))*velocity;
+//            float dy = ((cosf(course)))*velocity;
+//            estX+=dx;
+//            estY+=dy;
+//            if(estY!=0)
+//            {
+//                estA = atanf(estX/estY);
+//                if(estY<0 )
+//                {
+//                    estA+=PI;
+//                    if(estA>PI_NHAN2)estA-=PI_NHAN2;
+//                }
+//                estR = sqrt(estX*estX + estY*estY);
+//            }
+//        }
+//        else
+//        {
+//            oldA = estA;
+//            oldR = estR;
+//            estA = (mesA+oldA)/2;
+//            estR = (mesR+oldR)/2;
+//        }
+//        return;
+//        estX += ((sinf(course)))*velocity;
+//        estY += ((cosf(course)))*velocity;
+//        estA = atanf(estX/estY);
+//        if(estY<0)estA += PI;
+//        if(estA<0)estA += PI_NHAN2;
+//        estR = sqrt(estX*estX + estY*estY);
+}
+bool track_t::checkProb(object_t* object)
+{
+    float dA = object->az - estA;
+    if(dA>PI) dA-=PI_NHAN2;
+    else if(dA<-PI)dA+=PI_NHAN2;//----------------
+    float dR = object->rg - estR;
+    if(dopler!=17){
+        if(object->dopler!=17)
+        {
+            short doplerVar = abs(dopler - object->dopler);
+            if(doplerVar>8)doplerVar = 16-doplerVar;
+            if(doplerVar>1)return false;
+        }
+    }
+    dA*=dA;
+    dR*=dR;
+    if(!isManual)
+    {
+        if(state>TRACK_STABLE_STATE)
+        {
+            if(dR>=9 || dA>=0.0007f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            object->p = 4/dR*0.0007f/dA;
+        }else if(!confirmed)
+        {
+            if(dR>=12 || dA>=0.0009f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            object->p = 12/dR*0.0010f/dA;
+        }
+        else
+        {
+            if(dR>=16 || dA>=0.0012f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            object->p = 12/dR*0.0012f/dA;
+        }
+    }else
+    {
+        if(state<10)
+        {
+            if(dR>=16 || dA>=0.0012f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            object->p = 25/dR*0.0012f/dA;
+        }
+        else
+        {
+            if(dR>=12 || dA>=0.0009f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            object->p = 12/dR*0.0010f/dA;
+        }
+
+    }
+    return true;
+}
+
+
+
+// ---------------Data processing class------------------------
 C_radar_data::C_radar_data()
 {
     img_ppi = new QImage(DISPLAY_RES*2+1,DISPLAY_RES*2+1,QImage::Format_ARGB32);
@@ -349,8 +640,9 @@ void C_radar_data::drawAzi(short azi)
          sumvar += abs(data_mem.level[azi][range_max-50]-data_mem.level[azi][range_max-100]);
      }
      if(noiseAverage==0)noiseAverage = sum/float(n);else
-     {noiseAverage+=(sum/float(n)-noiseAverage)/2;}
-
+     {
+         noiseAverage+=(sum/float(n)-noiseAverage)/2;
+     }
      if(noiseVar==0)noiseVar = sumvar/float(n);else
      {noiseVar+=(sumvar/float(n)-noiseVar)/2;}
      //printf("\nnoise var:%f",noiseVar);
@@ -738,7 +1030,31 @@ void C_radar_data::redrawImg()
         if(!((unsigned char)(drawnazi<<3))){
             procTracks(drawnazi);
         }
-        if(drawnazi==0)getNoiseLevel();
+        if(drawnazi==0)
+        {
+            if(cur_timeMSecs)
+            {
+                qint64 newtime = QDateTime::currentMSecsSinceEpoch();
+                qint64 dtime = newtime - cur_timeMSecs;
+                if(dtime<15000)
+                {
+                    if(!rot_period_sec)
+                    {
+                        rot_period_sec = (dtime/1000.0f);
+                    }
+                    else
+                    {
+                        rot_period_sec += 0.2*((dtime/1000.0f)-rot_period_sec);
+                    }
+                }
+                cur_timeMSecs = newtime;
+            }
+            else
+            {
+                cur_timeMSecs = QDateTime::currentMSecsSinceEpoch();
+            }
+            getNoiseLevel();
+        }
     }
 }
 void C_radar_data::GetDataHR(unsigned char* data,unsigned short dataLen)
@@ -1285,7 +1601,7 @@ void C_radar_data::resetSled()
 }
 void C_radar_data::setScalePPI(float scale)
 {
-    float sn_scale;
+
     switch(clk_adc)
     {
     case 0:

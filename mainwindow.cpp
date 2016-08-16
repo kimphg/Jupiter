@@ -2808,3 +2808,8 @@ bool Mainwindow::ProcDataAIS(BYTE *szBuff, int nLeng )
 
 
 
+
+void Mainwindow::on_toolButton_auto_detect_clicked()
+{
+
+}
