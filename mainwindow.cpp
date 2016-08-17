@@ -565,21 +565,22 @@ void Mainwindow::DrawTarget(QPainter* p)
     //QPen penARPATrack(Qt::darkYellow);
     //draw radar targets
     float x,y;
+    short sx,sy;
     //short targetId = 0;
     if(true)
     {
         trackList* trackListPt = &processing->radarData->mTrackList;
         for(uint trackId=0;trackId<trackListPt->size();trackId++)
         {
-            if(!trackListPt->at(trackId).isManual)continue;
+            if(!trackListPt->at(trackId).isConfirmed)continue;
             if(!trackListPt->at(trackId).state)continue;
 
                 x= trackListPt->at(trackId).estX*processing->radarData->scale_ppi/scale;
                 y= trackListPt->at(trackId).estY*processing->radarData->scale_ppi/scale;
                 if(trackListPt->at(trackId).dopler==17)
                 {
-                    short sx = trackListPt->at(trackId).estX*processing->radarData->scale_ppi + scrCtX - dx;
-                    short sy = -trackListPt->at(trackId).estY*processing->radarData->scale_ppi + scrCtY - dy;
+                    sx = trackListPt->at(trackId).estX*processing->radarData->scale_ppi + scrCtX - dx;
+                    sy = -trackListPt->at(trackId).estY*processing->radarData->scale_ppi + scrCtY - dy;
                     p->setPen(penTargetBlue);
 
                     p->drawEllipse(sx-6,sy-6,12,12);
@@ -597,10 +598,11 @@ void Mainwindow::DrawTarget(QPainter* p)
                         targetList.at(tid)->m_lat = y2lat(trackListPt->at(trackId).estY*processing->radarData->scale_ppi);
                         targetList.at(tid)->m_lon = x2lon(trackListPt->at(trackId).estX*processing->radarData->scale_ppi);
                         targetList.at(tid)->show();
+                        tid--;
                         break;
                     }
                 }
-                if(tid==targetList.size())// add new target
+                if(tid>=targetList.size())// add new target
                 {
 //                    tid =0;
 //                    for(;tid<targetList.size();tid++)
@@ -632,7 +634,7 @@ void Mainwindow::DrawTarget(QPainter* p)
                 if(trackListPt->at(trackId).isManual)p->setPen(penTargetRed);
                 else p->setPen(penTargetBlue);
                 short k=0;
-                short sx,sy;
+
                 p->drawText(sx+10,sy+10,300,40,0,QString::number(tid+1));
                 for(short j=(trackListPt->at(trackId).object_list.size()-1);j>0;j-=1)
                 {

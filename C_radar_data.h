@@ -158,7 +158,7 @@ public:
     MatrixXf x;
     //
     //qint64 currentTimeMs;
-    bool confirmed;
+    bool isConfirmed;
     objectList suspect_list,object_list;
     char terrain;
     float rotA_r;

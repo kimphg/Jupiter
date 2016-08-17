@@ -77,7 +77,7 @@ void track_t::init(object_t *object)
     speed = 0;
     head_r = 0;
     course = 0;
-    confirmed = false;
+    isConfirmed = false;
     isProcessed = true;
     isTracking = false;
     state = 3;
@@ -107,7 +107,7 @@ void track_t::update()
         if(suspect_list.at(i).isManual)
         {
             isManual = true;
-            confirmed  = true;
+            isConfirmed  = true;
             state = 5;
             ip=i;
             break;
@@ -129,7 +129,7 @@ void track_t::update()
         isUpdated = true;
         if(state<12)
         {
-            if(confirmed)state+=3;
+            if(isConfirmed)state+=3;
             else state+=2;
         }
         suspect_list.clear();
@@ -139,11 +139,11 @@ void track_t::update()
         isUpdated = false;
         if(state)state--;
     }
-    if(!confirmed)
+    if(!isConfirmed)
     {
         if(trackLen>10)
         {
-            if(state>TRACK_STABLE_STATE)confirmed = true;
+            if(state>TRACK_STABLE_STATE)isConfirmed = true;
         }
     }
     trackLen = object_list.size();
@@ -299,7 +299,7 @@ bool track_t::checkProb(object_t* object)
         {
             if(dR>=9 || dA>=0.0007f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
             object->p = 4/dR*0.0007f/dA;
-        }else if(!confirmed)
+        }else if(!isConfirmed)
         {
             if(dR>=12 || dA>=0.0009f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
             object->p = 12/dR*0.0010f/dA;

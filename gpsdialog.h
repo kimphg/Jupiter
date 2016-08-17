@@ -18,7 +18,6 @@ public:
     //{parent=(*MainWindow)(initparent);}
     ~GPSDialog();
     void loadConfig(CConfig* loadconfig);
-
 private slots:
     void on_buttonBox_accepted();
 
