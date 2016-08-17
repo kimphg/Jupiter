@@ -60,10 +60,10 @@ void track_t::init(object_t *object)
             0 ,  1 ,  0 ,  0 ,
 
     p.resize(4,4);
-    p <<   10 ,  0 ,  0 ,  0 ,
-            0 ,  10,  0 ,  0 ,
-            0 ,  0 , 10 ,  0 ,
-            0 ,  0 ,  0 ,  10;
+    p <<   100 ,  0 ,  0 ,  0 ,
+            0 ,  100,  0 ,  0 ,
+            0 ,  0 , 100 ,  0 ,
+            0 ,  0 ,  0 ,  100;
 
     x.resize(4,1);
     x<< 0,0,0,0;
@@ -138,6 +138,11 @@ void track_t::update()
     {
         isUpdated = false;
         if(state)state--;
+        if(!state)
+        {
+            isConfirmed = false;
+            isManual = false;
+        }
     }
     if(!isConfirmed)
     {
@@ -155,7 +160,7 @@ void track_t::update()
         MatrixXf z(2,1);// vector gia tri do
         z<<cc,dd;
         Matrix2f r(2,2);
-        r<< 4, 0 ,0, estR*estR*0.0002 ; //0.7*(2*pi/360)^2=0.0002
+        r<< 9, 0 ,0, estR*estR*0.0004 ; //0.7*(2*pi/360)^2=0.0002
         // ma tran hiep bien do
         MatrixXf k(4,2) ;
         Matrix2f tmp;
@@ -183,12 +188,7 @@ void track_t::update()
         p = pp;
 
     }
-    else
-    {
-        if(state)state--;
 
-
-    }
     if(trackLen)
     {
         predict();
@@ -293,33 +293,34 @@ bool track_t::checkProb(object_t* object)
     }
     dA*=dA;
     dR*=dR;
+
     if(!isManual)
     {
         if(state>TRACK_STABLE_STATE)
         {
-            if(dR>=9 || dA>=0.0007f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = 4/dR*0.0007f/dA;
+            if(dR>=9 || dA>=0.0009f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            object->p = abs(9/dR*0.0009f/dA);
         }else if(!isConfirmed)
         {
-            if(dR>=12 || dA>=0.0009f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = 12/dR*0.0010f/dA;
+            if(dR>=12 || dA>=0.0012f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            object->p = abs(12/dR*0.0012f/dA);
         }
         else
         {
-            if(dR>=16 || dA>=0.0012f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = 12/dR*0.0012f/dA;
+            if(dR>=12 || dA>=0.0012f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            object->p = abs(12/dR*0.0012f/dA);
         }
     }else
     {
         if(state<10)
         {
-            if(dR>=16 || dA>=0.0012f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = 25/dR*0.0012f/dA;
+            if(dR>=16 || dA>=0.0016f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            object->p = abs(16/dR*0.0016f/dA);
         }
         else
         {
-            if(dR>=12 || dA>=0.0009f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = 12/dR*0.0010f/dA;
+            if(dR>=12 || dA>=0.0012f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+            object->p = abs(12/dR*0.0012f/dA);
         }
 
     }

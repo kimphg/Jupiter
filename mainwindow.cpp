@@ -566,21 +566,35 @@ void Mainwindow::DrawTarget(QPainter* p)
     //draw radar targets
     float x,y;
     short sx,sy;
+    float scale_ppi = processing->radarData->scale_ppi;
     //short targetId = 0;
-    if(true)
+    trackList* trackListPt = &processing->radarData->mTrackList;
+    if(ui->toolButton_blue_tracks->isChecked())
     {
-        trackList* trackListPt = &processing->radarData->mTrackList;
         for(uint trackId=0;trackId<trackListPt->size();trackId++)
         {
             if(!trackListPt->at(trackId).isConfirmed)continue;
             if(!trackListPt->at(trackId).state)continue;
+            sx = trackListPt->at(trackId).estX*scale_ppi + scrCtX - dx;
+            sy = -trackListPt->at(trackId).estY*scale_ppi + scrCtY - dy;
+            p->setPen(penTargetBlue);
+            p->drawRect(sx-5,sy-5,10,10);
+        }
 
-                x= trackListPt->at(trackId).estX*processing->radarData->scale_ppi/scale;
-                y= trackListPt->at(trackId).estY*processing->radarData->scale_ppi/scale;
+    }
+
+
+        for(uint trackId=0;trackId<trackListPt->size();trackId++)
+        {
+            if(!trackListPt->at(trackId).isManual)continue;
+            if(!trackListPt->at(trackId).state)continue;
+
+                x= trackListPt->at(trackId).estX*scale_ppi/scale;
+                y= trackListPt->at(trackId).estY*scale_ppi/scale;
                 if(trackListPt->at(trackId).dopler==17)
                 {
-                    sx = trackListPt->at(trackId).estX*processing->radarData->scale_ppi + scrCtX - dx;
-                    sy = -trackListPt->at(trackId).estY*processing->radarData->scale_ppi + scrCtY - dy;
+                    sx = trackListPt->at(trackId).estX*scale_ppi + scrCtX - dx;
+                    sy = -trackListPt->at(trackId).estY*scale_ppi + scrCtY - dy;
                     p->setPen(penTargetBlue);
 
                     p->drawEllipse(sx-6,sy-6,12,12);
@@ -595,8 +609,8 @@ void Mainwindow::DrawTarget(QPainter* p)
                     if(targetList.at(tid)->trackId==trackId)
                     {
                         targetList.at(tid)->setPosistion(x,y);
-                        targetList.at(tid)->m_lat = y2lat(trackListPt->at(trackId).estY*processing->radarData->scale_ppi);
-                        targetList.at(tid)->m_lon = x2lon(trackListPt->at(trackId).estX*processing->radarData->scale_ppi);
+                        targetList.at(tid)->m_lat = y2lat(trackListPt->at(trackId).estY*scale_ppi);
+                        targetList.at(tid)->m_lon = x2lon(trackListPt->at(trackId).estX*scale_ppi);
                         targetList.at(tid)->show();
                         tid--;
                         break;
@@ -623,8 +637,8 @@ void Mainwindow::DrawTarget(QPainter* p)
                         tg1->trackId = trackId;
                         tg1->isUsed = true;
                         tg1->show();
-                        tg1->m_lat = y2lat(trackListPt->at(trackId).estY*processing->radarData->scale_ppi);
-                        tg1->m_lon = x2lon(trackListPt->at(trackId).estX*processing->radarData->scale_ppi);
+                        tg1->m_lat = y2lat(trackListPt->at(trackId).estY*scale_ppi);
+                        tg1->m_lon = x2lon(trackListPt->at(trackId).estX*scale_ppi);
                         tg1->setPosistion(x,y);
                         targetList.append(tg1);
 //                    }
@@ -640,16 +654,15 @@ void Mainwindow::DrawTarget(QPainter* p)
                 {
                     k++;
                     if(k>40)break;
-
-                    sx = trackListPt->at(trackId).object_list.at(j).x*processing->radarData->scale_ppi + scrCtX - dx;
-                    sy = -trackListPt->at(trackId).object_list.at(j).y*processing->radarData->scale_ppi + scrCtY - dy;
+                    sx = trackListPt->at(trackId).object_list.at(j).x*scale_ppi + scrCtX - dx;
+                    sy = -trackListPt->at(trackId).object_list.at(j).y*scale_ppi + scrCtY - dy;
                     p->drawPoint(sx,sy);
                 }
 
                 if(trackListPt->at(trackId).object_list.size()>12)
                 {
-                    sx = trackListPt->at(trackId).estX*processing->radarData->scale_ppi + scrCtX - dx;
-                    sy =-trackListPt->at(trackId).estY*processing->radarData->scale_ppi + scrCtY - dy;
+                    sx = trackListPt->at(trackId).estX*scale_ppi + scrCtX - dx;
+                    sy =-trackListPt->at(trackId).estY*scale_ppi + scrCtY - dy;
                     p->drawLine(sx,sy,sx+15*sinf(trackListPt->at(trackId).head_r),sy-15*cosf(trackListPt->at(trackId).head_r));
                 }
 //                j--;
@@ -711,7 +724,7 @@ void Mainwindow::DrawTarget(QPainter* p)
                             y-trackListPt->at(i).velocity*500*cosf(trackListPt->at(i).course));
 
             }*/
-        }
+
     }
     /*else for(uint i=0;i<trackListPt->size();i++)
     {
@@ -2283,7 +2296,7 @@ void Mainwindow::updateTargets()
             targetList.at(i)->hide();
 
         }
-        if(trackListPt->at(targetList.at(i)->trackId).state == 0)
+        if(trackListPt->at(targetList.at(i)->trackId).isManual == 0)
         {
             targetList.at(i)->isUsed = false;
             ui->label_status_warning->setText(QString::fromUtf8("Mất MT số:")+QString::number(i+1));
@@ -2584,7 +2597,7 @@ void Mainwindow::on_toolButton_delete_target_clicked()
     }
 
     else*/
-    processing->radarData->mTrackList.at(targetList.at(selected_target_index)->trackId).state = 0;
+    processing->radarData->mTrackList.at(targetList.at(selected_target_index)->trackId).isManual = false;
 }
 
 void Mainwindow::on_toolButton_tx_clicked()
