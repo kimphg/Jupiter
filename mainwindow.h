@@ -58,7 +58,7 @@ private:
     void DrawGrid(QPainter* p,short centerX,short centerY);
     void CameraControl(int x,int y, int zoom);
     void CameraControl(int direction);
-
+    void detectZone();
     void InitSetting();
     void sendToRadarHS(const char *hexdata);
     void sendToRadar(unsigned char* hexdata);
@@ -270,6 +270,8 @@ private slots:
     void on_toolButton_export_data_clicked(bool checked);
 
     void on_toolButton_auto_detect_clicked();
+
+    void on_toolButton_auto_select_toggled(bool checked);
 
 private:
     void initActionsConnections();

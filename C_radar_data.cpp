@@ -293,36 +293,29 @@ bool track_t::checkProb(object_t* object)
     }
     dA*=dA;
     dR*=dR;
-
-    if(!isManual)
+    float maxDr = (3+0.04/sn_scale);
+    maxDr*=maxDr;
+    float maxDa = (0.009f +atanf(0.04/estR/sn_scale));
+    maxDa*=maxDa;
+    if(isManual)
     {
-        if(state>TRACK_STABLE_STATE)
-        {
-            if(dR>=9 || dA>=0.0009f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = abs(9/dR*0.0009f/dA);
-        }else if(!isConfirmed)
-        {
-            if(dR>=12 || dA>=0.0012f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = abs(12/dR*0.0012f/dA);
-        }
-        else
-        {
-            if(dR>=12 || dA>=0.0012f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = abs(12/dR*0.0012f/dA);
-        }
-    }else
-    {
-        if(state<10)
-        {
-            if(dR>=16 || dA>=0.0016f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = abs(16/dR*0.0016f/dA);
-        }
-        else
-        {
-            if(dR>=12 || dA>=0.0012f)return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
-            object->p = abs(12/dR*0.0012f/dA);
-        }
+        maxDr*=1.5;
+        maxDa*=1.5;
+    }
 
+    if(dR>=maxDr || dA>=maxDa)
+    {
+        return false;//0.5 do = 0.009rad;(0.009*3)^2 = 0.0007
+    }
+    float err = dR+dA;
+    if(err)
+    {
+
+        object->p = (maxDr+maxDa)/(err);//  abs(maxDr/dR+maxDa/dA);
+    }
+    else
+    {
+        object->p = 1000000;
     }
     return true;
 }

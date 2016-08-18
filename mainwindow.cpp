@@ -220,13 +220,64 @@ void Mainwindow::keyPressEvent(QKeyEvent *event)
 //        isScreenUp2Date = false;
     }
 }
+short selZone_x1, selZone_x2, selZone_y1, selZone_y2;
+bool isSelectingTarget = false;
+void Mainwindow::detectZone()
+{
+    short sx,sy;
+    float scale_ppi = processing->radarData->scale_ppi;
+    if(selZone_x1>selZone_x2)
+    {
+        short tmp = selZone_x1;
+        selZone_x1 = selZone_x2;
+        selZone_x2 = tmp;
+    }
+    if(selZone_y1>selZone_y2)
+    {
+        short tmp = selZone_y1;
+        selZone_y1 = selZone_y2;
+        selZone_y2 = tmp;
+    }
+    trackList* trackListPt = &processing->radarData->mTrackList;
+    if(ui->toolButton_blue_tracks->isChecked())
+    {
+        for(uint trackId=0;trackId<trackListPt->size();trackId++)
+        {
+            if(!trackListPt->at(trackId).isConfirmed)continue;
+            if(trackListPt->at(trackId).isManual)continue;
+            if(!trackListPt->at(trackId).state)continue;
+            sx = trackListPt->at(trackId).estX*scale_ppi + scrCtX - dx;
+            sy = -trackListPt->at(trackId).estY*scale_ppi + scrCtY - dy;
+            if((sx>=selZone_x1)&&(sx<=selZone_x2)&&(sy>selZone_y1)&&(sy<selZone_y2))
+            {
+                trackListPt->at(trackId).isManual = true;
+            }
+        }
+
+    }
+}
 void Mainwindow::mousePressEvent(QMouseEvent *event)
 {
     if(event->x()>scrCtX+scrCtY)return;
     mouseX = (event->x());
     mouseY = (event->y());
     if(event->buttons() & Qt::LeftButton) {
-        if(ui->toolButton_manual_track->isChecked())
+        if(ui->toolButton_auto_select->isChecked())
+        {
+            if(isSelectingTarget)
+            {
+                selZone_x2 = mouseX;
+                selZone_y2 = mouseY;
+                detectZone();
+                isSelectingTarget = false;
+            }else
+            {
+                selZone_x1 = mouseX;
+                selZone_y1 = mouseY;
+                isSelectingTarget = true;
+            }
+        }
+        else if(ui->toolButton_manual_track->isChecked())
         {
             float xRadar = (mouseX - scrCtX+dx) ;//coordinates in  radar xy system
             float yRadar = -(mouseY - scrCtY+dy);
@@ -574,6 +625,7 @@ void Mainwindow::DrawTarget(QPainter* p)
         for(uint trackId=0;trackId<trackListPt->size();trackId++)
         {
             if(!trackListPt->at(trackId).isConfirmed)continue;
+            if(trackListPt->at(trackId).isManual)continue;
             if(!trackListPt->at(trackId).state)continue;
             sx = trackListPt->at(trackId).estX*scale_ppi + scrCtX - dx;
             sy = -trackListPt->at(trackId).estY*scale_ppi + scrCtY - dy;
@@ -583,7 +635,7 @@ void Mainwindow::DrawTarget(QPainter* p)
 
     }
 
-
+    //draw red targets
         for(uint trackId=0;trackId<trackListPt->size();trackId++)
         {
             if(!trackListPt->at(trackId).isManual)continue;
@@ -591,10 +643,10 @@ void Mainwindow::DrawTarget(QPainter* p)
 
                 x= trackListPt->at(trackId).estX*scale_ppi/scale;
                 y= trackListPt->at(trackId).estY*scale_ppi/scale;
+                sx = trackListPt->at(trackId).estX*scale_ppi + scrCtX - dx;
+                sy = -trackListPt->at(trackId).estY*scale_ppi + scrCtY - dy;
                 if(trackListPt->at(trackId).dopler==17)
                 {
-                    sx = trackListPt->at(trackId).estX*scale_ppi + scrCtX - dx;
-                    sy = -trackListPt->at(trackId).estY*scale_ppi + scrCtY - dy;
                     p->setPen(penTargetBlue);
 
                     p->drawEllipse(sx-6,sy-6,12,12);
@@ -612,7 +664,7 @@ void Mainwindow::DrawTarget(QPainter* p)
                         targetList.at(tid)->m_lat = y2lat(trackListPt->at(trackId).estY*scale_ppi);
                         targetList.at(tid)->m_lon = x2lon(trackListPt->at(trackId).estX*scale_ppi);
                         targetList.at(tid)->show();
-                        tid--;
+
                         break;
                     }
                 }
@@ -645,9 +697,9 @@ void Mainwindow::DrawTarget(QPainter* p)
                 }
 
 //                draw track:
-                if(trackListPt->at(trackId).isManual)p->setPen(penTargetRed);
-                else p->setPen(penTargetBlue);
                 short k=0;
+                p->setPen(penTargetRed);
+
 
                 p->drawText(sx+10,sy+10,300,40,0,QString::number(tid+1));
                 for(short j=(trackListPt->at(trackId).object_list.size()-1);j>0;j-=1)
@@ -887,16 +939,16 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     DrawSignal(&p);
 
     DrawTarget(&p);
-    drawAisTarget(&p);
+    if(ui->toolButton_ais_show->isChecked())drawAisTarget(&p);
     //draw cursor
-    QPen penmousePointer(QColor(0x50ffffff));
+//    QPen penmousePointer(QColor(0x50ffffff));
 
-    penmousePointer.setWidth(2);
-    p.setPen(penmousePointer);
-    p.drawLine(mousePointerX-15,mousePointerY,mousePointerX-10,mousePointerY);
-    p.drawLine(mousePointerX+15,mousePointerY,mousePointerX+10,mousePointerY);
-    p.drawLine(mousePointerX,mousePointerY-10,mousePointerX,mousePointerY-15);
-    p.drawLine(mousePointerX,mousePointerY+10,mousePointerX,mousePointerY+15);
+//    penmousePointer.setWidth(2);
+//    p.setPen(penmousePointer);
+//    p.drawLine(mousePointerX-15,mousePointerY,mousePointerX-10,mousePointerY);
+//    p.drawLine(mousePointerX+15,mousePointerY,mousePointerX+10,mousePointerY);
+//    p.drawLine(mousePointerX,mousePointerY-10,mousePointerX,mousePointerY-15);
+//    p.drawLine(mousePointerX,mousePointerY+10,mousePointerX,mousePointerY+15);
     //draw mouse coordinates
     float azi,rg;
     short   x=this->mapFromGlobal(QCursor::pos()).x();
@@ -925,7 +977,18 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     //draw zooom
 
     //draw frame
+    if(isSelectingTarget)
+    {
+        QPen penmousePointer(QColor(0x50ffffff));
 
+        penmousePointer.setWidth(2);
+        penmousePointer.setStyle(Qt::DashDotLine);
+        p.setPen(penmousePointer);
+        p.drawLine(selZone_x1,selZone_y1,x,selZone_y1);
+        p.drawLine(selZone_x1,selZone_y1,selZone_x1,y);
+        p.drawLine(selZone_x1,y,x,y);
+        p.drawLine(x,selZone_y1,x,y);
+    }
     DrawViewFrame(&p);
     if(ui->tabWidget_2->currentIndex()==2)
     {
@@ -2827,4 +2890,18 @@ bool Mainwindow::ProcDataAIS(BYTE *szBuff, int nLeng )
 void Mainwindow::on_toolButton_auto_detect_clicked()
 {
 
+}
+
+void Mainwindow::on_toolButton_auto_select_toggled(bool checked)
+{
+    isSelectingTarget = false;
+    if(checked)
+    {
+        this->setCursor(Qt::ArrowCursor);
+
+    }
+    else
+    {
+        this->setCursor(Qt::CrossCursor);
+    }
 }

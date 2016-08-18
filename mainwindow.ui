@@ -472,78 +472,6 @@
    <set>QMainWindow::AllowTabbedDocks</set>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QCustomGroupBox" name="groupBox_8">
-    <property name="geometry">
-     <rect>
-      <x>1210</x>
-      <y>10</y>
-      <width>161</width>
-      <height>151</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(0, 0, 0,0);</string>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout_2">
-     <item>
-      <widget class="QCustomButton" name="toolButton_exit">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Tắt máy</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCustomButton" name="toolButton_tx">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Phát</string>
-       </property>
-       <property name="checkable">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCustomButton" name="toolButton_tx_off">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Tắt phát</string>
-       </property>
-       <property name="checkable">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
    <widget class="QCustomGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
@@ -17474,10 +17402,10 @@
    <widget class="QCustomGroupBox" name="groupBox_10">
     <property name="geometry">
      <rect>
-      <x>990</x>
+      <x>1210</x>
       <y>10</y>
-      <width>211</width>
-      <height>121</height>
+      <width>161</width>
+      <height>101</height>
      </rect>
     </property>
     <property name="title">
@@ -17488,8 +17416,8 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>191</width>
-       <height>61</height>
+       <width>141</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="sizePolicy">
@@ -17514,8 +17442,8 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>80</y>
-       <width>191</width>
+       <y>60</y>
+       <width>141</width>
        <height>31</height>
       </rect>
      </property>
@@ -17955,6 +17883,9 @@
       <set>Qt::AlignCenter</set>
      </property>
     </widget>
+    <zorder>label_status_warning</zorder>
+    <zorder>label_command</zorder>
+    <zorder>tabWidget_2</zorder>
    </widget>
    <widget class="QCustomTabWidget" name="tabWidget_2">
     <property name="geometry">
@@ -17971,7 +17902,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -24036,9 +23967,9 @@
     <property name="geometry">
      <rect>
       <x>1210</x>
-      <y>320</y>
+      <y>310</y>
       <width>161</width>
-      <height>231</height>
+      <height>241</height>
      </rect>
     </property>
     <property name="title">
@@ -24130,7 +24061,7 @@
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QCustomButton" name="toolButton_auto_detect">
+      <widget class="QCustomButton" name="toolButton_auto_select">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -24146,7 +24077,7 @@
         <string>Tự động đặt QĐ</string>
        </property>
        <property name="checkable">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -24177,9 +24108,9 @@
     <property name="geometry">
      <rect>
       <x>1210</x>
-      <y>170</y>
+      <y>120</y>
       <width>161</width>
-      <height>141</height>
+      <height>181</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -24249,6 +24180,27 @@
        </property>
        <property name="text">
         <string>Địa danh</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCustomButton" name="toolButton_ais_show">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>AIS</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -25345,6 +25297,78 @@
          </property>
         </widget>
        </widget>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QCustomGroupBox" name="groupBox_8">
+    <property name="geometry">
+     <rect>
+      <x>1040</x>
+      <y>10</y>
+      <width>161</width>
+      <height>171</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(0, 0, 0,0);</string>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QCustomButton" name="toolButton_exit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Tắt máy</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCustomButton" name="toolButton_tx">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Phát</string>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCustomButton" name="toolButton_tx_off">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Tắt phát</string>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
       </widget>
      </item>
     </layout>
