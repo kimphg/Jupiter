@@ -149,7 +149,6 @@ public:
     {
 
     }
-
     //
     MatrixXf q1;
     MatrixXf q2;

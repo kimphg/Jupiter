@@ -37,6 +37,7 @@ float sn_scale;
 float rot_period_sec = 0;
 qint64 cur_timeMSecs = 0;//QDateTime::currentMSecsSinceEpoch();
 signal_map_t data_mem;
+
 //static period_t                curPeriod;
 //static std::queue<period_t>    period_cache;
 //static unsigned short cur_mark_index = 0;
