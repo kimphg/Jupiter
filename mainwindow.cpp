@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "pkp.h"
+//#include "gdal/ogr/ogrsf_frmts/ogrsf_frmts.h"
+//#include "gdal/gcore/gdal.h"
 //#define mapWidth 2000
 //#define mapWidth mapWidth
 //#define mapHeight mapWidth
@@ -78,7 +80,7 @@ guard_zone_t gz1,gz2,gz3;
 short lon2x(float lon)
 {
 
-   float refLat = (config.m_config.m_lat )*0.00872664625997;
+   float refLat = (config.m_config.m_lat )*0.00872664625997f;
    return  (- dx + scrCtX + ((lon - config.m_config.m_long) * 111.31949079327357f*cosf(refLat))*scale);
 }
 short lat2y(float lat)
@@ -339,6 +341,9 @@ Mainwindow::Mainwindow(QWidget *parent) :
     setFocusPolicy(Qt::StrongFocus);
     InitSetting();
     setRadarState(DISCONNECTED);
+//    GDALAllRegister();
+//    GDALDataset       *poDS;
+
     //init drawing context
 
     //this->setFixedSize(900 + ui->toolBar_Main->width()*3,850);
@@ -1575,16 +1580,7 @@ void Mainwindow::sync1()//period 1 second
         }
 
     }*/
-    //check if data too large
-    /*if(processing->radarData->getDataOverload())
-    {
-        if(config.m_config.cfarThresh<30)config.m_config.cfarThresh++;
-        ui->horizontalSlider_2->setValue(config.m_config.cfarThresh);
-        isCfarThreshChanged = true;
-    }*/
-    //update cfar thresh value:
 
-    //update signsize
     if(isScaleChanged ) {
 
         processing->radarData->setScalePPI(scale);

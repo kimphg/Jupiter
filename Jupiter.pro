@@ -68,6 +68,9 @@ FORMS    += mainwindow.ui \
 
 INCLUDEPATH += $$PWD/../WpdPack/Include
 DEPENDPATH += $$PWD/../WpdPack/Include
+INCLUDEPATH += $$PWD/
+DEPENDPATH += $$PWD/
+
 #RESOURCES +=
 #INCLUDEPATH += $$PWD/../armadillo/include
 #DEPENDPATH += $$PWD/../armadillo/include
