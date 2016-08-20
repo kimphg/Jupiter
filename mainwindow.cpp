@@ -1386,17 +1386,24 @@ void Mainwindow::processARPA()
         //printf(datagram.data());
 		QString str(datagram.data());
         QStringList list = str.split(",");
-        if(list.first()=="$RATTM")
+        short dataStart = 0;
+        for(short i=0;i<list.size()-5;i++)
         {
-//            short tNum = (*(list.begin()+1)).toInt();
-//            float tDistance = (*(list.begin()+2)).toFloat();
-//            float tRange = (*(list.begin()+3)).toFloat();
-//            arpa_data.addARPA(tNum,tDistance,tRange);
+
+            if(list.at(i).contains("RATTM"))
+            {
+    //            short tNum = (*(list.begin()+1)).toInt();
+    //            float tDistance = (*(list.begin()+2)).toFloat();
+    //            float tRange = (*(list.begin()+3)).toFloat();
+    //            arpa_data.addARPA(tNum,tDistance,tRange);
+            }
+            else if(list.at(i).contains("AI"))
+            {
+                ProcDataAIS((BYTE*)(datagram.data()+ dataStart), datagram.size() - dataStart);
+            }
+            dataStart+= list.at(i).size();
         }
-        else if(list.first().contains("AI"))
-        {
-            ProcDataAIS((BYTE*)datagram.data(), datagram.size());
-        }
+
     }
 
 }
@@ -1622,7 +1629,7 @@ void Mainwindow::sync1()//period 1 second
             ui->label_command->setText(QString::fromUtf8("Chưa kết nối radar"));
             ui->label_command->setHidden(true);
         }
-        m_udpSocket->writeDatagram("d",1,QHostAddress("127.0.0.1"),8089);
+        m_udpSocket->writeDatagram("d",1,QHostAddress("127.0.0.1"),8001);
         break;
     case CONNECTED:
         //printf("\ns_tx");
@@ -1630,13 +1637,9 @@ void Mainwindow::sync1()//period 1 second
         ui->label_command->setHidden(false);
 
         ui->label_command->setText(QString(array.toHex()));
-        m_udpSocket->writeDatagram("c",1,QHostAddress("127.0.0.1"),8089);
+        m_udpSocket->writeDatagram("c",1,QHostAddress("127.0.0.1"),8001);
         break;
-    case CONNECTED_ROTATE12_TXON:
-        ui->label_status->setText(QString::fromUtf8("Phát 12v/p"));
-        break;
-    case CONNECTED_ROTATE12_TXOFF:
-        ui->label_status->setText(QString::fromUtf8("Quay 12v/p"));
+    default:
         break;
     }
 
