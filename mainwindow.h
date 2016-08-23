@@ -136,7 +136,7 @@ private slots:
 
     void on_actionClear_data_triggered();
 
-    void on_actionView_grid_triggered(bool checked);
+//    void on_actionView_grid_triggered(bool checked);
 
 
     void on_actionPlayPause_toggled(bool arg1);
@@ -248,12 +248,9 @@ private slots:
 
     void on_toolButton_tx_clicked();
 
-
     void on_toolButton_tx_off_clicked();
 
     void on_toolButton_filter2of3_clicked(bool checked);
-
-
 
     void on_comboBox_radar_resolution_currentIndexChanged(int index);
 
@@ -268,8 +265,6 @@ private slots:
     void on_toolButton_measuring_clicked(bool checked);
 
     void on_toolButton_export_data_clicked(bool checked);
-
-    void on_toolButton_auto_detect_clicked();
 
     void on_toolButton_auto_select_toggled(bool checked);
 

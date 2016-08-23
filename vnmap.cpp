@@ -85,8 +85,6 @@ void Q_vnmap::ClearData()
 }
 void Q_vnmap::LoadBinFile(const char* fileName)
 {
-
-
     FILE *pFile= fopen(fileName,"rb");
     if (!pFile)
     {
@@ -112,7 +110,7 @@ void Q_vnmap::LoadBinFile(const char* fileName)
     //printf("\nfilesize-%d",nread);
     //C2_PolyList layer;
 
-    for(;;) {
+    for(;;){
         if (fPos >= nread) break;
         i = 0;
 

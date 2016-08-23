@@ -7,7 +7,7 @@
 #Control and process data from HR2D radar
 #view ARPA data
 #-------------------------------------------------
-# Version 2.2
+# Version 2.3
 #-------------------------------------------------
 #data file type defined as .r2d, data starts from 22nd byte of each frame
 #run for both 1024 and 1536 data type

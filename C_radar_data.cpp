@@ -156,15 +156,15 @@ void track_t::update()
     if(isUpdated)
     {
 //          thuat toan loc Kalman
-        float cc = mesR*cosf(mesA-estA)-estR;//DR
-        float dd = mesR*tanf(mesA-estA);     //
-        MatrixXf z(2,1);// vector gia tri do
+        double cc = mesR*cos(mesA-estA)-estR;//DR
+        double dd = mesR*tan(mesA-estA);     //
+        MatrixXd z(2,1);// vector gia tri do
         z<<cc,dd;
-        Matrix2f r(2,2);
-        r<< 9, 0 ,0, estR*estR*0.0004 ; //0.7*(2*pi/360)^2=0.0002
+        Matrix2d r(2,2);
+        r<< 4, 0 ,0, estR*estR*0.0016 ; //0.7*(2*pi/360)^2=0.0002
         // ma tran hiep bien do
-        MatrixXf k(4,2) ;
-        Matrix2f tmp;
+        MatrixXd k(4,2) ;
+        Matrix2d tmp;
         tmp = (h*p*h.transpose() + r).inverse();
         k = p*h.transpose()*(tmp);
 
@@ -182,9 +182,9 @@ void track_t::update()
 //                float h4 = k(1,0);
 //                h1=h2;
 //            }
-        MatrixXf xx = x+k*(z-h*x);
+        MatrixXd xx = x+k*(z-h*x);
         x = xx;
-        Matrix4f pp ;
+        Matrix4d pp ;
         pp = p - k*h*p;
         p = pp;
 
@@ -225,19 +225,19 @@ void track_t::predict()
 {
 
     estR += x(2,0);
-    rotA_r = atanf(x(3,0)/estR);
+    rotA_r = atan(x(3,0)/estR);
     estA += rotA_r;
 
 
-    estX = ((sinf(estA)))*estR;
-    estY =  ((cosf(estA)))*estR;
+    estX = ((sin(estA)))*estR;
+    estY =  ((cos(estA)))*estR;
     object_list.at(trackLen-1).x = estX;
     object_list.at(trackLen-1).y = estY;
-    float aa = cos(rotA_r);
-    float bb = sin(rotA_r);//NIM
+    double aa = cos(rotA_r);
+    double bb = sin(rotA_r);//NIM
     isManeuvering = false;//(rotA_r>0.001);
     //printf("\n delta azi:%f",deltaAzi);
-    MatrixXf a(4,4);// jacobian matrix
+    MatrixXd a(4,4);// jacobian matrix
     a <<  0 ,  0 ,  aa,  bb,
           0 ,  0 , -bb,  aa,
           0 ,  0 ,  aa,  bb,

@@ -6,35 +6,26 @@
 //#define mapWidth 2000
 //#define mapWidth mapWidth
 //#define mapHeight mapWidth
-#define CONST_NM 1.845f
+#define CONST_NM 1.845f// he so chuyen doi tu km sang hai ly
 #define MAX_VIEW_RANGE_KM 50
-
 #include <queue>
 
-//static bool                 isAddingTarget=false;
-static QPixmap              *pMap=NULL;
-//static QImage               *sgn_img = new QImage(RADAR_MAX_RESOLUTION*2,RADAR_MAX_RESOLUTION*2,QImage::Format_RGB32);
-dataProcessingThread *processing;
-static Q_vnmap              vnmap;
-QTimer*                     scrUpdateTimer,*readBuffTimer ;
-QTimer*                     syncTimer1s,*syncTimer10s ;
-QTimer*                     dataPlaybackTimer ;
-QThread*                    t,*t1 ;
-bool displayAlpha = false;
-QList<CTarget*> targetList;
-//static short                currMaxRange = RADAR_MAX_RESOLUTION;
-static short                currMaxAzi = MAX_AZIR,currMinAzi = 0;
-static short                dxMax,dyMax;
-static C_ARPA_data          arpa_data;
-//static short                curAzir=-1;//,drawAzir=0;
-static float                signsize,sn_scale;
-static short                scrCtX, scrCtY, dx =0,dy=0,dxMap=0,dyMap=0;//mouseX,mouseY;
-static short                mousePointerX,mousePointerY,mouseX,mouseY;
-static char                 gridOff = false;
-static char                 udpFailure = 0;//config file !!!
-static bool                 isDraging = false;
-static bool                 isScaleChanged =true;
-float                   scale;
+QPixmap                     *pMap=NULL;// painter cho ban do
+dataProcessingThread        *processing;// thread xu ly du lieu radar
+QThread                     *t2,*t1;
+Q_vnmap                     vnmap;
+QTimer                      scrUpdateTimer,readBuffTimer ;
+QTimer                      syncTimer1s,syncTimer10s ;
+QTimer                      dataPlaybackTimer ;
+bool                        displayAlpha = false;
+QList<CTarget*>             targetList;
+short                       dxMax,dyMax;
+C_ARPA_data                 arpa_data;
+short                       scrCtX, scrCtY, dx =0,dy=0,dxMap=0,dyMap=0;
+short                       mousePointerX,mousePointerY,mouseX,mouseY;
+bool                        isDraging = false;
+bool                        isScaleChanged =true;
+float                       mScale;
 
 static QStandardItemModel   modelTargetList;
 struct
@@ -67,8 +58,8 @@ public:
     void update()
     {
         float azi,rg;
-        processing->radarData->getPolar((x1 - scrCtX+dx)/scale,-(y1 - scrCtY+dy)/scale,&minAzi,&minR);
-        processing->radarData->getPolar((x2 - scrCtX+dx)/scale,-(y2 - scrCtY+dy)/scale,&maxAzi,&maxR);
+        processing->radarData->getPolar((x1 - scrCtX+dx)/mScale,-(y1 - scrCtY+dy)/mScale,&minAzi,&minR);
+        processing->radarData->getPolar((x2 - scrCtX+dx)/mScale,-(y2 - scrCtY+dy)/mScale,&maxAzi,&maxR);
         if(minAzi<0)minAzi += PI_NHAN2;
         minAzi = minAzi/PI*180.0;
         if(maxAzi<0)maxAzi += PI_NHAN2;
@@ -81,21 +72,21 @@ short lon2x(float lon)
 {
 
    float refLat = (config.m_config.m_lat )*0.00872664625997f;
-   return  (- dx + scrCtX + ((lon - config.m_config.m_long) * 111.31949079327357f*cosf(refLat))*scale);
+   return  (- dx + scrCtX + ((lon - config.m_config.m_long) * 111.31949079327357f*cosf(refLat))*mScale);
 }
 short lat2y(float lat)
 {
 
-   return (- dy + scrCtY - ((lat - config.m_config.m_lat) * 111.31949079327357f)*scale);
+   return (- dy + scrCtY - ((lat - config.m_config.m_lat) * 111.31949079327357f)*mScale);
 }
 double y2lat(short y)
 {
-   return (y  )/scale/111.31949079327357f + config.m_config.m_lat;
+   return (y  )/mScale/111.31949079327357f + config.m_config.m_lat;
 }
 double x2lon(short x)
 {
     float refLat = (config.m_config.m_lat )*0.00872664625997;
-   return (x  )/scale/111.31949079327357f/cosf(refLat) + config.m_config.m_long;
+   return (x  )/mScale/111.31949079327357f/cosf(refLat) + config.m_config.m_long;
 }
 void Mainwindow::mouseDoubleClickEvent( QMouseEvent * e )
 {
@@ -481,8 +472,8 @@ void Mainwindow::DrawMap()
                         QPoint int_point;
                         float x,y;
                         vnmap.ConvDegToScr(&x,&y,&vnmap.layers[i][j][k].m_Long,&vnmap.layers[i][j][k].m_Lat);
-                        int_point.setX((int)(x*scale)+centerX);
-                        int_point.setY((int)(y*scale)+centerY);
+                        int_point.setX((int)(x*mScale)+centerX);
+                        int_point.setY((int)(y*mScale)+centerY);
                         poly<<int_point;
                     }
                     p.setBrush(color[i]);
@@ -503,8 +494,8 @@ void Mainwindow::DrawMap()
                         QPoint int_point;
                         float x,y;
                         vnmap.ConvDegToScr(&x,&y,&vnmap.layers[i][j][k].m_Long,&vnmap.layers[i][j][k].m_Lat);
-                        int_point.setX((int)(x*scale)+centerX);
-                        int_point.setY((int)(y*scale)+centerY);
+                        int_point.setX((int)(x*mScale)+centerX);
+                        int_point.setY((int)(y*mScale)+centerY);
                         if(k)p.drawLine(old_point,int_point);
                         old_point=int_point;
                     }
@@ -534,8 +525,8 @@ void Mainwindow::DrawMap()
                 QPoint int_point;
                 float x,y;
                 vnmap.ConvDegToScr(&x,&y,&vnmap.placeList[i].m_Long,&vnmap.placeList[i].m_Lat);
-                int_point.setX((int)(x*scale)+centerX);
-                int_point.setY((int)(y*scale)+centerY);
+                int_point.setX((int)(x*mScale)+centerX);
+                int_point.setY((int)(y*mScale)+centerY);
                 p.drawEllipse(int_point,2,2);
                 QString str = QString::fromStdWString(vnmap.placeList[i].text);
                 str.chop(2);
@@ -560,8 +551,8 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
     for(short i = 1;i<8;i++)
     {
     p->drawEllipse(QPoint(centerX,centerY),
-                  (short)(i*rangeStep*CONST_NM*scale),
-                  (short)(i*rangeStep*CONST_NM*scale));
+                  (short)(i*rangeStep*CONST_NM*mScale),
+                  (short)(i*rangeStep*CONST_NM*mScale));
     }
 
 
@@ -571,7 +562,7 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
         //pen.setWidth(1);
         //p->setPen(pen);
         short theta;
-        short gridR = rangeStep*1.852f*scale*7;
+        short gridR = rangeStep*1.852f*mScale*7;
         for(theta=0;theta<360;theta+=90){
             QPoint point1,point2;
                 short dx = gridR*cosf(PI*theta/180);
@@ -646,8 +637,8 @@ void Mainwindow::DrawTarget(QPainter* p)
             if(!trackListPt->at(trackId).isManual)continue;
             if(!trackListPt->at(trackId).state)continue;
 
-                x= trackListPt->at(trackId).estX*scale_ppi/scale;
-                y= trackListPt->at(trackId).estY*scale_ppi/scale;
+                x= trackListPt->at(trackId).estX*scale_ppi/mScale;
+                y= trackListPt->at(trackId).estY*scale_ppi/mScale;
                 sx = trackListPt->at(trackId).estX*scale_ppi + scrCtX - dx;
                 sy = -trackListPt->at(trackId).estY*scale_ppi + scrCtY - dy;
                 if(trackListPt->at(trackId).dopler==17)
@@ -901,11 +892,9 @@ void Mainwindow::DrawTarget(QPainter* p)
 }
 void Mainwindow::drawAisTarget(QPainter *p)
 {
-
     //draw radar  target:
     QPen penTargetRed(Qt::cyan);
     penTargetRed.setWidth(0);
-
     for(uint i=0;i<m_trackList.size();i++)
     {
             p->setPen(penTargetRed);
@@ -918,8 +907,8 @@ void Mainwindow::drawAisTarget(QPainter *p)
             mlon = mlon/bit23* 180.0f ;
                 vnmap.ConvDegToScr(&fx,&fy,&mlon,&mlat);
 
-                short x = (fx*scale)+scrCtX-dx;
-                short y = (fy*scale)+scrCtY-dy;
+                short x = (fx*mScale)+scrCtX-dx;
+                short y = (fy*mScale)+scrCtY-dy;
                 p->drawEllipse(x-5,y-5,10,10);
                 p->drawText(x+5,y+5,QString::fromAscii((char*)&m_trackList.at(i).m_MMSI[0],9));
                 //printf("\nj:%d,%d,%d,%f,%f",j,x,y,arpa_data.ais_track_list[i].object_list[j].mlong,arpa_data.ais_track_list[i].object_list[j].mlat);
@@ -961,11 +950,11 @@ void Mainwindow::paintEvent(QPaintEvent *event)
 
     if(ui->toolButton_measuring->isChecked())
     {
-        processing->radarData->getPolar((x - mouseX)/scale,-(y - mouseY)/scale,&azi,&rg);
+        processing->radarData->getPolar((x - mouseX)/mScale,-(y - mouseY)/mScale,&azi,&rg);
     }
     else
     {
-        processing->radarData->getPolar((x - scrCtX+dx)/scale,-(y - scrCtY+dy)/scale,&azi,&rg);
+        processing->radarData->getPolar((x - scrCtX+dx)/mScale,-(y - scrCtY+dy)/mScale,&azi,&rg);
     }
     if(azi<0)azi+=PI_NHAN2;
     azi = azi/PI*180.0;
@@ -980,12 +969,10 @@ void Mainwindow::paintEvent(QPaintEvent *event)
                                        QString::number(((float)x2lon(x - scrCtX+dx)-(short)(x2lon(x - scrCtX+dx)))*60,'g',4)+"E");
 
     //draw zooom
-
     //draw frame
     if(isSelectingTarget)
     {
         QPen penmousePointer(QColor(0x50ffffff));
-
         penmousePointer.setWidth(2);
         penmousePointer.setStyle(Qt::DashDotLine);
         p.setPen(penmousePointer);
@@ -1101,8 +1088,8 @@ void Mainwindow::InitSetting()
         SetGPS(config.m_config.m_lat, config.m_config.m_long);
         //vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 200,config.m_config.mapFilename.data());
         if(pMap)delete pMap;
-        if(gridOff==false)pMap = new QPixmap(height(),height());
-        else pMap = new QPixmap(width(),height());
+        pMap = new QPixmap(height(),height());
+
         DrawMap();
 
 
@@ -1252,15 +1239,15 @@ void Mainwindow::DrawViewFrame(QPainter* p)
 }
 void Mainwindow::setScaleNM(unsigned short rangeNM)
 {
-    float oldScale = scale;
-    scale = (float)height()/((float)rangeNM*CONST_NM)*0.7f;
+    float oldScale = mScale;
+    mScale = (float)height()/((float)rangeNM*CONST_NM)*0.7f;
     //printf("scale:%f- %d",scale,rangeNM);
     isScaleChanged = true;// scale*SIGNAL_RANGE_KM/2048.0f;
 
-    dyMax = MAX_VIEW_RANGE_KM*scale;
+    dyMax = MAX_VIEW_RANGE_KM*mScale;
     dxMax = dyMax;
-    dx =short(scale/oldScale*dx);
-    dy =short(scale/oldScale*dy);
+    dx =short(mScale/oldScale*dx);
+    dy =short(mScale/oldScale*dy);
     DrawMap();
     /*currMaxRange = (sqrtf(dx*dx+dy*dy)+scrCtY)/signsize;
     if(currMaxRange>RADAR_MAX_RESOLUTION)currMaxRange = RADAR_MAX_RESOLUTION;*/
@@ -1274,7 +1261,7 @@ void Mainwindow::UpdateRadarData()
         if(processing->radarData->isClkAdcChanged)
         {
             ui->comboBox_radar_resolution->setCurrentIndex(processing->radarData->clk_adc);
-            processing->radarData->setScalePPI(scale);
+            processing->radarData->setScalePPI(mScale);
             this->UpdateScale();
 //            printf("\nsetScale:%d",processing->radarData->clk_adc);
             processing->radarData->isClkAdcChanged = false;
@@ -1310,40 +1297,33 @@ void Mainwindow::readBuffer()
 void Mainwindow::InitTimer()
 {
 
-    scrUpdateTimer = new QTimer();
-    syncTimer1s = new QTimer();
-    syncTimer10s = new QTimer();
-    readBuffTimer = new QTimer();
-    dataPlaybackTimer = new QTimer();
-    t = new QThread();
+
+    t2 = new QThread();
     t1 = new QThread();
     processing = new dataProcessingThread();
 
 //    connect(fullScreenTimer, SIGNAL(timeout()), this, SLOT(UpdateSetting()));
 //    fullScreenTimer->setSingleShot(true);
 //    fullScreenTimer->start(1000);
-    connect(syncTimer1s, SIGNAL(timeout()), this, SLOT(sync1()));
-    syncTimer1s->start(1000);
-    connect(syncTimer10s, SIGNAL(timeout()), this, SLOT(sync10()));
-    syncTimer10s->start(300000);
-    //syncTimer1s->moveToThread(t);
+    connect(&syncTimer1s, SIGNAL(timeout()), this, SLOT(sync1()));
+    syncTimer1s.start(1000);
+    connect(&syncTimer10s, SIGNAL(timeout()), this, SLOT(sync10()));
+    syncTimer10s.start(300000);
+    //syncTimer1s.moveToThread(t);
     //
-    connect(readBuffTimer,SIGNAL(timeout()),this,SLOT(readBuffer()));
-    readBuffTimer->start(50);
-    readBuffTimer->moveToThread(t1);
+    connect(&readBuffTimer,SIGNAL(timeout()),this,SLOT(readBuffer()));
+    readBuffTimer.start(50);
+    readBuffTimer.moveToThread(t1);
     //
-    connect(scrUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadarData()));
-
-    scrUpdateTimer->start(30);//ENVDEP
-    scrUpdateTimer->moveToThread(t);
-
-
+    connect(&scrUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadarData()));
+    scrUpdateTimer.start(30);//ENVDEP
+    scrUpdateTimer.moveToThread(t2);
     processing->start();
     connect(this,SIGNAL(destroyed()),processing,SLOT(deleteLater()));
-    connect(dataPlaybackTimer,SIGNAL(timeout()),processing,SLOT(playbackRadarData()));
+    connect(&dataPlaybackTimer,SIGNAL(timeout()),processing,SLOT(playbackRadarData()));
     //dataPlaybackTimer->moveToThread(t);
-    connect(t,SIGNAL(finished()),t,SLOT(deleteLater()));
-    t->start(QThread::TimeCriticalPriority);
+    connect(t2,SIGNAL(finished()),t2,SLOT(deleteLater()));
+    t2->start(QThread::TimeCriticalPriority);
     t1->start(QThread::TimeCriticalPriority);
 }
 void Mainwindow::InitNetwork()
@@ -1590,7 +1570,7 @@ void Mainwindow::sync1()//period 1 second
 
     if(isScaleChanged ) {
 
-        processing->radarData->setScalePPI(scale);
+        processing->radarData->setScalePPI(mScale);
         isScaleChanged = false;
     }
     //update signal code:
@@ -1812,19 +1792,19 @@ void Mainwindow::on_actionClear_data_triggered()
 //    isScreenUp2Date = false;
 }
 
-void Mainwindow::on_actionView_grid_triggered(bool checked)
-{
-    gridOff = checked;
-    dx=0;dy=0;
-    DrawMap();
-    //UpdateSetting();
-}
+//void Mainwindow::on_actionView_grid_triggered(bool checked)
+//{
+//    gridOff = checked;
+//    dx=0;dy=0;
+//    DrawMap();
+//    //UpdateSetting();
+//}
 
 
 void Mainwindow::on_actionPlayPause_toggled(bool arg1)
 {
     processing->togglePlayPause(arg1);
-    if(arg1)dataPlaybackTimer->start(25);else dataPlaybackTimer->stop();
+    if(arg1)dataPlaybackTimer.start(25);else dataPlaybackTimer.stop();
 
 }
 
@@ -1973,73 +1953,73 @@ void MainWindow::on_toolButton_13_clicked()
 */
 void Mainwindow::UpdateScale()
 {
-    float oldScale = scale;
+    float oldScale = mScale;
     char byte2;
     switch(range)
     {
     case 0:
-        scale = (height()/2-5)/(CONST_NM*1.5f );
+        mScale = (height()/2-5)/(CONST_NM*1.5f );
         rangeStep = 1.5f/6.0f;
         byte2 = 0x00;
         ui->label_range->setText("1.5 NM");
 
         break;
     case 1:
-        scale = (height()/2-5)/(CONST_NM*3 );
+        mScale = (height()/2-5)/(CONST_NM*3 );
         rangeStep = 3/6.0f;
         byte2 = 0x00;
         ui->label_range->setText("3 NM");
         break;
     case 2:
-        scale = (height()/2-5)/(CONST_NM*6 );
+        mScale = (height()/2-5)/(CONST_NM*6 );
         rangeStep = 6/6.0f;
         byte2 = 0x00;
         ui->label_range->setText("6 NM");
         break;
     case 3:
-        scale = (height()/2-5)/(CONST_NM*12 );
+        mScale = (height()/2-5)/(CONST_NM*12 );
         rangeStep = 12/6.0f;
         byte2 = 0x00;
         ui->label_range->setText("12 NM");
         break;
     case 4:
-        scale = (height()/2-5)/(CONST_NM*24 );
+        mScale = (height()/2-5)/(CONST_NM*24 );
         rangeStep = 24/6.0f;
         byte2 = 0x01;
         ui->label_range->setText("24 NM");
         break;
     case 5:
-        scale = (height()/2-5)/(CONST_NM*36 );
+        mScale = (height()/2-5)/(CONST_NM*36 );
         rangeStep = 36/6.0f;
         byte2 = 0x02;
         ui->label_range->setText("36 NM");
         break;
     case 6:
-        scale = (height()/2-5)/(CONST_NM*48 );
+        mScale = (height()/2-5)/(CONST_NM*48 );
         rangeStep = 48/6.0f;
         byte2 = 0x03;
         ui->label_range->setText("48 NM");
         break;
     case 7:
-        scale = (height()/2-5)/(CONST_NM*72 );
+        mScale = (height()/2-5)/(CONST_NM*72 );
         rangeStep = 72/6.0f;
         byte2 = 0x04;
         ui->label_range->setText("72 NM");
         break;
     case 8:
-        scale = (height()/2-5)/(CONST_NM*96 );
+        mScale = (height()/2-5)/(CONST_NM*96 );
         rangeStep = 96/6.0f;
         byte2 = 0x05;
         ui->label_range->setText("96 NM");
         break;
     case 9:
-        scale = (height()/2-5)/(CONST_NM*120 );
+        mScale = (height()/2-5)/(CONST_NM*120 );
         rangeStep = 120/6.0f;
         byte2 = 0x06;
         ui->label_range->setText("120 NM");
         break;
     default:
-        scale = (height()/2-5)/(CONST_NM*48  );
+        mScale = (height()/2-5)/(CONST_NM*48  );
         ui->label_range->setText("48 NM");
         break;
     }
@@ -2063,8 +2043,8 @@ void Mainwindow::UpdateScale()
 
     short sdx = mousePointerX - scrCtX + dx;
     short sdy = mousePointerY - scrCtY + dy;
-    sdx =(sdx*scale/oldScale);
-    sdy =(sdy*scale/oldScale);
+    sdx =(sdx*mScale/oldScale);
+    sdy =(sdy*mScale/oldScale);
     mousePointerX = scrCtX+sdx-dx;
     mousePointerY = scrCtY+sdy-dy;
 }
@@ -2368,8 +2348,8 @@ void Mainwindow::updateTargets()
             //targetList.at(i)->isLost=true;
             continue;
         }
-        float x	= targetList.at(i)->x*scale + scrCtX-dx ;
-        float y	= -targetList.at(i)->y*scale + scrCtY-dy ;
+        float x	= targetList.at(i)->x*mScale + scrCtX-dx ;
+        float y	= -targetList.at(i)->y*mScale + scrCtY-dy ;
         float w = scrCtY-30;
         float dx = x-scrCtX;
         float dy = y-scrCtY;
@@ -2403,7 +2383,7 @@ void Mainwindow::updateTargets()
             float tmpazi = trackListPt->at(targetList.at(i)->trackId).estA/PI*180;
             if(tmpazi<0)tmpazi+=360;
             ui->label_radar_id->setText(QString::number(i+1));
-            ui->label_radar_range->setText(QString::number(trackListPt->at(targetList.at(i)->trackId).estR*processing->radarData->scale_ppi/scale/1.852f)+"Nm");
+            ui->label_radar_range->setText(QString::number(trackListPt->at(targetList.at(i)->trackId).estR*processing->radarData->scale_ppi/mScale/1.852f)+"Nm");
             ui->label_radar_azi->setText( QString::number(tmpazi)+"\xB0");
             ui->label_radar_lat->setText( QString::number((short)targetList.at(i)->m_lat)+"\xB0"+QString::number((targetList.at(i)->m_lat-(short)targetList.at(i)->m_lat)*60,'g',4)+"N");
             ui->label_radar_long->setText(QString::number((short)targetList.at(i)->m_lon)+"\xB0"+QString::number((targetList.at(i)->m_lon-(short)targetList.at(i)->m_lon)*60,'g',4)+"E");
@@ -2860,36 +2840,6 @@ bool Mainwindow::ProcDataAIS(BYTE *szBuff, int nLeng )
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void Mainwindow::on_toolButton_auto_detect_clicked()
-{
-
-}
 
 void Mainwindow::on_toolButton_auto_select_toggled(bool checked)
 {

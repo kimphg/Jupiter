@@ -150,21 +150,21 @@ public:
 
     }
     //
-    MatrixXf q1;
-    MatrixXf q2;
-    MatrixXf h;
-    MatrixXf p;
-    MatrixXf x;
+    MatrixXd q1;
+    MatrixXd q2;
+    MatrixXd h;
+    MatrixXd p;
+    MatrixXd x;
     //
     //qint64 currentTimeMs;
     bool isConfirmed;
     objectList suspect_list,object_list;
     char terrain;
-    float rotA_r;
-    float estX ,estY;
-    float estA, estR;
-    float mesA;
-    float mesR;
+    double rotA_r;
+    double estX ,estY;
+    double estA, estR;
+    double mesA;
+    double mesR;
     float speed;
     float course;
     char state;
