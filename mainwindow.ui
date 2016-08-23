@@ -17883,9 +17883,6 @@
       <set>Qt::AlignCenter</set>
      </property>
     </widget>
-    <zorder>label_status_warning</zorder>
-    <zorder>label_command</zorder>
-    <zorder>tabWidget_2</zorder>
    </widget>
    <widget class="QCustomTabWidget" name="tabWidget_2">
     <property name="geometry">
