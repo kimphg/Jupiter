@@ -30,7 +30,7 @@ float                       mScale;
 static QStandardItemModel   modelTargetList;
 struct
 CConfig         config;
-QStringList warningList;
+QStringList     warningList;
 short selected_target_index;
 enum drawModes{
     SGN_DIRECT_DRAW,SGN_IMG_DRAW,NOTERR_DRAW
@@ -910,7 +910,8 @@ void Mainwindow::drawAisTarget(QPainter *p)
                 short x = (fx*mScale)+scrCtX-dx;
                 short y = (fy*mScale)+scrCtY-dy;
                 p->drawEllipse(x-5,y-5,10,10);
-                p->drawText(x+5,y+5,QString::fromAscii((char*)&m_trackList.at(i).m_MMSI[0],9));
+                p->drawText(x+5,y+5,QString::number(m_trackList.at(i).m_Head));
+//                p->drawText(x+5,y+5,QString::fromAscii((char*)&m_trackList.at(i).m_MMSI[0],9));
                 //printf("\nj:%d,%d,%d,%f,%f",j,x,y,arpa_data.ais_track_list[i].object_list[j].mlong,arpa_data.ais_track_list[i].object_list[j].mlat);
 
     }
@@ -2815,12 +2816,12 @@ bool Mainwindow::ProcDataAIS(BYTE *szBuff, int nLeng )
  {
      C2_Track       nTkNew;                              // New receive Track
      short nIndex = -1;
-
+    int nRec;
      // Connect 2 buffer is fragment
-     if(!m_CLocal.OnLinkBuff(szBuff, nLeng))
+     if(!m_CLocal.OnLinkBuff(szBuff, nLeng,nRec))
          return 0;
 
-     if(!m_CLocal.GetTrackAIS(m_CLocal.m_Buff, m_CLocal.m_Leng, &nTkNew))
+     if(!m_CLocal.GetTrackAIS(m_CLocal.m_Buff, m_CLocal.m_Leng, &nTkNew,nRec))
          return 0;
      for(short i = 0;i<m_trackList.size();i++)
      {
