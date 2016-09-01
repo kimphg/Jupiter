@@ -81,8 +81,8 @@ DEPENDPATH += $$PWD/
 #win32:LIBS += -L$$PWD/../armadillo/lib_winx86/ -lcbia.lib.lapack.dyn.rel.x86.12
 
 #unix: LIBS += -larmadillo
-win32:LIBS += -L /WpdPack/Lib/ -lPacket
-win32:LIBS += -L /WpdPack/Lib/ -lwpcap
+win32:LIBS += -L$$PWD//WpdPack/Lib/ -lPacket
+win32:LIBS += -L$$PWD//WpdPack/Lib/ -lwpcap
 #INCLUDEPATH += $$PWD/../opencv/build/include
 #win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_core249
 #win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_highgui249
