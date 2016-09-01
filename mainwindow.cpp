@@ -893,7 +893,7 @@ void Mainwindow::DrawTarget(QPainter* p)
 void Mainwindow::drawAisTarget(QPainter *p)
 {
     //draw radar  target:
-    QPen penTargetRed(Qt::cyan);
+    QPen penTargetRed(QColor(255,50,150));
     penTargetRed.setWidth(0);
     for(uint i=0;i<m_trackList.size();i++)
     {
@@ -909,8 +909,31 @@ void Mainwindow::drawAisTarget(QPainter *p)
 
                 short x = (fx*mScale)+scrCtX-dx;
                 short y = (fy*mScale)+scrCtY-dy;
-                p->drawEllipse(x-5,y-5,10,10);
-                p->drawText(x+5,y+5,QString::number(m_trackList.at(i).m_Head));
+                //draw ais mark
+                QPolygon poly;
+                QPoint point;
+                float head = m_trackList.at(i).m_Head*PI_NHAN2/(1<<16);
+                point.setX(x+8*sinf(head));
+                point.setY(y-8*cosf(head));
+                poly<<point;
+                point.setX(x+8*sinf(head+2.3562f));
+                point.setY(y-8*cosf(head+2.3562f));
+                poly<<point;
+                point.setX(x);
+                point.setY(y);
+                poly<<point;
+                point.setX(x+8*sinf(head-2.3562f));
+                point.setY(y-8*cosf(head-2.3562f));
+                poly<<point;
+                p->drawPolygon(poly);
+                //draw ais name
+                if(ui->toolButton_ais_name->isChecked())
+                {
+                    QFont font = p->font() ;
+                    font.setPointSize(6);
+                    p->setFont(font);
+                    p->drawText(x+5,y+10,(m_trackList.at(i).m_szName));
+                }
 //                p->drawText(x+5,y+5,QString::fromAscii((char*)&m_trackList.at(i).m_MMSI[0],9));
                 //printf("\nj:%d,%d,%d,%f,%f",j,x,y,arpa_data.ais_track_list[i].object_list[j].mlong,arpa_data.ais_track_list[i].object_list[j].mlat);
 
@@ -1376,7 +1399,7 @@ void Mainwindow::processARPA()
     //            short tNum = (*(list.begin()+1)).toInt();
     //            float tDistance = (*(list.begin()+2)).toFloat();
     //            float tRange = (*(list.begin()+3)).toFloat();
-    //            arpa_data.addARPA(tNum,tDistance,tRange);
+    //            arpa_data.adde(tNum,tDistance,tRange);
             }
             else if(list.at(i).contains("AI"))
             {
@@ -1628,7 +1651,7 @@ void Mainwindow::sync1()//period 1 second
     {
     case 4:
         ui->label_sn_type->setText("Ma DTTT");
-        ui->label_sn_param->setText(QString::number((((processing->radarData->sn_stat)&0x07)+1)*128));
+        ui->label_sn_param->setText(QString::number(32<<((processing->radarData->sn_stat)&0x07)));
         break;
     case 0:
         ui->label_sn_type->setText("Xung don");
@@ -1655,12 +1678,15 @@ void Mainwindow::sync1()//period 1 second
     case 0:
         ui->label_speed->setText(QString::fromUtf8("Dừng quay"));break;
     case 1:
-        ui->label_speed->setText("9 v/p");break;
+        ui->label_speed->setText("5 v/p");break;
     case 2:
-        ui->label_speed->setText("12 v/p");break;
+        ui->label_speed->setText("8 v/p");break;
     case 3:
-        ui->label_speed->setText("0 v/p");break;
-
+        ui->label_speed->setText("12 v/p");break;
+    case 4:
+        ui->label_speed->setText("15 v/p");break;
+    case 5:
+        ui->label_speed->setText("18 v/p");break;
     default:
 
         break;
@@ -1963,75 +1989,393 @@ void Mainwindow::UpdateScale()
         rangeStep = 1.5f/6.0f;
         byte2 = 0x00;
         ui->label_range->setText("1.5 NM");
+        if(ui->toolButton_auto_adapt->isChecked())
+        {
+            sendToRadarHS("1aab200100000000");// bat thich nghi
+            Sleep(100);
+            sendToRadarHS("14abff1100000000");// do trong
+            Sleep(100);
+            sendToRadarHS("08ab000000000000");//do phan giai
+            Sleep(100);
+            sendToRadarHS("01ab040000000000");//tin hieu dttt32
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(1100);
+            sendToRadarHS("1aab200000000000");//tat thich nghi
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab030500000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030500000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030500000000");//toc do quay
+            Sleep(100);
 
+
+        }
         break;
     case 1:
         mScale = (height()/2-5)/(CONST_NM*3 );
         rangeStep = 3/6.0f;
         byte2 = 0x00;
         ui->label_range->setText("3 NM");
+        if(ui->toolButton_auto_adapt->isChecked())
+        {
+            sendToRadarHS("1aab200100000000");// bat thich nghi
+            Sleep(100);
+            sendToRadarHS("14abff1100000000");// do trong
+            Sleep(100);
+            sendToRadarHS("08ab000000000000");//do phan giai
+            Sleep(100);
+            sendToRadarHS("01ab040000000000");//tin hieu dttt32
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(1100);
+            sendToRadarHS("1aab200000000000");//tat thich nghi
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab030500000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030500000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030500000000");//toc do quay
+            Sleep(100);
+
+
+        }
+
         break;
+
     case 2:
         mScale = (height()/2-5)/(CONST_NM*6 );
         rangeStep = 6/6.0f;
         byte2 = 0x00;
         ui->label_range->setText("6 NM");
+        if(ui->toolButton_auto_adapt->isChecked())
+        {
+            sendToRadarHS("1aab200100000000");// bat thich nghi
+            Sleep(100);
+            sendToRadarHS("14abff1100000000");// do trong
+            Sleep(100);
+            sendToRadarHS("08ab000000000000");//do phan giai
+            Sleep(100);
+            sendToRadarHS("01ab040000000000");//tin hieu dttt32
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(1100);
+            sendToRadarHS("1aab200000000000");//tat thich nghi
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab030500000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030500000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030500000000");//toc do quay
+            Sleep(100);
+
+
+        }
         break;
     case 3:
         mScale = (height()/2-5)/(CONST_NM*12 );
         rangeStep = 12/6.0f;
         byte2 = 0x00;
         ui->label_range->setText("12 NM");
+        if(ui->toolButton_auto_adapt->isChecked())
+        {
+            sendToRadarHS("1aab200100000000");// bat thich nghi
+            Sleep(100);
+            sendToRadarHS("08ab010000000000");//do phan giai
+            Sleep(100);
+            sendToRadarHS("14abff0100000000");// do trong
+            Sleep(100);
+            sendToRadarHS("01ab040100000000");//tin hieu dttt64
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(1100);
+            sendToRadarHS("1aab200000000000");//tat thich nghi
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab030400000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030400000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030400000000");//toc do quay
+            Sleep(100);
+
+
+        }
         break;
     case 4:
         mScale = (height()/2-5)/(CONST_NM*24 );
         rangeStep = 24/6.0f;
         byte2 = 0x01;
         ui->label_range->setText("24 NM");
+        if(ui->toolButton_auto_adapt->isChecked())
+        {
+            sendToRadarHS("1aab200100000000");// bat thich nghi
+            Sleep(100);
+            sendToRadarHS("08ab020000000000");//do phan giai 30
+            Sleep(100);
+            sendToRadarHS("14abff0100000000");// do trong
+            Sleep(100);
+            sendToRadarHS("01ab040200000000");//tin hieu dttt128
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(1100);
+            sendToRadarHS("1aab200000000000");//tat thich nghi
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab030400000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030400000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030400000000");//toc do quay
+            Sleep(100);
+        }
         break;
     case 5:
         mScale = (height()/2-5)/(CONST_NM*36 );
         rangeStep = 36/6.0f;
         byte2 = 0x02;
         ui->label_range->setText("36 NM");
+        if(ui->toolButton_auto_adapt->isChecked())
+        {
+            sendToRadarHS("1aab200100000000");// bat thich nghi
+            Sleep(100);
+            sendToRadarHS("08ab020000000000");//do phan giai 60
+            Sleep(100);
+            sendToRadarHS("14abff0100000000");// do trong
+            Sleep(100);
+            sendToRadarHS("01ab040300000000");//tin hieu dttt256
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(1100);
+            sendToRadarHS("1aab200000000000");//tat thich nghi
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab030300000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030300000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030300000000");//toc do quay
+            Sleep(100);
+        }
         break;
     case 6:
         mScale = (height()/2-5)/(CONST_NM*48 );
         rangeStep = 48/6.0f;
         byte2 = 0x03;
         ui->label_range->setText("48 NM");
+        if(ui->toolButton_auto_adapt->isChecked())
+        {
+            sendToRadarHS("1aab200100000000");// bat thich nghi
+            Sleep(100);
+            sendToRadarHS("08ab030000000000");//do phan giai 90
+            Sleep(100);
+            sendToRadarHS("14abff0100000000");// do trong
+            Sleep(100);
+            sendToRadarHS("01ab040300000000");//tin hieu dttt256
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(1100);
+            sendToRadarHS("1aab200000000000");//tat thich nghi
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab030200000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030200000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030200000000");//toc do quay
+            Sleep(100);
+        }
         break;
     case 7:
         mScale = (height()/2-5)/(CONST_NM*72 );
         rangeStep = 72/6.0f;
         byte2 = 0x04;
         ui->label_range->setText("72 NM");
+        if(ui->toolButton_auto_adapt->isChecked())
+        {
+            sendToRadarHS("1aab200100000000");// bat thich nghi
+            Sleep(100);
+            sendToRadarHS("08ab040000000000");//do phan giai 120
+            Sleep(100);
+            sendToRadarHS("14abff0100000000");// do trong
+            Sleep(100);
+            sendToRadarHS("01ab040300000000");//tin hieu dttt256
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(1100);
+            sendToRadarHS("1aab200000000000");//tat thich nghi
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab030100000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030100000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030100000000");//toc do quay
+            Sleep(100);
+        }
         break;
     case 8:
         mScale = (height()/2-5)/(CONST_NM*96 );
         rangeStep = 96/6.0f;
         byte2 = 0x05;
         ui->label_range->setText("96 NM");
+        if(ui->toolButton_auto_adapt->isChecked())
+        {
+            sendToRadarHS("1aab200100000000");// bat thich nghi
+            Sleep(100);
+            sendToRadarHS("08ab050000000000");//do phan giai 150
+            Sleep(100);
+            sendToRadarHS("14abff0100000000");// do trong
+            Sleep(100);
+            sendToRadarHS("01ab040300000000");//tin hieu dttt256
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(1100);
+            sendToRadarHS("1aab200000000000");//tat thich nghi
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab030100000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030100000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030100000000");//toc do quay
+            Sleep(100);
+        }
         break;
     case 9:
         mScale = (height()/2-5)/(CONST_NM*120 );
         rangeStep = 120/6.0f;
         byte2 = 0x06;
         ui->label_range->setText("120 NM");
+        if(ui->toolButton_auto_adapt->isChecked())
+        {
+            sendToRadarHS("1aab200100000000");// bat thich nghi
+            Sleep(100);
+            sendToRadarHS("08ab060000000000");//do phan giai 180
+            Sleep(100);
+            sendToRadarHS("14abff0100000000");// do trong
+            Sleep(100);
+            sendToRadarHS("01ab040300000000");//tin hieu dttt256
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(100);
+            sendToRadarHS("aaab020000000000");//tat phat
+            Sleep(1100);
+            sendToRadarHS("1aab200000000000");//tat thich nghi
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab020100000000");//bat phat
+            Sleep(100);
+            sendToRadarHS("aaab030100000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030100000000");//toc do quay
+            Sleep(100);
+            sendToRadarHS("aaab030100000000");//toc do quay
+            Sleep(100);
+        }
         break;
     default:
         mScale = (height()/2-5)/(CONST_NM*48  );
         ui->label_range->setText("48 NM");
         break;
     }
-    if(ui->toolButton_adaptiv_scale->isChecked())
-
+    if(ui->toolButton_auto_adapt->isChecked())
     {
-        unsigned char bytes[8] = {0x08,0xab,0x00,0x00,0x00,0x00,0x00,0x00};
+//        unsigned char bytes[8] = {0x08,0xab,0x00,0x00,0x00,0x00,0x00,0x00};
 
-        bytes[2]=byte2;
-        sendToRadar(bytes);
-        processing->radarData->resetTrack();
+//        bytes[2]=byte2;
+//        sendToRadar(bytes);
+//        processing->radarData->resetTrack();
         for(short i = 0;i<targetList.size();i++)
         {
             targetList.at(i)->deleteLater();
@@ -2646,33 +2990,55 @@ void Mainwindow::on_toolButton_delete_target_clicked()
 void Mainwindow::on_toolButton_tx_clicked()
 {
 
-    unsigned char        bytes[8] = {0xaa,0xab,0x03,0x02,0x00,0x00,0x00};//rotation on
+
+    unsigned char        bytes[8] = {0xaa,0xab,0x03,0x03,0x00,0x00,0x00};//rotation on
     sendToRadar(bytes); Sleep(100);
     sendToRadar(bytes); Sleep(100);
+    sendToRadar(bytes); Sleep(100);
+    sendToRadar(bytes); Sleep(100);
+    //tx on
+    bytes[0] = 0xaa;
+    bytes[2] = 0x02;
+    bytes[3] = 0x00;//tx on 1
+    sendToRadar(bytes);Sleep(100);
+    sendToRadar(bytes);Sleep(100);
+    sendToRadar(bytes);Sleep(100);
     sendToRadar(bytes); Sleep(100);
 
+    bytes[0] = 0x1a;
+    bytes[2] = 0x20;//thich nghi
+    bytes[3] = 0x01;
+    sendToRadar(bytes);
+    Sleep(100);
+
+    bytes[0] = 0x14;//do trong
+    bytes[2] = 0xff;
+    bytes[3] = 0x01;
+    sendToRadar(bytes);
     bytes[0] = 0x04;//set 1536
     bytes[2] = 0x00;
     bytes[3] = 0x06;
+    sendToRadar(bytes);
+    Sleep(100);
+
+
+    bytes[0] = 0x01;
+    bytes[2] = 0x04;//dttt 256
+    bytes[3] = 0x03;
     sendToRadar(bytes);
     Sleep(100);
     bytes[0] = 0x08;//set resolution 60m
     bytes[2] = 0x02;
     bytes[3] = 0x00;
     sendToRadar(bytes);
+    Sleep(1100);
+
+    bytes[0] = 0x1a;
+    bytes[2] = 0x20;//tat thich nghi
+    bytes[3] = 0x00;
+    sendToRadar(bytes);
     Sleep(100);
 
-    bytes[0] = 0x01;
-    bytes[2] = 0x04;//set up auto noise level
-    bytes[3] = 0x01;
-    sendToRadar(bytes);
-    Sleep(100);
-    // do trong
-    bytes[0] = 0x14;
-    bytes[2] = 0xff;
-    bytes[3] = 0x01;
-    sendToRadar(bytes);
-    Sleep(100);
     //tx on
     bytes[0] = 0xaa;
     bytes[2] = 0x02;
@@ -2680,15 +3046,12 @@ void Mainwindow::on_toolButton_tx_clicked()
     sendToRadar(bytes);Sleep(100);
     sendToRadar(bytes);Sleep(100);
     sendToRadar(bytes);Sleep(100);
+    sendToRadar(bytes);Sleep(100);
     bytes[2] = 0x00;//tx on 2
     sendToRadar(bytes);    Sleep(100);
     sendToRadar(bytes);    Sleep(100);
     sendToRadar(bytes);    Sleep(100);
-    //ui->toolButton_tx->setChecked(false);
-    bytes[0] = 0x1a;
-    bytes[2] = 0x20;//set up auto noise level
-    bytes[3] = 0x01;
-    sendToRadar(bytes);    Sleep(100);
+    sendToRadar(bytes);Sleep(100);
     if(radar_state!=DISCONNECTED)
     {
         QFile logFile;
@@ -2854,4 +3217,9 @@ void Mainwindow::on_toolButton_auto_select_toggled(bool checked)
     {
         this->setCursor(Qt::CrossCursor);
     }
+}
+
+void Mainwindow::on_toolButton_ais_reset_clicked()
+{
+    m_trackList.clear();
 }

@@ -268,6 +268,8 @@ private slots:
 
     void on_toolButton_auto_select_toggled(bool checked);
 
+    void on_toolButton_ais_reset_clicked();
+
 private:
     void initActionsConnections();
 };

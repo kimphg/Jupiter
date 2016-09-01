@@ -1631,33 +1631,32 @@ void C_radar_data::setScalePPI(float scale)
 void C_radar_data::setScaleZoom(float scale)
 {
     float sn_scale;
-    switch(clk_adc)
-    {
-    case 0:
-        sn_scale = SIGNAL_SCALE_0;
-
-        break;
-    case 1:
-        sn_scale = SIGNAL_SCALE_1;//printf("1");
-        break;
-    case 2:
-        sn_scale = SIGNAL_SCALE_2;//printf("2");
-        break;
-    case 3:
-        sn_scale = SIGNAL_SCALE_3;//printf("2");
-        break;
-    case 4:
-        sn_scale = SIGNAL_SCALE_4;//printf("2");
-        break;
-    case 5:
-        sn_scale = SIGNAL_SCALE_5;//printf("2");
-        break;
-    case 6:
-        sn_scale = SIGNAL_SCALE_6;//printf("2");
-        break;
-    default:
-        sn_scale = SIGNAL_SCALE_0;
-    }
+//    switch(clk_adc)
+//    {
+//    case 0:
+//        sn_scale = SIGNAL_SCALE_0;
+//        break;
+//    case 1:
+//        sn_scale = SIGNAL_SCALE_1;//printf("1");
+//        break;
+//    case 2:
+//        sn_scale = SIGNAL_SCALE_2;//printf("2");
+//        break;
+//    case 3:
+//        sn_scale = SIGNAL_SCALE_3;//printf("2");
+//        break;
+//    case 4:
+//        sn_scale = SIGNAL_SCALE_4;//printf("2");
+//        break;
+//    case 5:
+//        sn_scale = SIGNAL_SCALE_5;//printf("2");
+//        break;
+//    case 6:
+//        sn_scale = SIGNAL_SCALE_6;//printf("2");
+//        break;
+//    default:
+//        sn_scale = SIGNAL_SCALE_0;
+//    }
     sn_scale = SIGNAL_SCALE_0;
     scale_zoom = sn_scale*scale/scale_ppi;
     //updateZoomRect();
