@@ -193,7 +193,6 @@ public:	// For history points
 typedef std::vector< const C2_Track > C2_TrackLst;
 
 
-
 //-----------------------------------------------------------------------------
 #endif // !defined(AFX_C2TRACK_H_)
 
