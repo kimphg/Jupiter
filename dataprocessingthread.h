@@ -2,28 +2,24 @@
 #define DATAPROCESSINGTHREAD_H
 #include <QThread>
 
-#include "C_radar_data.h"
-#include "c_arpa_data.h"
+//#include "C_radar_data.h"
+//#include "c_arpa_data.h"
 #include <vector>
-//#include <QMutexLocker>
 #include <QFile>
 #include <QUdpSocket>
 #include <QStringList>
-//#include <opencv2/highgui/highgui.hpp>
-//#include <opencv2/core/core.hpp>
-//#include <opencv2/imgproc/imgproc.hpp>
-#define HAVE_REMOTE
+#include "Luna/luna.h"
+#define HAVE_REMOTE //for pcap
 #include "pcap.h"
 #ifndef CONST_NM
-#define CONST_NM 1.825f
-
+#define CONST_NM 1.852f
 #endif
-#define HR2D_UDP_PORT 5000
 struct DataBuff
 {
     short len;
     unsigned char data[1500];
 };
+
 class dataProcessingThread:public QThread
 {
     Q_OBJECT
@@ -47,8 +43,9 @@ public:
     void stopThread();
     void startReplay(QString fileName);
     void togglePlayPause(bool play);
-    C_radar_data* radarData;
-    C_ARPA_data* arpaData;
+    //C_radar_data* radarData;
+    Luna *radarData;
+    //C_ARPA_data* arpaData;
     void run();
     bool getIsDrawn()
     {

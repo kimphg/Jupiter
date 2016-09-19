@@ -9,7 +9,7 @@ bool *pIsPlaying;
 dataProcessingThread::~dataProcessingThread()
 {
     delete radarData;
-    delete arpaData;
+    //delete arpaData;
 }
 void dataProcessingThread::ReadDataBuffer()
 {
@@ -46,9 +46,9 @@ dataProcessingThread::dataProcessingThread()
 //    udpSendSocket = new QUdpSocket(this);
 //    udpSendSocket->bind(2000);
     playRate = 10;
-    arpaData = new C_ARPA_data();
+    //arpaData = new C_ARPA_data();
     isRecording = false;
-    radarData = new C_radar_data();
+    radarData = new Luna();
     isPlaying = false;
     radarDataSocket = new QUdpSocket(this);
     radarDataSocket->bind(5000, QUdpSocket::ShareAddress);
@@ -131,7 +131,7 @@ void dataProcessingThread::processARPAData()
         unsigned short len = ARPADataSocket->pendingDatagramSize();
         datagram.resize(len);
         ARPADataSocket->readDatagram(datagram.data(), len);
-        arpaData->processData(datagram.data(),len);
+        //arpaData->processData(datagram.data(),len);
         if(isRecording)
         {
             signRecFile.write((char*)&len,2);
@@ -174,7 +174,7 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
 
     if(*pIsPlaying)return;
     if(header->len<=500)return;
-    if(((*(pkt_data+36)<<8)|(*(pkt_data+37)))!=HR2D_UDP_PORT)
+    if(((*(pkt_data+36)<<8)|(*(pkt_data+37)))!=5000)
     {
         //printf("\nport:%d",((*(pkt_data+36)<<8)|(*(pkt_data+37))));
         return;

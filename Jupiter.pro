@@ -25,8 +25,8 @@ SOURCES += main.cpp\
     vnmap.cpp \
     Config.cpp \
     gpsdialog.cpp \
-    C_radar_data.cpp \
-    c_arpa_data.cpp \
+#    C_radar_data.cpp \
+#    c_arpa_data.cpp \
     dataprocessingthread.cpp \
     onexitdialog.cpp \
     qcustombutton.cpp \
@@ -43,8 +43,8 @@ HEADERS  += mainwindow.h \
     vnmap.h \
     Config.h \
     gpsdialog.h \
-    C_radar_data.h \
-    c_arpa_data.h \
+#    C_radar_data.h \
+#    c_arpa_data.h \
     dataprocessingthread.h \
     onexitdialog.h \
     qcustombutton.h \
@@ -69,8 +69,8 @@ FORMS    += mainwindow.ui \
 
 INCLUDEPATH += $$PWD/WpdPack/Include
 DEPENDPATH += $$PWD/WpdPack/Include
-INCLUDEPATH += $$PWD/
-DEPENDPATH += $$PWD/
+INCLUDEPATH += $$PWD/Luna
+DEPENDPATH += $$PWD/Luna
 
 #RESOURCES +=
 #INCLUDEPATH += $$PWD/../armadillo/include
@@ -83,6 +83,7 @@ DEPENDPATH += $$PWD/
 #unix: LIBS += -larmadillo
 win32:LIBS += -L$$PWD//WpdPack/Lib/ -lPacket
 win32:LIBS += -L$$PWD//WpdPack/Lib/ -lwpcap
+win32:LIBS += -L$$PWD//Luna/ -lluna
 #INCLUDEPATH += $$PWD/../opencv/build/include
 #win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_core249
 #win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_highgui249
