@@ -27,6 +27,7 @@
 #define MAX_AZIR_DRAW               6144
 #define RAD_M_PULSE_RES             1536
 #define RAD_S_PULSE_RES             256
+#define RAD_SPECTRE                 16
 #define DISPLAY_RES                 768
 #define RAD_FULL_RES                1792
 #define SIGNAL_SCALE_7      0.21538461538461538f //215.38461538461538461538461538461
@@ -239,9 +240,10 @@ public:
     DataOverLay             dataOver;
     bool                    isDisplayAlpha;
     unsigned char           noise_level[8];
+    unsigned char           spectre  [RAD_SPECTRE];
     unsigned char           tempType,rotation_speed;
     unsigned short          range_max;
-    QImage                  *img_ppi,*img_alpha,*img_zoom_ppi;
+    QImage                  *img_ppi,*img_alpha,*img_zoom_ppi,*img_spectre;
     imgDrawMode             imgMode;
     void deleteTrack(short trackNum);
     //______________________________________//

@@ -1009,6 +1009,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     if(ui->tabWidget_2->currentIndex()==2)
     {
         QRect rect = ui->tabWidget_2->geometry();
+        // draw zoom frame in the indicator
         if(range>2)
         {
 
@@ -1024,6 +1025,15 @@ void Mainwindow::paintEvent(QPaintEvent *event)
         p.drawRect(rect);
         p.drawImage(rect,*processing->radarData->img_zoom_ppi,processing->radarData->img_zoom_ppi->rect());
 
+    }
+    else if(ui->tabWidget_2->currentIndex()==3)
+    {
+        QRect rect = ui->tabWidget_2->geometry();
+        rect.adjust(4,30,-5,-5);
+        p.setPen(QPen(Qt::red));
+        p.setBrush(QBrush(Qt::black));
+        p.drawRect(rect);
+        p.drawImage(rect,*processing->radarData->img_spectre,processing->radarData->img_spectre->rect());
     }
     updateTargets();
 }

@@ -12,6 +12,7 @@
 typedef struct  {
     //processing data
     unsigned char level [MAX_AZIR][RAD_M_PULSE_RES];
+
     unsigned char level_disp [MAX_AZIR][RAD_M_PULSE_RES];
     bool          detect[MAX_AZIR][RAD_M_PULSE_RES];
     //unsigned char rainLevel[MAX_AZIR][RAD_M_PULSE_RES];
@@ -329,6 +330,7 @@ C_radar_data::C_radar_data()
     img_ppi = new QImage(DISPLAY_RES*2+1,DISPLAY_RES*2+1,QImage::Format_ARGB32);
     img_alpha = new QImage(RAD_M_PULSE_RES,256,QImage::Format_Mono);
     img_zoom_ppi = new QImage(ZOOM_SIZE+1,ZOOM_SIZE+1,QImage::Format_ARGB32);
+    img_spectre = new QImage(16,256,QImage::Format_Mono);
     img_ppi->fill(Qt::transparent);
     isDisplayAlpha = false;
     size_thresh = 4;
@@ -485,6 +487,14 @@ void C_radar_data::drawBlackAzi(short azi_draw)
 void C_radar_data::drawAzi(short azi)
 {
     img_alpha->fill(0);
+    img_spectre->fill(0);
+    for(short i=0;i<16;i++)
+    {
+        for(short j=255;j>255-spectre[i];j--)
+        {
+             img_spectre->setPixel(i,j,1);
+        }
+    }
     //reset the display masks
     short prev_azi = azi + 200;
     if(prev_azi>=MAX_AZIR)prev_azi -= MAX_AZIR;
@@ -496,24 +506,21 @@ void C_radar_data::drawAzi(short azi)
     //memset(&signal_map.display_zoom[0][0],0,DISPLAY_RES_ZOOM*3);
     //set data to the drawing ray
 
-
     unsigned short  lastDisplayPos =0;
     for (short r_pos = 0;r_pos<range_max-1;r_pos++)
     {
 
             unsigned short value = data_mem.level_disp[azi][r_pos];
             unsigned short dopler = data_mem.dopler[azi][r_pos];
-
             //xu ly nguong
 
             //display alpha graph
-            if(isDisplayAlpha)
+            /*
+            for(short i=255;i>255 - value;i--)
             {
-                for(short i=255;i>255 - value;i--)
-                {
-                    img_alpha->setPixel(r_pos,i,1);
-                }
+                img_alpha->setPixel(r_pos,i,1);
             }
+            */
             //zoom to view scale
             short display_pos = r_pos*scale_ppi;
             short display_pos_next = (r_pos+1)*scale_ppi;
@@ -524,7 +531,6 @@ void C_radar_data::drawAzi(short azi)
                 {
                     data_mem.display_ray[display_pos][0] = value;
                     data_mem.display_ray[display_pos][1] = dopler;
-
                 }
                 if(data_mem.display_ray[display_pos][2] < data_mem.sled[azi][r_pos])
                 {
@@ -652,7 +658,7 @@ void C_radar_data::drawAzi(short azi)
 
 short waitForData = 0;
 unsigned char curFrameId;
-unsigned char dataBuff[RADAR_DATA_HEADER + RADAR_DATA_MAX_SIZE];
+unsigned char dataBuff[RADAR_DATA_HEADER + RADAR_DATA_MAX_SIZE+32];//!!!
 QFile *exp_file = NULL;
 void C_radar_data::ProcessData(unsigned short azi)
 {
@@ -959,8 +965,6 @@ void C_radar_data::ProcessDataFrame()
 {
 
     short azi = (0xfff & (dataBuff[4] << 8 | dataBuff[5]))>>1;
-
-
     short lastazi=azi-1;
     if(lastazi<0)lastazi+=MAX_AZIR;
     if(azi==curAzir)return;else if(azi<curAzir&&(abs(azi-curAzir)<10))return;
@@ -971,8 +975,6 @@ void C_radar_data::ProcessDataFrame()
     unsigned char n_clk_adc = (dataBuff[4]&(0xe0))>>5;
     if(clk_adc != n_clk_adc)
     {
-        // clock adc
-
             clk_adc = n_clk_adc;
             isClkAdcChanged = true;
             resetData();
@@ -983,9 +985,7 @@ void C_radar_data::ProcessDataFrame()
     sn_stat = dataBuff[14]<<8|dataBuff[15];
 
     memcpy(command_feedback,&dataBuff[RADAR_COMMAND_FEEDBACK],8);
-
     memcpy(noise_level,&dataBuff[RADAR_COMMAND_FEEDBACK+8],8);
-
 
     if((lastazi!=curAzir))
     {
@@ -1027,6 +1027,7 @@ void C_radar_data::redrawImg()
         }
         if(drawnazi==0)
         {
+            // calculate rotation period of the anntena
             if(cur_timeMSecs)
             {
                 qint64 newtime = QDateTime::currentMSecsSinceEpoch();
@@ -1055,24 +1056,23 @@ void C_radar_data::redrawImg()
 void C_radar_data::GetDataHR(unsigned char* data,unsigned short dataLen)
 {
 
-    if((dataLen<RADAR_DATA_HEADER)){printf("Wrong data.1\n");return;}
+    if((dataLen<RADAR_DATA_HEADER)){printf("Data shorter than header\n");return;}
     char dataId = data[0]&0x0f;
     if(dataId==1)
     {
         //printf("%x-",data[0]);
         curFrameId = (data[0]&0xf0)>>4;
-        range_max = (dataLen - RADAR_DATA_HEADER)*4/3 - RAD_S_PULSE_RES;
+        range_max = (dataLen - RADAR_DATA_HEADER )*4/3 - RAD_S_PULSE_RES;
         //printf("range_max:%d\n",range_max);
         if(range_max < RAD_S_PULSE_RES){printf("Wrong data.2\n");return;}
-        if(range_max > RAD_M_PULSE_RES){printf("Wrong data.3\n");return;}
+        if(range_max > RAD_M_PULSE_RES+32){printf("Data too large.3\n");return;}
         memcpy(dataBuff,data,dataLen);
-        waitForData = dataLen;
-
+        waitForData = dataLen;// !!!
     }
     else if(dataId==2)
     {
         //check if we are waiting for second half data frame
-        if(!waitForData){printf("Wrong data.4\n");return;}
+        if(!waitForData){printf("Data without fisrt frame\n");return;}
         //check if frame ID is the one that we are expecting
         short secondFrameId = (data[0]&0xf0)>>4;
         if(curFrameId!=secondFrameId){
@@ -1081,13 +1081,13 @@ void C_radar_data::GetDataHR(unsigned char* data,unsigned short dataLen)
             //return;
         }
         // check if the data size is correct
-        if(dataLen!=waitForData){printf("Wrong data.6\n");return;}
+        if(dataLen!=waitForData){printf("Wrong data.6\n");return;}//
         //load data to buffer
         memcpy(dataBuff + waitForData,data + RADAR_DATA_HEADER,dataLen-RADAR_DATA_HEADER);
         //process data
         ProcessDataFrame();
         waitForData = 0;
-
+        memcpy(spectre,data+dataLen-16,16);
     }
     else{
         printf("\nWrong data id. ID = %d",dataId);

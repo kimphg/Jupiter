@@ -17915,7 +17915,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>3</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -23051,6 +23051,11 @@
     <widget class="QWidget" name="tab_5">
      <attribute name="title">
       <string>PPI</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="tab_2">
+     <attribute name="title">
+      <string>Phổ TH</string>
      </attribute>
     </widget>
    </widget>
