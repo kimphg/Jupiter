@@ -20,11 +20,10 @@ void dataProcessingThread::ReadDataBuffer()
     {
         if(connect_timeout)connect_timeout--;
     }
-    short nread = 0;
     while(iRec!=iRead)
     {
-        nread++;
-        if(nread>200)break;
+        //nread++;
+
         radarData->GetDataHR(&dataBuff[iRead].data[0],dataBuff[iRead].len);
         if(isRecording)
         {
@@ -35,7 +34,6 @@ void dataProcessingThread::ReadDataBuffer()
         iRead++;
         if(iRead>=MAX_IREC)iRead=0;
     }
-    return;
 }
 dataProcessingThread::dataProcessingThread()
 {
