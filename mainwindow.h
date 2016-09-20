@@ -18,6 +18,7 @@
 #include <gpsdialog.h>
 #include <dataprocessingthread.h>
 #include <onexitdialog.h>
+#include <C_radar_data.h>
 #include <QFileDialog>
 #include <QImage>
 #include <QHostAddress>

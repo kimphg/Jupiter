@@ -1,7 +1,5 @@
-#ifndef LUNA_H
-#define LUNA_H
-
-#include "luna_global.h"
+#ifndef C_RAW_DATA_H
+#define C_RAW_DATA_H
 //----------------------------------------------------------//
 //HR2D signal processing class and EKF tracking algorithm   //
 //First release: November 2015                              //
@@ -9,6 +7,10 @@
 //Last update: August 2016                                  //
 //Author: Phung Kim Phuong                                  //
 //----------------------------------------------------------//
+#define ARMA_USE_LAPACK
+#define ARMA_USE_BLAS
+#define ARMA_BLAS_UNDERSCORE
+
 
 #define TRACK_STABLE_STATE          5
 #define MIN_TERRAIN                 10
@@ -97,8 +99,51 @@ typedef struct  {
 typedef std::vector<plot_t> plotList;
 typedef std::vector<object_t> objectList;
 using Eigen::MatrixXf;
+//class matrix_t
+//{
+//public:
+//    float *data;
+//    short row,col;
+//    matrix_t()
+//    {
+//        data = 0;
+//        row = 0;
+//        col = 0;
+//    }
+//    void init(short irow,short icol) {
 
-class LUNASHARED_EXPORT track_t {
+//        data = new float[irow*icol];
+//        memset(data,0,irow*icol);
+//        row = irow;
+//        col = icol;
+
+//    }
+//    ~matrix_t() {
+//        if(data)delete[] data;
+//    }
+//    float* at(short r,short c)
+//    {
+//        if(r>row||c>col) return 0;
+//        return &data[col*r+c];
+//    }
+//    matrix_t mul(matrix_t *mat)
+//    {
+//        short r1 = this->row;
+//        short c1 = this->col;
+//        short c2 = mat->col;
+//        matrix_t m;
+//        m.init(r1,c2);
+//        if(c1!=mat->row)return m;
+
+//        for(short i=0; i<r1; ++i)
+//        for(short j=0; j<c2; ++j)
+//        for(short k=0; k<c1; ++k)
+//        *(m.at(i,j)) += (*this->at(i,k))*(*mat->at(k,j));
+//        return m;
+//    }
+//};
+//______________________________________//
+class track_t {
 public:
     track_t()
     {
@@ -110,6 +155,8 @@ public:
     MatrixXd h;
     MatrixXd p;
     MatrixXd x;
+    //
+    //qint64 currentTimeMs;
     bool isConfirmed;
     objectList suspect_list,object_list;
     char terrain;
@@ -125,6 +172,7 @@ public:
     bool isTracking,isManual;
     bool isManeuvering;
     char dopler;
+    //QDateTime time;
     bool isProcessed;
     bool isUpdated;
     float head_r;
@@ -147,11 +195,11 @@ enum imgDrawMode
     DOPLER_3_COLOR = 2,
 };
 enum DataOverLay { m_only, s_m_200, s_m_150 , max_s_m_200, max_s_m_150};
-class LUNASHARED_EXPORT Luna {
+class C_radar_data {
 public:
 
-    Luna();
-    ~Luna();
+    C_radar_data();
+    ~C_radar_data();
     float k_vet;// !!!!
     trackList               mTrackList;
     plotList                plot_list;
@@ -223,6 +271,14 @@ public:
     void        resetData();
     void        resetSled();
     void        setProcessing(bool onOff);
+    //bool        getDataOverload(){if(isDataTooLarge) {isDataTooLarge =false;return true;} else return false;}
+//    bool        checkFeedback(unsigned char* command)
+//    {
+//        for (short i=0;i<8;i++)
+//        {if(command[i]!=command_feedback[i])return false;}
+//        memset(&command_feedback[0],0,8);
+//        return true;
+//    }
      char* getFeedback()
         {
 
@@ -249,4 +305,6 @@ private:
     //FILE *pFile;
 };
 
-#endif // LUNA_H
+//extern C_radar_data radarData;
+
+#endif

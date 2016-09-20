@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "pkp.h"
-#include "Luna/luna.h"
 //#include "gdal/ogr/ogrsf_frmts/ogrsf_frmts.h"
 //#include "gdal/gcore/gdal.h"
 //#define mapWidth 2000
@@ -21,7 +20,7 @@ QTimer                      dataPlaybackTimer ;
 bool                        displayAlpha = false;
 QList<CTarget*>             targetList;
 short                       dxMax,dyMax;
-//C_ARPA_data                 arpa_data;
+C_ARPA_data                 arpa_data;
 short                       scrCtX, scrCtY, dx =0,dy=0,dxMap=0,dyMap=0;
 short                       mousePointerX,mousePointerY,mouseX,mouseY;
 bool                        isDraging = false;
@@ -899,6 +898,7 @@ void Mainwindow::drawAisTarget(QPainter *p)
     for(uint i=0;i<m_trackList.size();i++)
     {
             p->setPen(penTargetRed);
+            short j;
             //draw track:
             float fx,fy;
             float mlat = m_trackList.at(i).m_Lat ;
