@@ -50,7 +50,7 @@ dataProcessingThread::dataProcessingThread()
     radarSocket = new QUdpSocket(this);
     radarSocket->bind(5555, QUdpSocket::ShareAddress);
     connect(&UpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadar()));
-    UpdateTimer.start(100);
+    UpdateTimer.start(200);
 }
 void dataProcessingThread::UpdateRadar()
 {
@@ -142,15 +142,6 @@ void dataProcessingThread::processARPAData()
             signRecFile.write(datagram.data(),len);
         }
 
-//        else if((*list.begin()).contains("CAMAZI"))
-//        {
-//            currCamAzi = (*(list.begin()+1)).toDouble()+config.m_config.trueNCam;
-//            if(currCamAzi>360)currCamAzi-=360;
-//            alpha = currCamAzi/CONST_RAD_TO_DEG;
-//            //printf((*(list.begin()+1)).data());
-//            //printf("\ncurrCamAzi:%f",currCamAzi);
-//            update();
-//        }
     }
     return;
 }
@@ -301,7 +292,7 @@ void dataProcessingThread::radTxOn()
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    //tx on
+    //tx off
     command.bytes[0] = 0xaa;
     command.bytes[2] = 0x02;
     command.bytes[3] = 0x00;

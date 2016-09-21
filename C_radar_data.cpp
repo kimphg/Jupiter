@@ -682,8 +682,10 @@ void  C_radar_data::getNoiseLevel()
         img_histogram->setPixel(histogram_max_pos,j,1);
     }
     if(noiseVar==0)noiseVar = sumvar/float(n);else
-    {noiseVar+=(sumvar/float(n)-noiseVar)/2;}
-    printf("\nnoise avg:%f",noiseAverage);
+    {
+        noiseVar+=(sumvar/float(n)-noiseVar)/2;
+    }
+    //printf("\nnoise avg:%f",noiseAverage);
 
 
 }
@@ -821,11 +823,11 @@ void C_radar_data::ProcessData(unsigned short azi)
                 if(!cutoff)
                 {
                     //                short doplerVar =0;
-                    short var;
-                    var = abs(data_mem.dopler[azi][r_pos]-data_mem.dopler_old[azi][r_pos]);
-                    if(var>8)
-                        var = 16-var;
-                    cutoff = (var>0);
+//                    short var;
+//                    var = abs();
+//                    if(var>8)
+//                        var = 16-var;
+                    cutoff = (data_mem.dopler[azi][r_pos]!=data_mem.dopler_old[azi][r_pos]);
                 }
 
 
@@ -1120,12 +1122,11 @@ void C_radar_data::GetDataHR(unsigned char* data,unsigned short dataLen)
         if(range_max > RAD_M_PULSE_RES){printf("Wrong data.3\n");return;}
         memcpy(dataBuff,data,dataLen);
         waitForData = dataLen;
-
     }
     else if(dataId==2)
     {
         //check if we are waiting for second half data frame
-        if(!waitForData){printf("Wrong data.4\n");return;}
+        if(!waitForData){printf("First frame is mising\n");return;}
         //check if frame ID is the one that we are expecting
         short secondFrameId = (data[0]&0xf0)>>4;
         if(curFrameId!=secondFrameId){
@@ -1140,7 +1141,6 @@ void C_radar_data::GetDataHR(unsigned char* data,unsigned short dataLen)
         //process data
         ProcessDataFrame();
         waitForData = 0;
-
     }
     else{
         printf("\nWrong data id. ID = %d",dataId);
