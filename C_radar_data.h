@@ -200,10 +200,11 @@ public:
     C_radar_data();
     ~C_radar_data();
     float k_vet;// !!!!
+    float                   rotation_per_min ;
     trackList               mTrackList;
     plotList                plot_list;
     unsigned char           spectre[16];
-    unsigned char           overload, terrain_init_time, clk_adc;
+    unsigned char           overload, init_time, clk_adc;
     float                   scale_ppi,scale_zoom;
     short                   curAzir;
     void                    updateZoomRect(float ctx, float cty);
@@ -229,10 +230,9 @@ public:
     }
     void setAvtoDetect(bool arg)
     {
-        terrain_init_time = 2;
+        init_time = 3;
         avtodetect = arg;
     }
-
     float                   temp;
     float                   trueN;
     DataOverLay             dataOver;

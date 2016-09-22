@@ -24,13 +24,17 @@ void dataProcessingThread::ReadDataBuffer()
     while(iRec!=iRead)
     {
         nread++;
-        if(nread>200)break;
-        radarData->GetDataHR(&dataBuff[iRead].data[0],dataBuff[iRead].len);
+        DataBuff *pData = &dataBuff[iRead];
+        if(nread>400)
+        {
+            radarData->resetData();
+            break;
+        }
+        radarData->GetDataHR(&pData->data[0],pData->len);
         if(isRecording)
         {
-            signRecFile.write((char*)&dataBuff[iRead].len,2);
-            signRecFile.write((char*)&dataBuff[iRead].data[0],dataBuff[iRead].len);
-
+            signRecFile.write((char*)&pData->len,2);
+            signRecFile.write((char*)&pData->data[0],pData->len);
         }
         iRead++;
         if(iRead>=MAX_IREC)iRead=0;
@@ -393,7 +397,14 @@ void dataProcessingThread::radTxOff()
 //        //logFile.p
 //        logFile.close();
 
-//    }
+    //    }
+}
+
+void dataProcessingThread::sendCommand(unsigned char *sendBuff, short len)
+{
+    RadarCommand command;
+    memcpy(&command.bytes[0],sendBuff,len);
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
 }
 
 void dataProcessingThread::listenToRadar()

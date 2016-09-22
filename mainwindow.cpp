@@ -100,7 +100,7 @@ void Mainwindow::sendToRadarHS(const char* hexdata)
     short len = strlen(hexdata)/2+1;
     unsigned char* sendBuff = new unsigned char[len];
     hex2bin(hexdata,sendBuff);
-    m_udpSocket->writeDatagram((char*)sendBuff,8,QHostAddress("192.168.0.44"),2572);
+    processing->sendCommand(sendBuff,len);
     delete[] sendBuff;
 
 }
@@ -436,7 +436,8 @@ void Mainwindow::DrawMap()
     dxMap = 0;
     dyMap = 0;
     QPainter p(pMap);
-    pMap->fill(QColor(10,18,25,255));
+    //pMap->fill(QColor(10,18,25,255));
+    pMap->fill(QColor(10,20,30,255));
     //pMap->fill(Qt::transparent);
     if(ui->toolButton_map->isChecked())
     {
@@ -1698,7 +1699,7 @@ void Mainwindow::sync1()//period 1 second
 
         break;
     }
-
+    ui->label_speed_2->setText(QString::number(processing->radarData->rotation_per_min)+"v/p");
 
 
 
@@ -1999,35 +2000,19 @@ void Mainwindow::UpdateScale()
         if(ui->toolButton_auto_adapt->isChecked())
         {
             sendToRadarHS("1aab200100000000");// bat thich nghi
-            Sleep(100);
             sendToRadarHS("14abff1100000000");// do trong
-            Sleep(100);
             sendToRadarHS("08ab000000000000");//do phan giai
-            Sleep(100);
             sendToRadarHS("01ab040000000000");//tin hieu dttt32
-            Sleep(100);
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(1100);
             sendToRadarHS("1aab200000000000");//tat thich nghi
-            Sleep(100);
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
             sendToRadarHS("aaab030500000000");//toc do quay
-            Sleep(100);
             sendToRadarHS("aaab030500000000");//toc do quay
-            Sleep(100);
             sendToRadarHS("aaab030500000000");//toc do quay
-            Sleep(100);
-
-
         }
         break;
     case 1:
@@ -2038,34 +2023,19 @@ void Mainwindow::UpdateScale()
         if(ui->toolButton_auto_adapt->isChecked())
         {
             sendToRadarHS("1aab200100000000");// bat thich nghi
-            Sleep(100);
             sendToRadarHS("14abff1100000000");// do trong
-            Sleep(100);
             sendToRadarHS("08ab000000000000");//do phan giai
-            Sleep(100);
             sendToRadarHS("01ab040000000000");//tin hieu dttt32
-            Sleep(100);
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(1100);
             sendToRadarHS("1aab200000000000");//tat thich nghi
-            Sleep(100);
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
             sendToRadarHS("aaab030500000000");//toc do quay
-            Sleep(100);
             sendToRadarHS("aaab030500000000");//toc do quay
-            Sleep(100);
             sendToRadarHS("aaab030500000000");//toc do quay
-            Sleep(100);
-
 
         }
 
@@ -2079,34 +2049,19 @@ void Mainwindow::UpdateScale()
         if(ui->toolButton_auto_adapt->isChecked())
         {
             sendToRadarHS("1aab200100000000");// bat thich nghi
-            Sleep(100);
             sendToRadarHS("14abff1100000000");// do trong
-            Sleep(100);
             sendToRadarHS("08ab000000000000");//do phan giai
-            Sleep(100);
             sendToRadarHS("01ab040000000000");//tin hieu dttt32
-            Sleep(100);
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(1100);
             sendToRadarHS("1aab200000000000");//tat thich nghi
-            Sleep(100);
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
             sendToRadarHS("aaab030500000000");//toc do quay
-            Sleep(100);
             sendToRadarHS("aaab030500000000");//toc do quay
-            Sleep(100);
             sendToRadarHS("aaab030500000000");//toc do quay
-            Sleep(100);
-
 
         }
         break;
@@ -2118,34 +2073,19 @@ void Mainwindow::UpdateScale()
         if(ui->toolButton_auto_adapt->isChecked())
         {
             sendToRadarHS("1aab200100000000");// bat thich nghi
-            Sleep(100);
             sendToRadarHS("08ab010000000000");//do phan giai
-            Sleep(100);
             sendToRadarHS("14abff0100000000");// do trong
-            Sleep(100);
             sendToRadarHS("01ab040100000000");//tin hieu dttt64
-            Sleep(100);
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(1100);
             sendToRadarHS("1aab200000000000");//tat thich nghi
-            Sleep(100);
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
             sendToRadarHS("aaab030400000000");//toc do quay
-            Sleep(100);
             sendToRadarHS("aaab030400000000");//toc do quay
-            Sleep(100);
             sendToRadarHS("aaab030400000000");//toc do quay
-            Sleep(100);
-
 
         }
         break;
@@ -2157,33 +2097,19 @@ void Mainwindow::UpdateScale()
         if(ui->toolButton_auto_adapt->isChecked())
         {
             sendToRadarHS("1aab200100000000");// bat thich nghi
-            Sleep(100);
             sendToRadarHS("08ab020000000000");//do phan giai 30
-            Sleep(100);
-            sendToRadarHS("14abff0100000000");// do trong
-            Sleep(100);
-            sendToRadarHS("01ab040200000000");//tin hieu dttt128
-            Sleep(100);
-            sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
-            sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
-            sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(1100);
-            sendToRadarHS("1aab200000000000");//tat thich nghi
-            Sleep(100);
-            sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
-            sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
-            sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
-            sendToRadarHS("aaab030400000000");//toc do quay
-            Sleep(100);
-            sendToRadarHS("aaab030400000000");//toc do quay
-            Sleep(100);
-            sendToRadarHS("aaab030400000000");//toc do quay
-            Sleep(100);
+            sendToRadarHS("14abff0100000000");// do trong           
+            sendToRadarHS("01ab040200000000");//tin hieu dttt128          
+            sendToRadarHS("aaab020000000000");//tat phat            
+            sendToRadarHS("aaab020000000000");//tat phat            
+            sendToRadarHS("aaab020000000000");//tat phat            
+            sendToRadarHS("1aab200000000000");//tat thich nghi            
+            sendToRadarHS("aaab020100000000");//bat phat            
+            sendToRadarHS("aaab020100000000");//bat phat            
+            sendToRadarHS("aaab020100000000");//bat phat            
+            sendToRadarHS("aaab030400000000");//toc do quay            
+            sendToRadarHS("aaab030400000000");//toc do quay            
+            sendToRadarHS("aaab030400000000");//toc do quay            
         }
         break;
     case 5:
@@ -2193,34 +2119,20 @@ void Mainwindow::UpdateScale()
         ui->label_range->setText("36 NM");
         if(ui->toolButton_auto_adapt->isChecked())
         {
-            sendToRadarHS("1aab200100000000");// bat thich nghi
-            Sleep(100);
-            sendToRadarHS("08ab020000000000");//do phan giai 60
-            Sleep(100);
-            sendToRadarHS("14abff0100000000");// do trong
-            Sleep(100);
-            sendToRadarHS("01ab040300000000");//tin hieu dttt256
-            Sleep(100);
-            sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
-            sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
-            sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(1100);
-            sendToRadarHS("1aab200000000000");//tat thich nghi
-            Sleep(100);
-            sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
-            sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
-            sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
-            sendToRadarHS("aaab030300000000");//toc do quay
-            Sleep(100);
-            sendToRadarHS("aaab030300000000");//toc do quay
-            Sleep(100);
-            sendToRadarHS("aaab030300000000");//toc do quay
-            Sleep(100);
+            sendToRadarHS("1aab200100000000");// bat thich nghi            
+            sendToRadarHS("08ab020000000000");//do phan giai 60            
+            sendToRadarHS("14abff0100000000");// do trong            
+            sendToRadarHS("01ab040300000000");//tin hieu dttt256            
+            sendToRadarHS("aaab020000000000");//tat phat            
+            sendToRadarHS("aaab020000000000");//tat phat            
+            sendToRadarHS("aaab020000000000");//tat phat            
+            sendToRadarHS("1aab200000000000");//tat thich nghi            
+            sendToRadarHS("aaab020100000000");//bat phat            
+            sendToRadarHS("aaab020100000000");//bat phat            
+            sendToRadarHS("aaab020100000000");//bat phat            
+            sendToRadarHS("aaab030300000000");//toc do quay            
+            sendToRadarHS("aaab030300000000");//toc do quay            
+            sendToRadarHS("aaab030300000000");//toc do quay            
         }
         break;
     case 6:
@@ -2231,33 +2143,33 @@ void Mainwindow::UpdateScale()
         if(ui->toolButton_auto_adapt->isChecked())
         {
             sendToRadarHS("1aab200100000000");// bat thich nghi
-            Sleep(100);
+
             sendToRadarHS("08ab030000000000");//do phan giai 90
-            Sleep(100);
+
             sendToRadarHS("14abff0100000000");// do trong
-            Sleep(100);
+
             sendToRadarHS("01ab040300000000");//tin hieu dttt256
-            Sleep(100);
+
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(1100);
+
             sendToRadarHS("1aab200000000000");//tat thich nghi
-            Sleep(100);
+
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
+
             sendToRadarHS("aaab030200000000");//toc do quay
-            Sleep(100);
+
             sendToRadarHS("aaab030200000000");//toc do quay
-            Sleep(100);
+
             sendToRadarHS("aaab030200000000");//toc do quay
-            Sleep(100);
+
         }
         break;
     case 7:
@@ -2268,33 +2180,33 @@ void Mainwindow::UpdateScale()
         if(ui->toolButton_auto_adapt->isChecked())
         {
             sendToRadarHS("1aab200100000000");// bat thich nghi
-            Sleep(100);
+
             sendToRadarHS("08ab040000000000");//do phan giai 120
-            Sleep(100);
+
             sendToRadarHS("14abff0100000000");// do trong
-            Sleep(100);
+
             sendToRadarHS("01ab040300000000");//tin hieu dttt256
-            Sleep(100);
+
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(1100);
+
             sendToRadarHS("1aab200000000000");//tat thich nghi
-            Sleep(100);
+
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
+
             sendToRadarHS("aaab030100000000");//toc do quay
-            Sleep(100);
+
             sendToRadarHS("aaab030100000000");//toc do quay
-            Sleep(100);
+
             sendToRadarHS("aaab030100000000");//toc do quay
-            Sleep(100);
+
         }
         break;
     case 8:
@@ -2305,33 +2217,33 @@ void Mainwindow::UpdateScale()
         if(ui->toolButton_auto_adapt->isChecked())
         {
             sendToRadarHS("1aab200100000000");// bat thich nghi
-            Sleep(100);
+
             sendToRadarHS("08ab050000000000");//do phan giai 150
-            Sleep(100);
+
             sendToRadarHS("14abff0100000000");// do trong
-            Sleep(100);
+
             sendToRadarHS("01ab040300000000");//tin hieu dttt256
-            Sleep(100);
+
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(1100);
+
             sendToRadarHS("1aab200000000000");//tat thich nghi
-            Sleep(100);
+
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
+
             sendToRadarHS("aaab030100000000");//toc do quay
-            Sleep(100);
+
             sendToRadarHS("aaab030100000000");//toc do quay
-            Sleep(100);
+
             sendToRadarHS("aaab030100000000");//toc do quay
-            Sleep(100);
+
         }
         break;
     case 9:
@@ -2342,33 +2254,33 @@ void Mainwindow::UpdateScale()
         if(ui->toolButton_auto_adapt->isChecked())
         {
             sendToRadarHS("1aab200100000000");// bat thich nghi
-            Sleep(100);
+
             sendToRadarHS("08ab060000000000");//do phan giai 180
-            Sleep(100);
+
             sendToRadarHS("14abff0100000000");// do trong
-            Sleep(100);
+
             sendToRadarHS("01ab040300000000");//tin hieu dttt256
-            Sleep(100);
+
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020000000000");//tat phat
-            Sleep(1100);
+
             sendToRadarHS("1aab200000000000");//tat thich nghi
-            Sleep(100);
+
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
+
             sendToRadarHS("aaab020100000000");//bat phat
-            Sleep(100);
+
             sendToRadarHS("aaab030100000000");//toc do quay
-            Sleep(100);
+
             sendToRadarHS("aaab030100000000");//toc do quay
-            Sleep(100);
+
             sendToRadarHS("aaab030100000000");//toc do quay
-            Sleep(100);
+
         }
         break;
     default:

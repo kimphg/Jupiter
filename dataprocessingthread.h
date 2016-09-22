@@ -51,6 +51,7 @@ public:
     void radRequestTemp(char index);
     void radTxOn();
     void radTxOff();
+    void sendCommand(unsigned char* sendBuff,short len);
     void startReplay(QString fileName);
     void togglePlayPause(bool play);
     C_radar_data* radarData;
