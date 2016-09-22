@@ -15,7 +15,7 @@ dataProcessingThread        *processing;// thread xu ly du lieu radar
 QThread                     *t2,*t1;
 Q_vnmap                     vnmap;
 QTimer                      scrUpdateTimer,readBuffTimer ;
-QTimer                      syncTimer1s,syncTimer5p ;
+QTimer                      syncTimer1s,syncTimer10s ;
 QTimer                      dataPlaybackTimer ;
 bool                        displayAlpha = false;
 QList<CTarget*>             targetList;
@@ -1347,8 +1347,8 @@ void Mainwindow::InitTimer()
 //    fullScreenTimer->start(1000);
     connect(&syncTimer1s, SIGNAL(timeout()), this, SLOT(sync1()));
     syncTimer1s.start(1000);
-    connect(&syncTimer5p, SIGNAL(timeout()), this, SLOT(sync10()));
-    syncTimer5p.start(300000);
+    connect(&syncTimer10s, SIGNAL(timeout()), this, SLOT(sync10()));
+    syncTimer10s.start(300000);
     //syncTimer1s.moveToThread(t);
     //
     connect(&readBuffTimer,SIGNAL(timeout()),this,SLOT(readBuffer()));
@@ -1358,12 +1358,11 @@ void Mainwindow::InitTimer()
     connect(&scrUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadarData()));
     scrUpdateTimer.start(30);//ENVDEP
     scrUpdateTimer.moveToThread(t2);
-
+    processing->start();
     connect(this,SIGNAL(destroyed()),processing,SLOT(deleteLater()));
     connect(&dataPlaybackTimer,SIGNAL(timeout()),processing,SLOT(playbackRadarData()));
     //dataPlaybackTimer->moveToThread(t);
     connect(t2,SIGNAL(finished()),t2,SLOT(deleteLater()));
-    processing->start();
     t2->start(QThread::TimeCriticalPriority);
     t1->start(QThread::TimeCriticalPriority);
 }
