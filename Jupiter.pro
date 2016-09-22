@@ -7,7 +7,7 @@
 #Control and process data from HR2D radar
 #view ARPA data
 #-------------------------------------------------
-# Version 2.4
+# Version 2.3
 #-------------------------------------------------
 #data file type defined as .r2d, data starts from 22nd byte of each frame
 #run for both 1024 and 1536 data type
@@ -18,7 +18,7 @@ QT       += network
 
 
 #greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-TARGET = Jupiter_2.4
+TARGET = Jupiter_2.3
 TEMPLATE = app
 SOURCES += main.cpp\
     mainwindow.cpp \
