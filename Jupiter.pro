@@ -7,7 +7,7 @@
 #Control and process data from HR2D radar
 #view ARPA data
 #-------------------------------------------------
-# Version 2.3
+# Version 2.4
 #-------------------------------------------------
 #data file type defined as .r2d, data starts from 22nd byte of each frame
 #run for both 1024 and 1536 data type
@@ -18,7 +18,7 @@ QT       += network
 
 
 #greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-TARGET = Jupiter_2.3
+TARGET = Jupiter_2.4
 TEMPLATE = app
 SOURCES += main.cpp\
     mainwindow.cpp \
@@ -81,8 +81,8 @@ DEPENDPATH += $$PWD/
 #win32:LIBS += -L$$PWD/../armadillo/lib_winx86/ -lcbia.lib.lapack.dyn.rel.x86.12
 
 #unix: LIBS += -larmadillo
-win32:LIBS += -L /WpdPack/Lib/ -lPacket
-win32:LIBS += -L /WpdPack/Lib/ -lwpcap
+win32:LIBS += -L$$PWD//WpdPack/Lib/ -lPacket
+win32:LIBS += -L$$PWD//WpdPack/Lib/ -lwpcap
 #INCLUDEPATH += $$PWD/../opencv/build/include
 #win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_core249
 #win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_highgui249

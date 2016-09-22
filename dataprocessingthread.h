@@ -1,17 +1,15 @@
 #ifndef DATAPROCESSINGTHREAD_H
 #define DATAPROCESSINGTHREAD_H
 #include <QThread>
-
+#include <queue>
+#include <QTimer>
 #include "C_radar_data.h"
 #include "c_arpa_data.h"
 #include <vector>
-//#include <QMutexLocker>
 #include <QFile>
 #include <QUdpSocket>
 #include <QStringList>
-//#include <opencv2/highgui/highgui.hpp>
-//#include <opencv2/core/core.hpp>
-//#include <opencv2/imgproc/imgproc.hpp>
+#define MAX_COMMAND_QUEUE_SIZE 50
 #define HAVE_REMOTE
 #include "pcap.h"
 #ifndef CONST_NM
@@ -24,6 +22,11 @@ struct DataBuff
     short len;
     unsigned char data[1500];
 };
+struct  RadarCommand
+{
+    unsigned char bytes[8];
+};
+typedef std::queue<RadarCommand> RadarCommandQueue;
 class dataProcessingThread:public QThread
 {
     Q_OBJECT
@@ -40,11 +43,14 @@ public:
     void ReadDataBuffer();
     ~dataProcessingThread();
     dataProcessingThread();
-    //QUdpSocket      *udpSendSocket;
+    QTimer UpdateTimer;
     void PlaybackFile();
     void startRecord(QString fileName);
     void stopRecord();
     void stopThread();
+    void radRequestTemp(char index);
+    void radTxOn();
+    void radTxOff();
     void startReplay(QString fileName);
     void togglePlayPause(bool play);
     C_radar_data* radarData;
@@ -61,17 +67,17 @@ public:
     }
 private:
 
-
+    RadarCommandQueue radarComQ;
     bool isRecording;
     bool isPlaying;
     QFile signRepFile;
     QFile signRecFile;
 
-    QUdpSocket      *radarDataSocket;
+    QUdpSocket      *radarSocket;
     QUdpSocket      *ARPADataSocket;
     void listenToRadar();
 public slots:
-
+    void UpdateRadar();
     void processRadarData();
     void processARPAData();
     void playbackRadarData();

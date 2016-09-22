@@ -1,16 +1,15 @@
 #ifndef C_RAW_DATA_H
 #define C_RAW_DATA_H
 //----------------------------------------------------------//
-//HR2D signal processing class and EKF tracking algorithm   //
+//HR2D signal processing class and Kalman tracking algorithm   //
 //First release: November 2015                              //
 //Project:https://github.com/kimphg/Jupiter                 //
-//Last update: August 2016                                  //
+//Last update: September 2016                                  //
 //Author: Phung Kim Phuong                                  //
 //----------------------------------------------------------//
 #define ARMA_USE_LAPACK
 #define ARMA_USE_BLAS
 #define ARMA_BLAS_UNDERSCORE
-
 
 #define TRACK_STABLE_STATE          5
 #define MIN_TERRAIN                 10
@@ -19,7 +18,7 @@
 #define PI_NHAN2                    6.2831853072f
 #define PI_CHIA2                    1.5707963268f
 #ifndef PI
-   #define PI                          3.141592654f
+   #define PI                       3.141592654f
 #endif
 #define MAX_TRACK_LEN               400
 #define MAX_TRACKS                  199
@@ -29,22 +28,22 @@
 #define RAD_S_PULSE_RES             256
 #define DISPLAY_RES                 768
 #define RAD_FULL_RES                1792
-#define SIGNAL_SCALE_7      0.21538461538461538f //215.38461538461538461538461538461
-#define SIGNAL_SCALE_6      0.18461538461538462f //184.61538461538461538461538461538
-#define SIGNAL_SCALE_5      0.15384615384615385f //153.84615384615384615384615384615
-#define SIGNAL_SCALE_4      0.12307692307692308f // 123.07692307692307692307692307692
-#define SIGNAL_SCALE_3      0.09230769230769231f //92.307692307692307692307692307692
-#define SIGNAL_SCALE_2      0.06153846153846154f //61.538461538461538461538461538462
-#define SIGNAL_SCALE_1      0.03076923076923077f //30.769230769230769230769230769231
-#define SIGNAL_SCALE_0      0.01538461538461538f //15.384615384615384615384615384615
-#define TERRAIN_GAIN        0.9f
-#define TERRAIN_GAIN_1      0.1f
-#define TERRAIN_THRESH      0.5f
-#define TARGET_MIN_SPEED      3
-#define TARGET_MAX_SPEED      50
-#define ZOOM_SIZE           550
+#define SIGNAL_SCALE_7              0.21538461538461538f //215.38461538461538461538461538461
+#define SIGNAL_SCALE_6              0.18461538461538462f //184.61538461538461538461538461538
+#define SIGNAL_SCALE_5              0.15384615384615385f //153.84615384615384615384615384615
+#define SIGNAL_SCALE_4              0.12307692307692308f // 123.07692307692307692307692307692
+#define SIGNAL_SCALE_3              0.09230769230769231f //92.307692307692307692307692307692
+#define SIGNAL_SCALE_2              0.06153846153846154f //61.538461538461538461538461538462
+#define SIGNAL_SCALE_1              0.03076923076923077f //30.769230769230769230769230769231
+#define SIGNAL_SCALE_0              0.01538461538461538f //15.384615384615384615384615384615
+#define TERRAIN_GAIN                0.9f
+#define TERRAIN_GAIN_1              0.1f
+#define TERRAIN_THRESH              0.5f
+#define TARGET_MIN_SPEED            3
+#define TARGET_MAX_SPEED            50
+#define ZOOM_SIZE                   550
 #define DISPLAY_RES_ZOOM            5120
-#define DISPLAY_SCALE_ZOOM           4
+#define DISPLAY_SCALE_ZOOM          4
 #include <vector>
 #include <QImage>
 #include <QDateTime>
@@ -203,8 +202,8 @@ public:
     float k_vet;// !!!!
     trackList               mTrackList;
     plotList                plot_list;
-
-    unsigned char           size_thresh,overload, terrain_init_time, clk_adc;
+    unsigned char           spectre[16];
+    unsigned char           overload, terrain_init_time, clk_adc;
     float                   scale_ppi,scale_zoom;
     short                   curAzir;
     void                    updateZoomRect(float ctx, float cty);
@@ -241,7 +240,7 @@ public:
     unsigned char           noise_level[8];
     unsigned char           tempType,rotation_speed;
     unsigned short          range_max;
-    QImage                  *img_ppi,*img_alpha,*img_zoom_ppi;
+    QImage                  *img_ppi,*img_alpha,*img_zoom_ppi,*img_histogram,*img_spectre;
     imgDrawMode             imgMode;
     void deleteTrack(short trackNum);
     //______________________________________//
@@ -272,18 +271,12 @@ public:
     void        resetSled();
     void        setProcessing(bool onOff);
     //bool        getDataOverload(){if(isDataTooLarge) {isDataTooLarge =false;return true;} else return false;}
-//    bool        checkFeedback(unsigned char* command)
-//    {
-//        for (short i=0;i<8;i++)
-//        {if(command[i]!=command_feedback[i])return false;}
-//        memset(&command_feedback[0],0,8);
-//        return true;
-//    }
-     char* getFeedback()
-        {
+    bool        checkFeedback(unsigned char* command);
+    char* getFeedback()
+    {
 
-            return (char*)&command_feedback[0];
-        }
+        return (char*)&command_feedback[0];
+    }
     void        resetTrack();
 private:
     bool        avtodetect;

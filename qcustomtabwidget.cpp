@@ -28,11 +28,7 @@ void QCustomTabWidget::hoverMove(QHoverEvent *)
 void QCustomTabWidget::highLight()
 {
 
-    if(this->currentIndex()==2)
-    {
-        this->setStyleSheet("background-color: rgb(0, 0, 0,0);color:rgb(255, 255, 255);font: 12pt \"MS Shell Dlg 2\";");
-    }
-    else if(this->currentIndex()==3)
+    if(this->currentIndex()>1)
     {
         this->setStyleSheet("background-color: rgb(0, 0, 0,0);color:rgb(255, 255, 255);font: 12pt \"MS Shell Dlg 2\";");
     }
@@ -49,7 +45,7 @@ void QCustomTabWidget::paintEvent(QPaintEvent *)
 
 void QCustomTabWidget::resetView()
 {
-    if(this->currentIndex()==2)
+    if(this->currentIndex()>1)
     {
         this->setStyleSheet("background-color: rgb(0, 0, 0,0);color:rgb(30, 50, 70,255);font: 12pt \"MS Shell Dlg 2\"; border-style: groove; border-width: 1px;border-color:white;");
     }
@@ -62,22 +58,22 @@ void QCustomTabWidget::resetView()
 }
 bool QCustomTabWidget::event(QEvent *event)
 {
-    switch(event->type())
-    {
-    case QEvent::HoverEnter:
-        hoverEnter(static_cast<QHoverEvent*>(event));
-        return true;
-        break;
-    case QEvent::HoverLeave:
-        hoverLeave(static_cast<QHoverEvent*>(event));
-        return true;
-        break;
-    case QEvent::HoverMove:
-        hoverMove(static_cast<QHoverEvent*>(event));
-        return true;
-        break;
-    default:
-        break;
-    }
+//    switch(event->type())
+//    {
+//    case QEvent::HoverEnter:
+//        hoverEnter(static_cast<QHoverEvent*>(event));
+//        return true;
+//        break;
+//    case QEvent::HoverLeave:
+//        hoverLeave(static_cast<QHoverEvent*>(event));
+//        return true;
+//        break;
+//    case QEvent::HoverMove:
+//        hoverMove(static_cast<QHoverEvent*>(event));
+//        return true;
+//        break;
+//    default:
+//        break;
+//    }
     return QWidget::event(event);
 }

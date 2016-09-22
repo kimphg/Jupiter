@@ -1,5 +1,5 @@
 #include "dataprocessingthread.h"
-#define MAX_IREC 1000
+#define MAX_IREC 500
 
 DataBuff dataB[MAX_IREC];
 short iRec=0,iRead=0;
@@ -20,10 +20,11 @@ void dataProcessingThread::ReadDataBuffer()
     {
         if(connect_timeout)connect_timeout--;
     }
+    short nread = 0;
     while(iRec!=iRead)
     {
-        //nread++;
-
+        nread++;
+        if(nread>200)break;
         radarData->GetDataHR(&dataBuff[iRead].data[0],dataBuff[iRead].len);
         if(isRecording)
         {
@@ -43,31 +44,36 @@ dataProcessingThread::dataProcessingThread()
     pIsDrawn = &isDrawn;
     isDrawn = true;
     pIsPlaying = &isPlaying;
-//    udpSendSocket = new QUdpSocket(this);
-//    udpSendSocket->bind(2000);
     playRate = 10;
     arpaData = new C_ARPA_data();
     isRecording = false;
     radarData = new C_radar_data();
     isPlaying = false;
-    radarDataSocket = new QUdpSocket(this);
-    radarDataSocket->bind(5000, QUdpSocket::ShareAddress);
-
-//    connect(&readDataBuff, SIGNAL(timeout()), this, SLOT(ReadDataBuffer()));
-//    readDataBuff.start(10);
-//   arpaData = new C_ARPA_data();
-//   isRecording = false;
-//   radarData = new C_radar_data();
-//   isPlaying = false;
-//   radarDataSocket = new QUdpSocket(this);
-   /*connect(radarDataSocket, SIGNAL(readyRead()),
-           this, SLOT(processRadarData()));*/
-   /*ARPADataSocket = new QUdpSocket(this);
-   ARPADataSocket->bind(4001, QUdpSocket::ShareAddress);
-   connect(ARPADataSocket, SIGNAL(readyRead()),
-           this, SLOT(processARPAData()));*/
+    radarSocket = new QUdpSocket(this);
+    radarSocket->bind(5555, QUdpSocket::ShareAddress);
+    connect(&UpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadar()));
+    UpdateTimer.start(200);
 }
+void dataProcessingThread::UpdateRadar()
+{
+    if(radarComQ.size())
+    {
 
+        // check if the radar has already recieved the command
+//        if(radarData->checkFeedback(&radarComQ.front().bytes[0]))
+//        {
+//            radarComQ.pop();
+//        }
+//        if(radarComQ.size())
+        radarSocket->writeDatagram((char*)&radarComQ.front().bytes[0],
+                                    8,
+                                    QHostAddress("192.168.0.44"),2572
+                                    );
+        radarComQ.pop();
+
+    }
+
+}
 void dataProcessingThread::playbackRadarData()
 {
     if(isPlaying) {
@@ -102,7 +108,7 @@ void dataProcessingThread::playbackRadarData()
 }
 void dataProcessingThread::SetRadarPort( unsigned short portNumber)
 {
-    radarDataSocket->bind(portNumber, QUdpSocket::ShareAddress);
+    radarSocket->bind(portNumber, QUdpSocket::ShareAddress);
 }
 void dataProcessingThread::SetARPAPort( unsigned short portNumber)
 {
@@ -138,15 +144,6 @@ void dataProcessingThread::processARPAData()
             signRecFile.write(datagram.data(),len);
         }
 
-//        else if((*list.begin()).contains("CAMAZI"))
-//        {
-//            currCamAzi = (*(list.begin()+1)).toDouble()+config.m_config.trueNCam;
-//            if(currCamAzi>360)currCamAzi-=360;
-//            alpha = currCamAzi/CONST_RAD_TO_DEG;
-//            //printf((*(list.begin()+1)).data());
-//            //printf("\ncurrCamAzi:%f",currCamAzi);
-//            update();
-//        }
     }
     return;
 }
@@ -267,16 +264,148 @@ void dataProcessingThread::stopThread()
     terminate();
 }
 
+void dataProcessingThread::radRequestTemp( char index)
+{
+    RadarCommand command;
+    command.bytes[0] = 0xaa;
+    command.bytes[1] = 0xab;
+    command.bytes[2] = index;
+    command.bytes[3] = 0xaa;
+    command.bytes[4] = 0x00;
+    command.bytes[5] = 0x00;
+    command.bytes[6] = 0x00;
+    command.bytes[7] = 0;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)
+        radarComQ.push(command);
+}
+
+void dataProcessingThread::radTxOn()
+{
+    RadarCommand command;
+    //rotation on
+    command.bytes[0] = 0xaa;
+    command.bytes[1] = 0xab;
+    command.bytes[2] = 0x03;
+    command.bytes[3] = 0x03;
+    command.bytes[4] = 0x00;
+    command.bytes[5] = 0x00;
+    command.bytes[6] = 0x00;
+    command.bytes[7] = 0x00;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //tx off
+    command.bytes[0] = 0xaa;
+    command.bytes[2] = 0x02;
+    command.bytes[3] = 0x00;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //thich nghi
+    command.bytes[0] = 0x1a;
+    command.bytes[2] = 0x20;
+    command.bytes[3] = 0x01;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //do trong
+    command.bytes[0] = 0x14;
+    command.bytes[2] = 0xff;
+    command.bytes[3] = 0x01;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //set 1536
+    command.bytes[0] = 0x04;
+    command.bytes[2] = 0x00;
+    command.bytes[3] = 0x06;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //dttt 256
+    command.bytes[0] = 0x01;
+    command.bytes[2] = 0x04;
+    command.bytes[3] = 0x03;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //set resolution 60m
+    command.bytes[0] = 0x08;
+    command.bytes[2] = 0x02;
+    command.bytes[3] = 0x00;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //tat thich nghi
+    command.bytes[0] = 0x1a;
+    command.bytes[2] = 0x20;
+    command.bytes[3] = 0x00;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+
+    //tx on 1
+    command.bytes[0] = 0xaa;
+    command.bytes[2] = 0x02;
+    command.bytes[3] = 0x01;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //tx on 2
+    command.bytes[2] = 0x00;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+//    if(1){
+//        QFile logFile;
+//        QDateTime now = QDateTime::currentDateTime();
+//        if(!QDir("C:\\logs\\"+now.toString("\\dd.MM\\")).exists())
+//        {
+//            QDir().mkdir("C:\\logs\\"+now.toString("\\dd.MM\\"));
+//        }
+//        logFile.setFileName("C:\\logs\\"+now.toString("\\dd.MM\\")+now.toString("dd.MM-hh.mm.ss")+"_tx_on.log");
+
+//        logFile.open(QIODevice::WriteOnly);
+//        //logFile.p
+//        logFile.close();
+//    }
+
+
+}
+
+void dataProcessingThread::radTxOff()
+{
+    RadarCommand command;
+    //rotation on
+    command.bytes[0] = 0xaa;
+    command.bytes[1] = 0xab;
+    command.bytes[2] = 0x00;
+    command.bytes[3] = 0x00;
+    command.bytes[4] = 0x00;
+    command.bytes[5] = 0x00;
+    command.bytes[6] = 0x00;
+    command.bytes[7] = 0x00;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    command.bytes[2] = 0x02;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    command.bytes[2] = 0x03;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+//    if(1)
+//    {
+//        QFile logFile;
+//        QDateTime now = QDateTime::currentDateTime();
+//        if(!QDir("C:\\logs\\"+now.toString("\\dd.MM\\")).exists())
+//        {
+//            QDir().mkdir("C:\\logs\\"+now.toString("\\dd.MM\\"));
+//        }
+//        logFile.setFileName("C:\\logs\\"+now.toString("\\dd.MM\\")+now.toString("dd.MM-hh.mm.ss")+"_tx_off.log");
+//        logFile.open(QIODevice::WriteOnly);
+//        //logFile.p
+//        logFile.close();
+
+//    }
+}
+
 void dataProcessingThread::listenToRadar()
 {
     for(;;)
     {
-        short len = radarDataSocket->pendingDatagramSize();
+        short len = radarSocket->pendingDatagramSize();
         if(len<0)continue;
         QByteArray buff;
         buff.resize(len);
         printf("data:%d",len);
-        radarDataSocket->readDatagram(buff.data(), len);
+        radarSocket->readDatagram(buff.data(), len);
         /*unsigned short len = radarDataSocket->pendingDatagramSize();
         QByteArray buff;
         buff.resize(len);

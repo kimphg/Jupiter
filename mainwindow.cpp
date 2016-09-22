@@ -6,16 +6,16 @@
 //#define mapWidth 2000
 //#define mapWidth mapWidth
 //#define mapHeight mapWidth
-#define CONST_NM 1.845f// he so chuyen doi tu km sang hai ly
+#define CONST_NM 1.852f// he so chuyen doi tu km sang hai ly
 #define MAX_VIEW_RANGE_KM 50
-#include <queue>
+//#include <queue>
 
 QPixmap                     *pMap=NULL;// painter cho ban do
 dataProcessingThread        *processing;// thread xu ly du lieu radar
 QThread                     *t2,*t1;
 Q_vnmap                     vnmap;
 QTimer                      scrUpdateTimer,readBuffTimer ;
-QTimer                      syncTimer1s,syncTimer10s ;
+QTimer                      syncTimer1s,syncTimer5p ;
 QTimer                      dataPlaybackTimer ;
 bool                        displayAlpha = false;
 QList<CTarget*>             targetList;
@@ -27,8 +27,6 @@ bool                        isDraging = false;
 bool                        isScaleChanged =true;
 float                       mScale;
 
-static QStandardItemModel   modelTargetList;
-struct
 CConfig         config;
 QStringList     warningList;
 short selected_target_index;
@@ -620,7 +618,7 @@ void Mainwindow::DrawTarget(QPainter* p)
     {
         for(uint trackId=0;trackId<trackListPt->size();trackId++)
         {
-            if(!trackListPt->at(trackId).isConfirmed)continue;
+            //if(!trackListPt->at(trackId).isConfirmed)continue;
             if(trackListPt->at(trackId).isManual)continue;
             if(!trackListPt->at(trackId).state)continue;
             sx = trackListPt->at(trackId).estX*scale_ppi + scrCtX - dx;
@@ -1009,21 +1007,39 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     if(ui->tabWidget_2->currentIndex()==2)
     {
         QRect rect = ui->tabWidget_2->geometry();
-        if(range>2)
+        if(range>2)// draw dash frame os zoom area in the ppi
         {
-
             short zoom_size = ui->tabWidget_2->width()/processing->radarData->scale_zoom*processing->radarData->scale_ppi;
             p.setPen(QPen(QColor(255,255,255,200),0,Qt::DashLine));
             p.drawRect(mousePointerX-zoom_size/2.0,mousePointerY-zoom_size/2.0,zoom_size,zoom_size);
         }
-
-        //QRect zoomRect(DISPLAY_RES-100,DISPLAY_RES-100,200,200);
         rect.adjust(4,30,-5,-5);
         p.setPen(QPen(Qt::black));
         p.setBrush(QBrush(Qt::black));
         p.drawRect(rect);
         p.drawImage(rect,*processing->radarData->img_zoom_ppi,processing->radarData->img_zoom_ppi->rect());
 
+    }
+    else if(ui->tabWidget_2->currentIndex()==3)
+    {
+        QRect rect = ui->tabWidget_2->geometry();
+        rect.adjust(4,30,-5,-5);
+        p.setPen(QPen(Qt::black));
+        p.setBrush(QBrush(Qt::black));
+        p.drawRect(rect);
+        p.drawImage(rect,*processing->radarData->img_histogram,
+                    processing->radarData->img_histogram->rect());
+
+    }
+    else if(ui->tabWidget_2->currentIndex()==4)
+    {
+        QRect rect = ui->tabWidget_2->geometry();
+        rect.adjust(4,30,-5,-5);
+        p.setPen(QPen(Qt::black));
+        p.setBrush(QBrush(Qt::black));
+        p.drawRect(rect);
+        p.drawImage(rect,*processing->radarData->img_spectre,
+                    processing->radarData->img_spectre->rect());
     }
     updateTargets();
 }
@@ -1331,8 +1347,8 @@ void Mainwindow::InitTimer()
 //    fullScreenTimer->start(1000);
     connect(&syncTimer1s, SIGNAL(timeout()), this, SLOT(sync1()));
     syncTimer1s.start(1000);
-    connect(&syncTimer10s, SIGNAL(timeout()), this, SLOT(sync10()));
-    syncTimer10s.start(300000);
+    connect(&syncTimer5p, SIGNAL(timeout()), this, SLOT(sync10()));
+    syncTimer5p.start(300000);
     //syncTimer1s.moveToThread(t);
     //
     connect(&readBuffTimer,SIGNAL(timeout()),this,SLOT(readBuffer()));
@@ -1342,11 +1358,12 @@ void Mainwindow::InitTimer()
     connect(&scrUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadarData()));
     scrUpdateTimer.start(30);//ENVDEP
     scrUpdateTimer.moveToThread(t2);
-    processing->start();
+
     connect(this,SIGNAL(destroyed()),processing,SLOT(deleteLater()));
     connect(&dataPlaybackTimer,SIGNAL(timeout()),processing,SLOT(playbackRadarData()));
     //dataPlaybackTimer->moveToThread(t);
     connect(t2,SIGNAL(finished()),t2,SLOT(deleteLater()));
+    processing->start();
     t2->start(QThread::TimeCriticalPriority);
     t1->start(QThread::TimeCriticalPriority);
 }
@@ -1601,19 +1618,9 @@ void Mainwindow::sync1()//period 1 second
 
     //display time
     showTime();
-    // require temperature
     if(radar_state!=DISCONNECTED)
     {
-        unsigned char bytes[8];
-        bytes[0] = 0xaa;
-        bytes[1] = 0xab;
-        bytes[2] = ui->comboBox_temp_type->currentIndex();
-        bytes[3] = 0xaa;
-        bytes[4] = 0x00;
-        bytes[5] = 0x00;
-        bytes[6] = 0x00;
-        bytes[7] = 0;
-        sendToRadar(&bytes[0]);
+        processing->radRequestTemp(ui->comboBox_temp_type->currentIndex());
         //udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
     }
     QByteArray array(processing->radarData->getFeedback(), 8);
@@ -2734,6 +2741,7 @@ void Mainwindow::updateTargets()
             ui->label_radar_long->setText(QString::number((short)targetList.at(i)->m_lon)+"\xB0"+QString::number((targetList.at(i)->m_lon-(short)targetList.at(i)->m_lon)*60,'g',4)+"E");
             ui->label_radar_speed->setText(QString::number(trackListPt->at(targetList.at(i)->trackId).speed,'g',3)+"Kn");
             ui->label_radar_heading->setText(QString::number(trackListPt->at(targetList.at(i)->trackId).head_r*180/PI)+"\xB0");
+            ui->label_radar_dopler->setText(QString::number(trackListPt->at(targetList.at(i)->trackId).dopler));
         }
         else
         {
@@ -2989,119 +2997,13 @@ void Mainwindow::on_toolButton_delete_target_clicked()
 
 void Mainwindow::on_toolButton_tx_clicked()
 {
-
-
-    unsigned char        bytes[8] = {0xaa,0xab,0x03,0x03,0x00,0x00,0x00};//rotation on
-    sendToRadar(bytes); Sleep(100);
-    sendToRadar(bytes); Sleep(100);
-    sendToRadar(bytes); Sleep(100);
-    sendToRadar(bytes); Sleep(100);
-    //tx on
-    bytes[0] = 0xaa;
-    bytes[2] = 0x02;
-    bytes[3] = 0x00;//tx on 1
-    sendToRadar(bytes);Sleep(100);
-    sendToRadar(bytes);Sleep(100);
-    sendToRadar(bytes);Sleep(100);
-    sendToRadar(bytes); Sleep(100);
-
-    bytes[0] = 0x1a;
-    bytes[2] = 0x20;//thich nghi
-    bytes[3] = 0x01;
-    sendToRadar(bytes);
-    Sleep(100);
-
-    bytes[0] = 0x14;//do trong
-    bytes[2] = 0xff;
-    bytes[3] = 0x01;
-    sendToRadar(bytes);
-    bytes[0] = 0x04;//set 1536
-    bytes[2] = 0x00;
-    bytes[3] = 0x06;
-    sendToRadar(bytes);
-    Sleep(100);
-
-
-    bytes[0] = 0x01;
-    bytes[2] = 0x04;//dttt 256
-    bytes[3] = 0x03;
-    sendToRadar(bytes);
-    Sleep(100);
-    bytes[0] = 0x08;//set resolution 60m
-    bytes[2] = 0x02;
-    bytes[3] = 0x00;
-    sendToRadar(bytes);
-    Sleep(1100);
-
-    bytes[0] = 0x1a;
-    bytes[2] = 0x20;//tat thich nghi
-    bytes[3] = 0x00;
-    sendToRadar(bytes);
-    Sleep(100);
-
-    //tx on
-    bytes[0] = 0xaa;
-    bytes[2] = 0x02;
-    bytes[3] = 0x01;//tx on 1
-    sendToRadar(bytes);Sleep(100);
-    sendToRadar(bytes);Sleep(100);
-    sendToRadar(bytes);Sleep(100);
-    sendToRadar(bytes);Sleep(100);
-    bytes[2] = 0x00;//tx on 2
-    sendToRadar(bytes);    Sleep(100);
-    sendToRadar(bytes);    Sleep(100);
-    sendToRadar(bytes);    Sleep(100);
-    sendToRadar(bytes);Sleep(100);
-    if(radar_state!=DISCONNECTED)
-    {
-        QFile logFile;
-        QDateTime now = QDateTime::currentDateTime();
-        if(!QDir("C:\\logs\\"+now.toString("\\dd.MM\\")).exists())
-        {
-            QDir().mkdir("C:\\logs\\"+now.toString("\\dd.MM\\"));
-        }
-        logFile.setFileName("C:\\logs\\"+now.toString("\\dd.MM\\")+now.toString("dd.MM-hh.mm.ss")+"_tx_on.log");
-
-        logFile.open(QIODevice::WriteOnly);
-        //logFile.p
-        logFile.close();
-
-    }
-
+    processing->radTxOn();
 }
 
 
 void Mainwindow::on_toolButton_tx_off_clicked()
 {
-    unsigned char        bytes[8] = {0xaa,0xab,0x00,0x00,0x00,0x00,0x00};
-    sendToRadar(bytes);    Sleep(100);
-    sendToRadar(bytes);    Sleep(100);
-    sendToRadar(bytes);    Sleep(100);
-
-    bytes[2] = 0x02;// = {0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
-    sendToRadar(bytes);    Sleep(100);
-    sendToRadar(bytes);    Sleep(100);
-    sendToRadar(bytes);    Sleep(100);
-
-
-    bytes[2] = 0x03;
-    sendToRadar(bytes);    Sleep(100);
-    sendToRadar(bytes);    Sleep(100);
-    sendToRadar(bytes);    Sleep(100);
-    if(radar_state!=DISCONNECTED)
-    {
-        QFile logFile;
-        QDateTime now = QDateTime::currentDateTime();
-        if(!QDir("C:\\logs\\"+now.toString("\\dd.MM\\")).exists())
-        {
-            QDir().mkdir("C:\\logs\\"+now.toString("\\dd.MM\\"));
-        }
-        logFile.setFileName("C:\\logs\\"+now.toString("\\dd.MM\\")+now.toString("dd.MM-hh.mm.ss")+"_tx_off.log");
-        logFile.open(QIODevice::WriteOnly);
-        //logFile.p
-        logFile.close();
-
-    }
+    processing->radTxOff();
 }
 
 void Mainwindow::on_toolButton_filter2of3_clicked(bool checked)
