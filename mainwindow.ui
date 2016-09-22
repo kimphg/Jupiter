@@ -13475,7 +13475,7 @@
          <string notr="true">background-color: rgb(16, 32, 64);</string>
         </property>
         <property name="text">
-         <string>P.vị</string>
+         <string>P.vỵ</string>
         </property>
        </widget>
       </item>
@@ -17915,7 +17915,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>2</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -23051,16 +23051,6 @@
     <widget class="QWidget" name="tab_5">
      <attribute name="title">
       <string>PPI</string>
-     </attribute>
-    </widget>
-    <widget class="QWidget" name="tab_2">
-     <attribute name="title">
-      <string>Histogram</string>
-     </attribute>
-    </widget>
-    <widget class="QWidget" name="tab_6">
-     <attribute name="title">
-      <string>Spectre</string>
      </attribute>
     </widget>
    </widget>

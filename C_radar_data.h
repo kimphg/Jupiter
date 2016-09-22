@@ -11,6 +11,7 @@
 #define ARMA_USE_BLAS
 #define ARMA_BLAS_UNDERSCORE
 
+
 #define TRACK_STABLE_STATE          5
 #define MIN_TERRAIN                 10
 #define TRACK_CONFIRMED_SIZE        3
@@ -202,7 +203,7 @@ public:
     float k_vet;// !!!!
     trackList               mTrackList;
     plotList                plot_list;
-    unsigned char           spectre[16];
+
     unsigned char           size_thresh,overload, terrain_init_time, clk_adc;
     float                   scale_ppi,scale_zoom;
     short                   curAzir;
@@ -240,7 +241,7 @@ public:
     unsigned char           noise_level[8];
     unsigned char           tempType,rotation_speed;
     unsigned short          range_max;
-    QImage                  *img_ppi,*img_alpha,*img_zoom_ppi,*img_histogram,*img_spectre;
+    QImage                  *img_ppi,*img_alpha,*img_zoom_ppi;
     imgDrawMode             imgMode;
     void deleteTrack(short trackNum);
     //______________________________________//
@@ -271,12 +272,18 @@ public:
     void        resetSled();
     void        setProcessing(bool onOff);
     //bool        getDataOverload(){if(isDataTooLarge) {isDataTooLarge =false;return true;} else return false;}
-    bool        checkFeedback(unsigned char* command);
-    char* getFeedback()
-    {
+//    bool        checkFeedback(unsigned char* command)
+//    {
+//        for (short i=0;i<8;i++)
+//        {if(command[i]!=command_feedback[i])return false;}
+//        memset(&command_feedback[0],0,8);
+//        return true;
+//    }
+     char* getFeedback()
+        {
 
-        return (char*)&command_feedback[0];
-    }
+            return (char*)&command_feedback[0];
+        }
     void        resetTrack();
 private:
     bool        avtodetect;
