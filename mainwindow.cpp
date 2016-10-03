@@ -161,7 +161,11 @@ void Mainwindow::mouseDoubleClickEvent( QMouseEvent * e )
                 ui->label_radar_long->setText(QString::number((short)mlon)+"\xB0"+QString::number((mlon-(short)mlon)*60,'g',4)+"E");
 
                 ui->label_radar_speed->setText(QString::number(m_trackList.at(i).m_Speed,'g',3)+"Kn");
-                ui->label_radar_heading->setText(QString::number(m_trackList.at(i).m_Head*180/PI)+"\xB0");
+
+                //ui->label_radar_heading->setText(QString::number(m_trackList.at(i).m_Head*180/PI)+"\xB0");
+                float head = m_trackList.at(i).m_Head*PI_NHAN2/(1<<16);
+                ui->label_radar_heading->setText(QString::number(head*180/PI)+"\xB0");
+
 
                 break;
 
