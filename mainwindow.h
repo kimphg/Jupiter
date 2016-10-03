@@ -95,6 +95,7 @@ private:
     void DrawViewFrame(QPainter *p);
     void DrawSignal(QPainter *p);
     void drawAisTarget(QPainter *p);
+    void drawAisTarget2(QPainter *p, short xAIS, short yAIS);
     void DrawTarget(QPainter* p);
     void DrawMap();
     void ReloadSetting();

@@ -94,7 +94,80 @@ void Mainwindow::mouseDoubleClickEvent( QMouseEvent * e )
     {
         mousePointerX = (e->x());
         mousePointerY = (e->y());
-        processing->radarData->updateZoomRect(mousePointerX - scrCtX+dx,mousePointerY - scrCtY+dy);
+        processing->radarData->updateZoomRect(mousePointerX - scrCtX+dx,mousePointerY - scrCtY+dy); 
+    }
+    //Test doc AIS
+    if(ui->toolButton_ais_show->isChecked())
+    {
+        trackList* trackListPt = &processing->radarData->mTrackList;
+
+        //lay vi tri con tro chuot
+        float xAIS = e->x();//(e->x() - scrCtX+dx)/mScale ;//coordinates in  radar xy system
+        float yAIS = e->y();//-(e->y() - scrCtY+dy)/mScale;
+
+        for(int i=0; i<m_trackList.size(); i++)
+        {
+            //p->setPen((penTarget));
+            float mlat, mlong; //kinh do
+            mlat = m_trackList.at(i).m_Lat;
+            mlat = mlat/bit23*180.0f;
+            mlong = m_trackList.at(i).m_Long;
+            mlong = mlong/bit23*180.0f;
+            float fx,fy;
+
+            vnmap.ConvDegToScr(&fx,&fy,&mlong,&mlat);
+
+            short x = (fx*mScale)+scrCtX-dx;
+            short y = (fy*mScale)+scrCtY-dy;
+
+            //float head = m_trackList.at(i).m_Head*PI_NHAN2/(1<<16);
+            //double x1 = x+8*sinf(head);
+            //double y1 = y-8*cosf(head);
+
+            if( qAbs(xAIS-x) <5 && qAbs(yAIS-y)<5)
+            {
+                ui->label_radar_id->setText(QString::number(i+1));
+
+
+                //ui->label_radar_range->setText(QString::number(m_trackList.at(i).);
+
+
+                //float tmpazi = trackListPt->at(m_trackList.at(i)->trackId).estA/PI*180;
+                //if(tmpazi<0)tmpazi+=360;
+                //ui->label_radar_azi->setText( QString::number(tmpazi)+"\xB0");
+                float azi,rg;
+                float mlat = m_trackList.at(i).m_Lat ;
+                mlat =  mlat/bit23* 180.0f ;
+                float mlon = m_trackList.at(i).m_Long;
+                mlon = mlon/bit23* 180.0f ;
+                
+                if(ui->toolButton_measuring->isChecked())
+                {
+                    processing->radarData->getPolar((x - mouseX)/mScale,-(y - mouseY)/mScale,&azi,&rg);
+                }
+                else
+                {
+                    processing->radarData->getPolar((x - scrCtX+dx)/mScale,-(y - scrCtY+dy)/mScale,&azi,&rg);
+                }
+            
+                if(azi<0)azi+=PI_NHAN2;
+                azi = azi/PI*180.0;
+                rg = rg/CONST_NM;
+                
+                ui->label_radar_range->setText(QString::number(rg,'g',6));
+                ui->label_radar_azi->setText(QString::number(azi,'g',6));
+
+                ui->label_radar_lat->setText( QString::number((short)mlat)+"\xB0"+QString::number((mlat-(short)mlat)*60,'g',4)+"N");
+                ui->label_radar_long->setText(QString::number((short)mlon)+"\xB0"+QString::number((mlon-(short)mlon)*60,'g',4)+"E");
+
+                ui->label_radar_speed->setText(QString::number(m_trackList.at(i).m_Speed,'g',3)+"Kn");
+                ui->label_radar_heading->setText(QString::number(m_trackList.at(i).m_Head*180/PI)+"\xB0");
+
+                break;
+
+            }
+
+        }
     }
 }
 void Mainwindow::sendToRadarHS(const char* hexdata)
@@ -154,6 +227,9 @@ void Mainwindow::mouseReleaseEvent(QMouseEvent *event)
         currMaxAzi = MAX_AZIR;
         currMinAzi = 0;
     }*/
+
+
+
 }
 void Mainwindow::wheelEvent(QWheelEvent *event)
 {
@@ -215,6 +291,7 @@ void Mainwindow::keyPressEvent(QKeyEvent *event)
 }
 short selZone_x1, selZone_x2, selZone_y1, selZone_y2;
 bool isSelectingTarget = false;
+
 void Mainwindow::detectZone()
 {
     short sx,sy;
@@ -890,6 +967,77 @@ void Mainwindow::DrawTarget(QPainter* p)
     }*/
 
 }
+
+//ham test ve tu AIS
+void Mainwindow::drawAisTarget2(QPainter *p, short xAIS, short yAIS)
+{
+    //draw radar
+    QPen penTarget(QColor(255,50,150));
+    penTarget.setWidth(0);
+
+    //hightlight target
+    QPen penSelectTarger (QColor(0,166,173));
+    penSelectTarger.setWidth(0);
+
+
+    for(int i=0; i<m_trackList.size(); i++)
+    {
+
+        float mlat, mlong; //kinh do
+        mlat = m_trackList.at(i).m_Lat;
+        mlat = mlat/bit23*180.0f;
+        mlong = m_trackList.at(i).m_Long;
+        mlong = mlong/bit23*180.0f;
+        float fx,fy;
+
+        vnmap.ConvDegToScr(&fx,&fy,&mlong,&mlat);
+
+        short x = (fx*mScale)+scrCtX-dx;
+        short y = (fy*mScale)+scrCtY-dy;
+
+        if( qAbs(xAIS-x) <5 && qAbs(yAIS-y)<5)
+        {
+            p->setPen((penSelectTarger));
+        }
+        else p->setPen((penTarget));
+
+        //draw ais mark
+        QPolygon poly;
+        QPoint point;
+        float head = m_trackList.at(i).m_Head*PI_NHAN2/(1<<16);
+        point.setX(x+8*sinf(head));
+        point.setY(y-8*cosf(head));
+        poly<<point;
+        point.setX(x+8*sinf(head+2.3562f));
+        point.setY(y-8*cosf(head+2.3562f));
+        poly<<point;
+        point.setX(x);
+        point.setY(y);
+        poly<<point;
+        point.setX(x+8*sinf(head-2.3562f));
+        point.setY(y-8*cosf(head-2.3562f));
+        poly<<point;
+        p->drawPolygon(poly);
+        //draw ais name
+        if(ui->toolButton_ais_name->isChecked())
+        {
+            QFont font = p->font() ;
+            font.setPointSize(6);
+            p->setFont(font);
+            p->drawText(x+5,y+10,(m_trackList.at(i).m_szName));
+        }
+        QPushButton *m_button;
+        m_button = new QPushButton("My Button", this);
+            // set size and location of the button
+        m_button->setGeometry(QRect(QPoint(x, y),
+        QSize(16, 16)));
+
+        //p->drawText(x+5,y+5,QString::fromAscii((char*)&m_trackList.at(i).m_MMSI[0],9));
+        //printf("\nj:%d,%d,%d,%f,%f",j,x,y,arpa_data.ais_track_list[i].object_list[j].mlong,arpa_data.ais_track_list[i].object_list[j].mlat);
+    }
+}
+
+
 void Mainwindow::drawAisTarget(QPainter *p)
 {
     //draw radar  target:
@@ -957,7 +1105,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     DrawSignal(&p);
 
     DrawTarget(&p);
-    if(ui->toolButton_ais_show->isChecked())drawAisTarget(&p);
+
     //draw cursor
 //    QPen penmousePointer(QColor(0x50ffffff));
 
@@ -967,11 +1115,16 @@ void Mainwindow::paintEvent(QPaintEvent *event)
 //    p.drawLine(mousePointerX+15,mousePointerY,mousePointerX+10,mousePointerY);
 //    p.drawLine(mousePointerX,mousePointerY-10,mousePointerX,mousePointerY-15);
 //    p.drawLine(mousePointerX,mousePointerY+10,mousePointerX,mousePointerY+15);
-    //draw mouse coordinates
-    float azi,rg;
-    short   x=this->mapFromGlobal(QCursor::pos()).x();
-    short   y=this->mapFromGlobal(QCursor::pos()).y();
 
+    //draw mouse coordinates - > toa do chuot
+    float azi,rg;
+    short   x = this->mapFromGlobal(QCursor::pos()).x();
+    short   y = this->mapFromGlobal(QCursor::pos()).y();
+
+    // ve AIS neu nut AIS dc check
+    if(ui->toolButton_ais_show->isChecked())drawAisTarget2(&p,x,y);
+
+    //nut do khoang cach dc check
     if(ui->toolButton_measuring->isChecked())
     {
         processing->radarData->getPolar((x - mouseX)/mScale,-(y - mouseY)/mScale,&azi,&rg);
@@ -980,6 +1133,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     {
         processing->radarData->getPolar((x - scrCtX+dx)/mScale,-(y - scrCtY+dy)/mScale,&azi,&rg);
     }
+
     if(azi<0)azi+=PI_NHAN2;
     azi = azi/PI*180.0;
     rg = rg/CONST_NM;
@@ -1005,6 +1159,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
         p.drawLine(selZone_x1,y,x,y);
         p.drawLine(x,selZone_y1,x,y);
     }
+
     DrawViewFrame(&p);
     if(ui->tabWidget_2->currentIndex()==2)
     {

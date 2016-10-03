@@ -1013,7 +1013,7 @@
      <string notr="true">background-color: rgb(30, 50, 70);color:rgb(30, 50, 70);font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -10452,7 +10452,7 @@
        <x>10</x>
        <y>20</y>
        <width>231</width>
-       <height>221</height>
+       <height>237</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout_2">
@@ -22069,7 +22069,7 @@
        <rect>
         <x>20</x>
         <y>20</y>
-        <width>330</width>
+        <width>333</width>
         <height>341</height>
        </rect>
       </property>
@@ -24253,15 +24253,15 @@
         <number>3</number>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="GPS">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>235</width>
-          <height>216</height>
+          <width>231</width>
+          <height>194</height>
          </rect>
         </property>
         <attribute name="label">
@@ -24362,8 +24362,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>235</width>
-          <height>216</height>
+          <width>231</width>
+          <height>194</height>
          </rect>
         </property>
         <attribute name="label">
@@ -24403,8 +24403,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>235</width>
-          <height>216</height>
+          <width>231</width>
+          <height>194</height>
          </rect>
         </property>
         <attribute name="label">
