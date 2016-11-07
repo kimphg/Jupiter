@@ -276,6 +276,10 @@ private slots:
 
     void on_toolButton_set_header_size_clicked();
 
+    void on_toolButton_command_dttt_clicked();
+
+    void on_tabWidget_2_currentChanged(int index);
+
 private:
     void initActionsConnections();
     void initGraphicView();

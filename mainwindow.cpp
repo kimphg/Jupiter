@@ -3094,3 +3094,18 @@ void Mainwindow::on_toolButton_set_header_size_clicked()
 {
     processing->radarData->SetHeaderLen(ui->textEdit_header_len->text().toInt());
 }
+
+void Mainwindow::on_toolButton_command_dttt_clicked()
+{
+    ui->lineEdit_byte_1->setText("01");
+    ui->lineEdit_byte_2->setText("ab");
+    ui->lineEdit_byte_3->setText("01");
+    ui->lineEdit_byte_4->setText("01");
+    ui->lineEdit_byte_5->setText("01");
+    ui->lineEdit_byte_6->setText("01");
+}
+
+void Mainwindow::on_tabWidget_2_currentChanged(int index)
+{
+    ui->tabWidget_2->resetView();
+}
