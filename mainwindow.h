@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #define _CRT_SECURE_NO_WARNINGS
-
 #define SCR_W 1920
 #define SCR_H 1080
 #define SCR_LEFT_MARGIN 50
