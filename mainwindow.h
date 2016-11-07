@@ -2,10 +2,10 @@
 #define MAINWINDOW_H
 
 #define _CRT_SECURE_NO_WARNINGS
-#define STR_RADAR_NOT_CONNECTED QString::fromUtf8("Chưa kết nối")
-#define STR_RADAR_CONNECTED     QString::fromUtf8("Đã kết nối")
-#define STR_RADAR_TRANSMITING   QString::fromUtf8("Đang phát")
-#define SCR_X_MIN_LIMIT   60
+
+#define SCR_W 1920
+#define SCR_H 1080
+#define SCR_LEFT_MARGIN 50
 #define HR_FILE_EXTENSION ".r2d"
 #include <QtNetwork>
 #include <QMainWindow>
@@ -22,13 +22,13 @@
 #include <QFileDialog>
 #include <QImage>
 #include <QHostAddress>
-#include "ctarget.h"
+#include <jtarget.h>
+#include <jviewport.h>
+//#include "ctarget.h"
 //#include "radarcontroldialog.h"
 //#include "c_arpa_data.h"
 //#include <QtSerialPort/QSerialPort>
-QT_BEGIN_NAMESPACE
-class QUdpSocket;
-QT_END_NAMESPACE
+
 namespace Ui {
 class MainWindow;
 //class QLabel;
@@ -54,7 +54,7 @@ protected:
     void mouseDoubleClickEvent( QMouseEvent * e );
     enum radarSate   { DISCONNECTED,CONNECTED,CONNECTED_ROTATE9_TXOFF,CONNECTED_ROTATE12_TXOFF, CONNECTED_ROTATE9_TXON,CONNECTED_ROTATE12_TXON } radar_state;
 private:
-    void updateTargets();
+    //void updateTargets();
     void DrawGrid(QPainter* p,short centerX,short centerY);
     void CameraControl(int x,int y, int zoom);
     void CameraControl(int direction);
@@ -77,7 +77,7 @@ private:
 //    QUdpSocket      *udpARPA;//ARPA
     QUdpSocket      *m_udpSocket;//socket for radar control
     C2_Local          m_CLocal;
-    C2_TrackLst m_trackList;
+    C2_TrackLst m_AISList;
     //
     //CConfig         m_config;
     //CpView  *       m_view;
@@ -95,7 +95,7 @@ private:
     void DrawViewFrame(QPainter *p);
     void DrawSignal(QPainter *p);
     void drawAisTarget(QPainter *p);
-    void DrawTarget(QPainter* p);
+    void DrawRadarTargetByPainter(QPainter* p);
     void DrawMap();
     void ReloadSetting();
     void SendCommandControl();
@@ -110,10 +110,11 @@ private:
     bool ProcDataAIS(BYTE *szBuff, int nLeng );
 public:
     void setScaleNM(unsigned short rangeNM);
+    void drawAisTarget2(QPainter *p, short xAIS, short yAIS);
 private slots:
     void readBuffer();
-    void sync1();
-    void sync10();
+    void sync1S();
+    void sync5p();
     void ExitProgram();
     void gpsOption();
     void processFrame();
@@ -270,8 +271,16 @@ private slots:
 
     void on_toolButton_ais_reset_clicked();
 
+    void on_toolButton_2x_zoom_clicked(bool checked);
+
+    void on_toolButton_auto_adapt_clicked();
+
+    void on_toolButton_set_header_size_clicked();
+
 private:
     void initActionsConnections();
+    void initGraphicView();
+    void updateTargetInfo();
 };
 
 #endif // MAINWINDOW_H

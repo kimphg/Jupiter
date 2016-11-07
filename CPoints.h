@@ -48,12 +48,18 @@
 //-----------------------------------------------------------------------------
 class C2_Point  
 {
-public:	
+private:
 	long		m_Lat ;			// [180/(2^23)]
 	long		m_Long;			// [180/(2^23)]
+    double		mLat_dec ;			// double
+    double		mLon_dec;			// double
 	int			x, y;			// [pixel]
 
 public:	
+    void setLat(long lat);
+    void setLon(long lon);
+    double getLat();
+    double getLon();
 	C2_Point();
 	virtual ~C2_Point();
 

@@ -74,9 +74,7 @@ void dataProcessingThread::UpdateRadar()
                                     QHostAddress("192.168.0.44"),2572
                                     );
         radarComQ.pop();
-
     }
-
 }
 void dataProcessingThread::playbackRadarData()
 {
@@ -199,6 +197,7 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
 }
 void dataProcessingThread::run()
 {
+
     pcap_if_t *alldevs;
     pcap_if_t *d;
     pcap_t *adhandle;
@@ -403,35 +402,13 @@ void dataProcessingThread::radTxOff()
 void dataProcessingThread::sendCommand(unsigned char *sendBuff, short len)
 {
     RadarCommand command;
-    memcpy(&command.bytes[0],sendBuff,len);
+    memcpy(&command.bytes[0],sendBuff,7);
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
 }
 
 void dataProcessingThread::listenToRadar()
 {
-    for(;;)
-    {
-        short len = radarSocket->pendingDatagramSize();
-        if(len<0)continue;
-        QByteArray buff;
-        buff.resize(len);
-        printf("data:%d",len);
-        radarSocket->readDatagram(buff.data(), len);
-        /*unsigned short len = radarDataSocket->pendingDatagramSize();
-        QByteArray buff;
-        buff.resize(len);
-        radarDataSocket->readDatagram(buff.data(), len);
-        radarData->GetDataHR((unsigned char*)buff.data(),len);
-        if(isRecording)
-        {
-            signRecFile.write((char*)&len,2);
-            signRecFile.write(buff.data(),len);
 
-            //udpSendSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 10);
-
-            //udpSendSocket->writeDatagram(buff.data(),len,QHostAddress("192.168.0.5"),500);
-        }*/
-    }
 }
 
 void dataProcessingThread::startRecord(QString fileName)

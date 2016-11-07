@@ -15,8 +15,8 @@
 @CONFIG += debug_and_release@
 QT       += core gui
 QT       += network
-
 #greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QMAKE_CXXFLAGS_WARN_OFF -= -Wunused-parameter
 TARGET = Jupiter_2.5
 TEMPLATE = app
 SOURCES += main.cpp\
@@ -37,7 +37,10 @@ SOURCES += main.cpp\
     CLocal.cpp \
     CTrack.cpp \
     CPoints.cpp \
-    CDefine.cpp
+    CDefine.cpp \
+    jtarget.cpp \
+    jviewport.cpp \
+    jgraphictarget.cpp
 HEADERS  += mainwindow.h \
     vnmap.h \
     Config.h \
@@ -56,7 +59,10 @@ HEADERS  += mainwindow.h \
     CLocal.h \
     CTrack.h \
     CPoints.h \
-    CDefine.h
+    CDefine.h \
+    jtarget.h \
+    jviewport.h \
+    jgraphictarget.h
 
 FORMS    += mainwindow.ui \
     gpsdialog.ui \
@@ -70,7 +76,6 @@ INCLUDEPATH += $$PWD/WpdPack/Include
 DEPENDPATH += $$PWD/WpdPack/Include
 INCLUDEPATH += $$PWD/
 DEPENDPATH += $$PWD/
-
 #RESOURCES +=
 #INCLUDEPATH += $$PWD/../armadillo/include
 #DEPENDPATH += $$PWD/../armadillo/include

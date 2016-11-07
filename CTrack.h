@@ -71,6 +71,7 @@ public:
 //	long		m_Long	;			// [180/(2^23)]
 	UINT		m_Speed	;			// [0.1 nm/h]
 	UINT		m_Head	;			// [360/2^16]
+    double      getHead();
 	UINT		m_Alti	;			// [1 m]
 //	BYTE		m_Type	;			// Type/Class: b0/3
 	BYTE		m_SbType;			// Sub type

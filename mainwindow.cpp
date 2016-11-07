@@ -18,7 +18,7 @@ QTimer                      scrUpdateTimer,readBuffTimer ;
 QTimer                      syncTimer1s,syncTimer5p ;
 QTimer                      dataPlaybackTimer ;
 bool                        displayAlpha = false;
-QList<CTarget*>             targetList;
+//QList<CTarget*>             targetDisplayList;
 short                       dxMax,dyMax;
 C_ARPA_data                 arpa_data;
 short                       scrCtX, scrCtY, dx =0,dy=0,dxMap=0,dyMap=0;
@@ -26,13 +26,18 @@ short                       mousePointerX,mousePointerY,mouseX,mouseY;
 bool                        isDraging = false;
 bool                        isScaleChanged =true;
 float                       mScale;
-
+QGraphicsScene* scene;
+jViewPort* view;
 CConfig         config;
 QStringList     warningList;
-short selected_target_index;
+short selectedTargetIndex;
 enum drawModes{
     SGN_DIRECT_DRAW,SGN_IMG_DRAW,NOTERR_DRAW
 }drawMode = SGN_IMG_DRAW;
+enum TargetType{
+    RADAR,AIS,NOTARGET
+}selectedTargetType  = NOTARGET;
+int targetID = -1;
 short range = 1;
 float rangeStep = 1;
 //typedef struct {
@@ -42,7 +47,6 @@ float rangeStep = 1;
 //typedef std::queue<Command_Control> CommandList;
 //static CommandList command_queue;
 bool isDrawSubTg = true;
-
 
 class guard_zone_t
 {
@@ -55,20 +59,19 @@ public:
     char  isActive;
     void update()
     {
-        float azi,rg;
-        processing->radarData->getPolar((x1 - scrCtX+dx)/mScale,-(y1 - scrCtY+dy)/mScale,&minAzi,&minR);
-        processing->radarData->getPolar((x2 - scrCtX+dx)/mScale,-(y2 - scrCtY+dy)/mScale,&maxAzi,&maxR);
-        if(minAzi<0)minAzi += PI_NHAN2;
-        minAzi = minAzi/PI*180.0;
-        if(maxAzi<0)maxAzi += PI_NHAN2;
-        maxAzi = maxAzi/PI*180.0;
+        //float azi,rg;
+//        C_radar_data::kmxyToPolar((x1 - scrCtX+dx)/mScale,-(y1 - scrCtY+dy)/mScale,&minAzi,&minR);
+//        C_radar_data::kmxyToPolar((x2 - scrCtX+dx)/mScale,-(y2 - scrCtY+dy)/mScale,&maxAzi,&maxR);
+//        if(minAzi<0)minAzi += PI_NHAN2;
+//        minAzi = minAzi*DEG_RAD;
+//        if(maxAzi<0)maxAzi += PI_NHAN2;
+//        maxAzi = maxAzi*DEG_RAD;
     }
 };
 guard_zone_t gz1,gz2,gz3;
 //static unsigned short cur_object_index = 0;
 short lon2x(float lon)
 {
-
    float refLat = (config.m_config.m_lat )*0.00872664625997f;
    return  (- dx + scrCtX + ((lon - config.m_config.m_long) * 111.31949079327357f*cosf(refLat))*mScale);
 }
@@ -94,6 +97,8 @@ void Mainwindow::mouseDoubleClickEvent( QMouseEvent * e )
         mousePointerY = (e->y());
         processing->radarData->updateZoomRect(mousePointerX - scrCtX+dx,mousePointerY - scrCtY+dy);
     }
+    //Test doc AIS
+
 }
 void Mainwindow::sendToRadarHS(const char* hexdata)
 {
@@ -102,7 +107,6 @@ void Mainwindow::sendToRadarHS(const char* hexdata)
     hex2bin(hexdata,sendBuff);
     processing->sendCommand(sendBuff,len);
     delete[] sendBuff;
-
 }
 void Mainwindow::sendToRadar(unsigned char* hexdata)
 {
@@ -111,7 +115,70 @@ void Mainwindow::sendToRadar(unsigned char* hexdata)
     //printf("\a");
 
 }
+//ham test ve tu AIS
+void Mainwindow::drawAisTarget2(QPainter *p, short xAIS, short yAIS)
+{
+    //draw radar
+    QPen penTarget(QColor(255,50,150));
+    penTarget.setWidth(0);
 
+    //hightlight target
+    QPen penSelectTarger (QColor(0,166,173));
+    penSelectTarger.setWidth(0);
+
+
+    for(int i=0; i<m_AISList.size(); i++)
+    {
+
+
+        double fx,fy;
+
+        vnmap.ConvWGSToKmXY(&fx,&fy,m_AISList.at(i).getLon(),m_AISList.at(i).getLat());
+
+        short x = (fx*mScale)+scrCtX-dx;
+        short y = (fy*mScale)+scrCtY-dy;
+
+        if( qAbs(xAIS-x) <5 && qAbs(yAIS-y)<5)
+        {
+            p->setPen((penSelectTarger));
+        }
+        else p->setPen((penTarget));
+
+        //draw ais mark
+        QPolygon poly;
+        QPoint point;
+        float head = m_AISList.at(i).m_Head*PI_NHAN2/(1<<16);
+        point.setX(x+8*sinf(head));
+        point.setY(y-8*cosf(head));
+        poly<<point;
+        point.setX(x+8*sinf(head+2.3562f));
+        point.setY(y-8*cosf(head+2.3562f));
+        poly<<point;
+        point.setX(x);
+        point.setY(y);
+        poly<<point;
+        point.setX(x+8*sinf(head-2.3562f));
+        point.setY(y-8*cosf(head-2.3562f));
+        poly<<point;
+        p->drawPolygon(poly);
+        //draw ais name
+        if(ui->toolButton_ais_name->isChecked())
+        {
+            QFont font = p->font() ;
+            font.setPointSize(6);
+            p->setFont(font);
+            p->drawText(x+5,y+10,(m_AISList.at(i).m_szName));
+        }
+        QPushButton *m_button;
+        m_button = new QPushButton("My Button", this);
+            // set size and location of the button
+        m_button->setGeometry(QRect(QPoint(x, y),
+        QSize(16, 16)));
+
+        //p->drawText(x+5,y+5,QString::fromAscii((char*)&m_trackList.at(i).m_MMSI[0],9));
+        //printf("\nj:%d,%d,%d,%f,%f",j,x,y,arpa_data.ais_track_list[i].object_list[j].mlong,arpa_data.ais_track_list[i].object_list[j].mlat);
+    }
+}
 void Mainwindow::mouseReleaseEvent(QMouseEvent *event)
 {
 
@@ -159,17 +226,6 @@ void Mainwindow::wheelEvent(QWheelEvent *event)
     //if(event->delta()<0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()-1);
 }
 void Mainwindow::mouseMoveEvent(QMouseEvent *event) {
-    //draw mouse coordinates
-//    float azi,range;
-//    processing->radarData->getPolar((mousePointerX - scrCtX+dx)/scale,-(mousePointerY - scrCtY+dy)/scale,&azi,&range);
-//    if(azi<0)azi+=PI_NHAN2;
-//    azi = azi/PI*180.0;
-//    range = range/CONST_NM;
-//    p.drawText(mousePointerX+5,mousePointerY+5,100,20,0,QString::number(range,'g',4)+"|"+QString::number(azi,'g',4),0);
-//    ui->label_cursor_range->setText(QString::number(range,'g',6));
-//    ui->label_cursor_azi->setText(QString::number(azi,'g',6));
-//    //
-
     if(isDraging&&(event->buttons() & Qt::LeftButton)) {
 
         short olddx = dx;
@@ -193,7 +249,6 @@ void Mainwindow::mouseMoveEvent(QMouseEvent *event) {
         mousePointerY+= olddy - dy;
         mouseX=event->x();
         mouseY=event->y();
-//        isScreenUp2Date = false;
     }
 }
 void Mainwindow::keyPressEvent(QKeyEvent *event)
@@ -241,7 +296,7 @@ void Mainwindow::detectZone()
             sy = -trackListPt->at(trackId).estY*scale_ppi + scrCtY - dy;
             if((sx>=selZone_x1)&&(sx<=selZone_x2)&&(sy>selZone_y1)&&(sy<selZone_y2))
             {
-                trackListPt->at(trackId).isManual = true;
+                trackListPt->at(trackId).setManual(true);
             }
         }
 
@@ -253,7 +308,14 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
     mouseX = (event->x());
     mouseY = (event->y());
     if(event->buttons() & Qt::LeftButton) {
-        if(ui->toolButton_auto_select->isChecked())
+        if(ui->toolButton_manual_track->isChecked())
+        {
+            float xRadar = (mouseX - scrCtX+dx)/processing->radarData->scale_ppi ;//coordinates in  radar xy system
+            float yRadar = -(mouseY - scrCtY+dy)/processing->radarData->scale_ppi;
+            processing->radarData->addTrackManual(xRadar,yRadar);
+            ui->toolButton_manual_track->setChecked(false);
+        }
+        else if(ui->toolButton_auto_select->isChecked())
         {
             if(isSelectingTarget)
             {
@@ -268,14 +330,7 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
                 isSelectingTarget = true;
             }
         }
-        else if(ui->toolButton_manual_track->isChecked())
-        {
-            float xRadar = (mouseX - scrCtX+dx) ;//coordinates in  radar xy system
-            float yRadar = -(mouseY - scrCtY+dy);
-            processing->radarData->addTrackManual(xRadar,yRadar);
-            ui->toolButton_manual_track->setChecked(false);
-//            isScreenUp2Date = false;
-        }
+
         else if(ui->toolButton_create_zone->isChecked())
         {
             gz1.isActive = 1;
@@ -300,7 +355,63 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
             isDraging = true;
         }
     }
+    if(event->buttons() & Qt::RightButton)
+    {
+        //select radar target
+        trackList* trackListPt = &processing->radarData->mTrackList;
+        for(uint trackId=0;trackId<trackListPt->size();trackId++)
+        {
+            if(!trackListPt->at(trackId).isConfirmed)continue;
+            if(!trackListPt->at(trackId).isManual)continue;
+            //if(trackListPt->at(trackId).state<5)continue;
+            short sx = trackListPt->at(trackId).estX*processing->radarData->scale_ppi + scrCtX - dx;
+            short sy = -trackListPt->at(trackId).estY*processing->radarData->scale_ppi + scrCtY - dy;
+            if( qAbs(sx-event->x()) <5 && qAbs(sy-event->y())<5)
+            {
+                selectedTargetType = RADAR;
+                selectedTargetIndex = trackId;
 
+            }
+        }
+
+
+        //select ais target
+        if(ui->toolButton_ais_show->isChecked())
+        {
+            //lay vi tri con tro chuot
+            float xAIS = event->x();//(e->x() - scrCtX+dx)/mScale ;//coordinates in  radar xy system
+            float yAIS = event->y();//-(e->y() - scrCtY+dy)/mScale;
+
+            for(int i=0; i<m_AISList.size(); i++)
+            {
+                //p->setPen((penTarget));
+//                float mlat, mlong; //kinh do
+//                mlat = m_trackList.at(i).m_Lat;
+//                mlat = mlat/bit23*180.0f;
+//                mlong = m_trackList.at(i).m_Long;
+//                mlong = mlong/bit23*180.0f;
+                double fx,fy;
+                vnmap.ConvWGSToKmXY(&fx,&fy,m_AISList.at(i).getLon(),m_AISList.at(i).getLat());
+
+                short x = (fx*mScale)+scrCtX-dx;
+                short y = (fy*mScale)+scrCtY-dy;
+
+                //float head = m_trackList.at(i).m_Head*PI_NHAN2/(1<<16);
+                //double x1 = x+8*sinf(head);
+                //double y1 = y-8*cosf(head);
+
+                if( qAbs(xAIS-x) <5 && qAbs(yAIS-y)<5)
+                {
+                    //printf("ais select");
+                    selectedTargetType = AIS;
+                    selectedTargetIndex = i;
+                    break;
+
+                }
+
+            }
+        }
+    }
 
 }
 /*void MainWindow::wheelEvent(QWheelEvent *event)
@@ -469,8 +580,8 @@ void Mainwindow::DrawMap()
                     QPolygon poly;
                     for(uint k = 0; k < vnmap.layers[i][j].size(); k++) { // Polygon
                         QPoint int_point;
-                        float x,y;
-                        vnmap.ConvDegToScr(&x,&y,&vnmap.layers[i][j][k].m_Long,&vnmap.layers[i][j][k].m_Lat);
+                        double x,y;
+                        vnmap.ConvWGSToKmXY(&x,&y,vnmap.layers[i][j][k].m_Long,vnmap.layers[i][j][k].m_Lat);
                         int_point.setX((int)(x*mScale)+centerX);
                         int_point.setY((int)(y*mScale)+centerY);
                         poly<<int_point;
@@ -491,8 +602,8 @@ void Mainwindow::DrawMap()
 
                     for(uint k = 0; k < vnmap.layers[i][j].size(); k++) { // Polygon
                         QPoint int_point;
-                        float x,y;
-                        vnmap.ConvDegToScr(&x,&y,&vnmap.layers[i][j][k].m_Long,&vnmap.layers[i][j][k].m_Lat);
+                        double x,y;
+                        vnmap.ConvWGSToKmXY(&x,&y,vnmap.layers[i][j][k].m_Long,vnmap.layers[i][j][k].m_Lat);
                         int_point.setX((int)(x*mScale)+centerX);
                         int_point.setY((int)(y*mScale)+centerY);
                         if(k)p.drawLine(old_point,int_point);
@@ -522,8 +633,8 @@ void Mainwindow::DrawMap()
         p.setFont(font);
         for(uint i = 0; i < vnmap.placeList.size(); i++) {
                 QPoint int_point;
-                float x,y;
-                vnmap.ConvDegToScr(&x,&y,&vnmap.placeList[i].m_Long,&vnmap.placeList[i].m_Lat);
+                double x,y;
+                vnmap.ConvWGSToKmXY(&x,&y,vnmap.placeList[i].m_Long,vnmap.placeList[i].m_Lat);
                 int_point.setX((int)(x*mScale)+centerX);
                 int_point.setY((int)(y*mScale)+centerY);
                 p.drawEllipse(int_point,2,2);
@@ -533,7 +644,7 @@ void Mainwindow::DrawMap()
                 //printf("toa do hien tai lat %f long %f\n",m_textList[i].m_Lat,m_textList[i].m_Long);
         }
     }
-
+    //view->setMap(pMap);
 }
 void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
 {
@@ -564,8 +675,8 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
         short gridR = rangeStep*1.852f*mScale*7;
         for(theta=0;theta<360;theta+=90){
             QPoint point1,point2;
-                short dx = gridR*cosf(PI*theta/180);
-                short dy = gridR*sinf(PI*theta/180);
+                short dx = gridR*cosf(theta/DEG_RAD);
+                short dy = gridR*sinf(theta/DEG_RAD);
                 point1.setX(centerX);
                 point1.setY(centerY);
                 point2.setX(centerX+dx);
@@ -575,8 +686,8 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
         }
         for(theta=0;theta<360;theta+=30){
             QPoint point1,point2;
-                short dx = gridR*cosf(PI*theta/180);
-                short dy = gridR*sinf(PI*theta/180);
+                short dx = gridR*cosf(theta/DEG_RAD);
+                short dy = gridR*sinf(theta/DEG_RAD);
                 point1.setX(centerX);
                 point1.setY(centerY);
                 point2.setX( centerX+dx);
@@ -595,22 +706,33 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
 
 }
 
-void Mainwindow::DrawTarget(QPainter* p)
+void Mainwindow::initGraphicView()
 {
-    //draw radar  target:
-    QPen penTargetRed(Qt::magenta);
-    penTargetRed.setWidth(2);
-    //QPen penARPATarget(Qt::yellow);
-    //penARPATarget.setWidth(3);
+    scene = new QGraphicsScene(-200, -200, 400, 400);
+    view = new jViewPort(scene,this);
+    view->setGeometry(SCR_LEFT_MARGIN,0,SCR_H,SCR_H);
+    view->lower();
+    view->setRenderHint(QPainter::Antialiasing);
+    //view->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+    view->setBackgroundBrush(Qt::transparent);
+
+}
+
+void Mainwindow::DrawRadarTargetByPainter(QPainter* p)//draw radar target from processing->radarData->mTrackList
+{
+
+    QPen penTarget(Qt::magenta);
+    penTarget.setWidth(2);
+
+    QPen penSelTarget(Qt::magenta);
+    penSelTarget.setWidth(2);
+    penSelTarget.setStyle(Qt::DashLine);
     QPen penTargetBlue(Qt::cyan);
     penTargetBlue.setWidth(2);
     //penTargetBlue.setStyle(Qt::DashLine);
-    QPen penTrack;
-    penTrack.setWidth(2);
-    penTrack.setColor(QColor(250,50,250,150));
     //QPen penARPATrack(Qt::darkYellow);
     //draw radar targets
-    float x,y;
+    //float x,y;
     short sx,sy;
     float scale_ppi = processing->radarData->scale_ppi;
     //short targetId = 0;
@@ -619,9 +741,9 @@ void Mainwindow::DrawTarget(QPainter* p)
     {
         for(uint trackId=0;trackId<trackListPt->size();trackId++)
         {
-            //if(!trackListPt->at(trackId).isConfirmed)continue;
+            if(!trackListPt->at(trackId).isConfirmed)continue;
             if(trackListPt->at(trackId).isManual)continue;
-            if(!trackListPt->at(trackId).state)continue;
+            //if(trackListPt->at(trackId).state<5)continue;
             sx = trackListPt->at(trackId).estX*scale_ppi + scrCtX - dx;
             sy = -trackListPt->at(trackId).estY*scale_ppi + scrCtY - dy;
             p->setPen(penTargetBlue);
@@ -634,84 +756,53 @@ void Mainwindow::DrawTarget(QPainter* p)
         for(uint trackId=0;trackId<trackListPt->size();trackId++)
         {
             if(!trackListPt->at(trackId).isManual)continue;
-            if(!trackListPt->at(trackId).state)continue;
-
-                x= trackListPt->at(trackId).estX*scale_ppi/mScale;
-                y= trackListPt->at(trackId).estY*scale_ppi/mScale;
+            if(!trackListPt->at(trackId).isLost)
+            {
+                //x= trackListPt->at(trackId).estX*scale_ppi/mScale;
+                //y= trackListPt->at(trackId).estY*scale_ppi/mScale;
                 sx = trackListPt->at(trackId).estX*scale_ppi + scrCtX - dx;
                 sy = -trackListPt->at(trackId).estY*scale_ppi + scrCtY - dy;
-                if(trackListPt->at(trackId).dopler==17)
+                if(trackListPt->at(trackId).dopler==17)//diem dau dat bang tay
                 {
                     p->setPen(penTargetBlue);
-
                     p->drawEllipse(sx-6,sy-6,12,12);
-
                     continue;
                 }
-
-                short tid =0;
-                for(;tid<targetList.size();tid++)
+                else if(trackListPt->at(trackId).isManual)
                 {
-                    if(targetList.at(tid)->isUsed)
-                    if(targetList.at(tid)->trackId==trackId)
+                    p->setPen(penTarget);
+                    //ve huong di chuyen
+                    if(trackListPt->at(trackId).object_list.size()>12)
                     {
-                        targetList.at(tid)->setPosistion(x,y);
-                        targetList.at(tid)->m_lat = y2lat(trackListPt->at(trackId).estY*scale_ppi);
-                        targetList.at(tid)->m_lon = x2lon(trackListPt->at(trackId).estX*scale_ppi);
-                        targetList.at(tid)->show();
-
-                        break;
+                        sx = trackListPt->at(trackId).estX*scale_ppi + scrCtX - dx;
+                        sy =-trackListPt->at(trackId).estY*scale_ppi + scrCtY - dy;
+                        p->drawLine(sx,sy,sx+15*sin(trackListPt->at(trackId).heading),sy-15*cos(trackListPt->at(trackId).heading));
                     }
-                }
-                if(tid>=targetList.size())// add new target
-                {
-//                    tid =0;
-//                    for(;tid<targetList.size();tid++)
-//                    {
-//                        //if(trackListPt->at(targetList.at(tid)->trackId).state == 0)
-//                        if(!targetList.at(tid)->isUsed)
-//                        {
-//                            targetList.at(tid)->trackId = trackId;
-//                            targetList.at(tid)->isUsed = true;
-//                            targetList.at(tid)->show();
-//                            targetList.at(tid)->setPosistion(x,y);
-//                        }
-//                    }
-//                    if(tid==targetList.size())
-//                    {
-                        CTarget*  tg1 = new CTarget(this);
-                        tg1->isManual = trackListPt->at(trackId).isManual;
-                        tg1->trackId = trackId;
-                        tg1->isUsed = true;
-                        tg1->show();
-                        tg1->m_lat = y2lat(trackListPt->at(trackId).estY*scale_ppi);
-                        tg1->m_lon = x2lon(trackListPt->at(trackId).estX*scale_ppi);
-                        tg1->setPosistion(x,y);
-                        targetList.append(tg1);
-//                    }
-                }
+                    //ve so hieu MT
+                    p->drawText(sx+7,sy+7,300,40,0,QString::number(trackListPt->at(trackId).idCount));
+                    //ve lich su qui dao
+                    if(selectedTargetIndex==trackId)
+                    {
+                        for(short j=0 ;j<trackListPt->at(trackId).object_list.size();j+=3)
+                        {
+                            sx = trackListPt->at(trackId).object_list.at(j).x*scale_ppi + scrCtX - dx;
+                            sy = -trackListPt->at(trackId).object_list.at(j).y*scale_ppi + scrCtY - dy;
+                            p->drawPoint(sx,sy);
+                        }
+                        p->drawRect(sx-6,sy-6,12,12);
+                        p->setPen(penSelTarget);
+                        p->drawRect(sx-9,sy-9,18,18);
+                    }
+                    else
+                    {
+                        p->drawRect(sx-6,sy-6,12,12);
 
+                    }
+                    continue;
+                }
+            }
 //                draw track:
-                short k=0;
-                p->setPen(penTargetRed);
 
-
-                p->drawText(sx+10,sy+10,300,40,0,QString::number(tid+1));
-                for(short j=(trackListPt->at(trackId).object_list.size()-1);j>0;j-=1)
-                {
-                    k++;
-                    if(k>40)break;
-                    sx = trackListPt->at(trackId).object_list.at(j).x*scale_ppi + scrCtX - dx;
-                    sy = -trackListPt->at(trackId).object_list.at(j).y*scale_ppi + scrCtY - dy;
-                    p->drawPoint(sx,sy);
-                }
-
-                if(trackListPt->at(trackId).object_list.size()>12)
-                {
-                    sx = trackListPt->at(trackId).estX*scale_ppi + scrCtX - dx;
-                    sy =-trackListPt->at(trackId).estY*scale_ppi + scrCtY - dy;
-                    p->drawLine(sx,sy,sx+15*sinf(trackListPt->at(trackId).head_r),sy-15*cosf(trackListPt->at(trackId).head_r));
-                }
 //                j--;
 //                if(j<0)continue;
                 //printf("red");
@@ -894,24 +985,24 @@ void Mainwindow::drawAisTarget(QPainter *p)
     //draw radar  target:
     QPen penTargetRed(QColor(255,50,150));
     penTargetRed.setWidth(0);
-    for(uint i=0;i<m_trackList.size();i++)
+    for(uint i=0;i<m_AISList.size();i++)
     {
             p->setPen(penTargetRed);
-            short j;
+//            short j;
             //draw track:
-            float fx,fy;
-            float mlat = m_trackList.at(i).m_Lat ;
-            mlat =  mlat/bit23* 180.0f ;
-            float mlon = m_trackList.at(i).m_Long;
-            mlon = mlon/bit23* 180.0f ;
-                vnmap.ConvDegToScr(&fx,&fy,&mlon,&mlat);
+            double fx,fy;
+//            float mlat = m_trackList.at(i).getLat();
+//            mlat =  mlat/bit23* 180.0f ;
+//            float mlon = m_trackList.at(i).mLong_double;
+//            mlon = mlon/bit23* 180.0f ;
+                vnmap.ConvWGSToKmXY(&fx,&fy,m_AISList.at(i).getLon(),m_AISList.at(i).getLat());
 
                 short x = (fx*mScale)+scrCtX-dx;
                 short y = (fy*mScale)+scrCtY-dy;
                 //draw ais mark
                 QPolygon poly;
                 QPoint point;
-                float head = m_trackList.at(i).m_Head*PI_NHAN2/(1<<16);
+                float head = m_AISList.at(i).m_Head*PI_NHAN2/(1<<16);
                 point.setX(x+8*sinf(head));
                 point.setY(y-8*cosf(head));
                 poly<<point;
@@ -931,7 +1022,7 @@ void Mainwindow::drawAisTarget(QPainter *p)
                     QFont font = p->font() ;
                     font.setPointSize(6);
                     p->setFont(font);
-                    p->drawText(x+5,y+10,(m_trackList.at(i).m_szName));
+                    p->drawText(x+5,y+10,(m_AISList.at(i).m_szName));
                 }
 //                p->drawText(x+5,y+5,QString::fromAscii((char*)&m_trackList.at(i).m_MMSI[0],9));
                 //printf("\nj:%d,%d,%d,%f,%f",j,x,y,arpa_data.ais_track_list[i].object_list[j].mlong,arpa_data.ais_track_list[i].object_list[j].mlat);
@@ -940,8 +1031,7 @@ void Mainwindow::drawAisTarget(QPainter *p)
 }
 void Mainwindow::paintEvent(QPaintEvent *event)
 {
-    event = event;
-//    isScreenUp2Date = true;
+    (void)event;
     QPainter p(this);
 
     p.setRenderHint(QPainter::Antialiasing, true);
@@ -955,8 +1045,9 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     //draw signal
     DrawSignal(&p);
 
-    DrawTarget(&p);
-    if(ui->toolButton_ais_show->isChecked())drawAisTarget(&p);
+    DrawRadarTargetByPainter(&p);
+
+    //if(ui->toolButton_ais_show->isChecked())drawAisTarget(&p);
     //draw cursor
 //    QPen penmousePointer(QColor(0x50ffffff));
 
@@ -973,23 +1064,23 @@ void Mainwindow::paintEvent(QPaintEvent *event)
 
     if(ui->toolButton_measuring->isChecked())
     {
-        processing->radarData->getPolar((x - mouseX)/mScale,-(y - mouseY)/mScale,&azi,&rg);
+        C_radar_data::kmxyToPolar((x - mouseX)/mScale,-(y - mouseY)/mScale,&azi,&rg);
     }
     else
     {
-        processing->radarData->getPolar((x - scrCtX+dx)/mScale,-(y - scrCtY+dy)/mScale,&azi,&rg);
+        C_radar_data::kmxyToPolar((x - scrCtX+dx)/mScale,-(y - scrCtY+dy)/mScale,&azi,&rg);
     }
-    if(azi<0)azi+=PI_NHAN2;
-    azi = azi/PI*180.0;
-    rg = rg/CONST_NM;
-//    p.drawText(mousePointerX+5,mousePointerY+5,100,20,0,QString::number(range,'g',4)+"|"+QString::number(azi,'g',4),0);
 
-    ui->label_cursor_range->setText(QString::number(rg,'g',6));
-    ui->label_cursor_azi->setText(QString::number(azi,'g',6));
+    //if(ui->toolButton_ais_show->isChecked())drawAisTarget2(&p,x,y);
+    if(ui->toolButton_ais_show->isChecked())drawAisTarget(&p);
+//    p.drawText(mousePointerX+5,mousePointerY+5,100,20,0,QString::number(range,'f',2,4)+"|"+QString::number(azi,'f',2,4),0);
+
+    ui->label_cursor_range->setText(QString::number(rg,'f',2)+"Nm");
+    ui->label_cursor_azi->setText(QString::number((short)azi)+"\xB0"+QString::number((azi - (short)azi)*60,'f',2)+"'");
     ui->label_cursor_lat->setText(QString::number( (short)y2lat(-(y - scrCtY+dy)))+"\xB0"+
-                                  QString::number(((float)y2lat(-(y - scrCtY+dy))-(short)(y2lat(-(y - scrCtY+dy))))*60,'g',4)+"N");
+                                  QString::number(((float)y2lat(-(y - scrCtY+dy))-(short)(y2lat(-(y - scrCtY+dy))))*60,'f',2)+"'N");
     ui->label_cursor_long->setText(QString::number( (short)x2lon(x - scrCtX+dx))+"\xB0"+
-                                       QString::number(((float)x2lon(x - scrCtX+dx)-(short)(x2lon(x - scrCtX+dx)))*60,'g',4)+"E");
+                                       QString::number(((float)x2lon(x - scrCtX+dx)-(short)(x2lon(x - scrCtX+dx)))*60,'f',2)+"'E");
 
     //draw zooom
     //draw frame
@@ -1010,7 +1101,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
         QRect rect = ui->tabWidget_2->geometry();
         if(range>2)// draw dash frame os zoom area in the ppi
         {
-            short zoom_size = ui->tabWidget_2->width()/processing->radarData->scale_zoom*processing->radarData->scale_ppi;
+            short zoom_size = ui->tabWidget_2->width()/processing->radarData->scale_zoom_ppi*processing->radarData->scale_ppi;
             p.setPen(QPen(QColor(255,255,255,200),0,Qt::DashLine));
             p.drawRect(mousePointerX-zoom_size/2.0,mousePointerY-zoom_size/2.0,zoom_size,zoom_size);
         }
@@ -1042,7 +1133,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
         p.drawImage(rect,*processing->radarData->img_spectre,
                     processing->radarData->img_spectre->rect());
     }
-    updateTargets();
+//    updateTargets();
 }
 //void MainWindow::keyPressEvent(QKeyEvent *event)
 //{
@@ -1078,16 +1169,18 @@ void Mainwindow::SaveBinFile()
     //vnmap.SaveBinFile();
 
 }
+
 void Mainwindow::InitSetting()
 {
     setMouseTracking(true);
+    //initGraphicView();
     //init the guard zone
     gz1.isActive = 0;
     gz2.isActive = 0;
     gz3.isActive = 0;
     QRect rec = QApplication::desktop()->screenGeometry(0);
-    setFixedSize(1920,1080);
-    if((rec.height()==1080)&&(rec.width()==1920))
+    setFixedSize(SCR_W,SCR_H);
+    if((rec.height()==SCR_H)&&(rec.width()==SCR_W))
     {
         this->showFullScreen();
         this->setGeometry(QApplication::desktop()->screenGeometry(0));//show on first screen
@@ -1096,7 +1189,7 @@ void Mainwindow::InitSetting()
     {
 
         rec = QApplication::desktop()->screenGeometry(1);
-        if((rec.height()==1080)&&(rec.width()==1920))
+        if((rec.height()==SCR_H)&&(rec.width()==SCR_W))
         {
             this->showFullScreen();
             //printf("error");
@@ -1106,10 +1199,10 @@ void Mainwindow::InitSetting()
 
     }
 
-    dxMax = height()/4-10;
-    dyMax = height()/4-10;
-    mousePointerX = scrCtX = height()/2+50;//+ ui->toolBar_Main->width()+20;//ENVDEP
-    mousePointerY = scrCtY = height()/2;
+    dxMax = SCR_H/4-10;
+    dyMax = SCR_H/4-10;
+    mousePointerX = scrCtX = SCR_H/2 + SCR_LEFT_MARGIN;//+ ui->toolBar_Main->width()+20;//ENVDEP
+    mousePointerY = scrCtY = SCR_H/2;
     UpdateScale();
     ui->textEdit_heading->setText(QString::number(config.m_config.trueN));
     processing->radarData->setTrueN(config.m_config.trueN);
@@ -1122,7 +1215,7 @@ void Mainwindow::InitSetting()
     //ui->tabWidget_2->processing = processing;
     //ui->horizontalSlider_signal_scale->setValue(ui->horizontalSlider_sea->minimum());
     ui->comboBox_radar_resolution->setCurrentIndex(0);
-    setCursor(QCursor(Qt::CrossCursor));
+    setCursor(QCursor(Qt::ArrowCursor));
     range = 5; UpdateScale();
     if(true)
     {
@@ -1132,7 +1225,6 @@ void Mainwindow::InitSetting()
         pMap = new QPixmap(height(),height());
 
         DrawMap();
-
 
     }else
     {
@@ -1340,47 +1432,32 @@ void Mainwindow::InitTimer()
 
 
     t2 = new QThread();
-    t1 = new QThread();
+
     processing = new dataProcessingThread();
 
-//    connect(fullScreenTimer, SIGNAL(timeout()), this, SLOT(UpdateSetting()));
-//    fullScreenTimer->setSingleShot(true);
-//    fullScreenTimer->start(1000);
-    connect(&syncTimer1s, SIGNAL(timeout()), this, SLOT(sync1()));
+    connect(&syncTimer1s, SIGNAL(timeout()), this, SLOT(sync1S()));
     syncTimer1s.start(1000);
-    connect(&syncTimer5p, SIGNAL(timeout()), this, SLOT(sync10()));
+    connect(&syncTimer5p, SIGNAL(timeout()), this, SLOT(sync5p()));
     syncTimer5p.start(300000);
     //syncTimer1s.moveToThread(t);
-    //
+
     connect(&readBuffTimer,SIGNAL(timeout()),this,SLOT(readBuffer()));
-    readBuffTimer.start(50);
-    readBuffTimer.moveToThread(t1);
-    //
+    readBuffTimer.start(20);
+    readBuffTimer.moveToThread(t2);
+
     connect(&scrUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadarData()));
-    scrUpdateTimer.start(30);//ENVDEP
+    scrUpdateTimer.start(40);//ENVDEP
     scrUpdateTimer.moveToThread(t2);
 
     connect(this,SIGNAL(destroyed()),processing,SLOT(deleteLater()));
     connect(&dataPlaybackTimer,SIGNAL(timeout()),processing,SLOT(playbackRadarData()));
-    //dataPlaybackTimer->moveToThread(t);
+
     connect(t2,SIGNAL(finished()),t2,SLOT(deleteLater()));
-    processing->start();
-    t2->start(QThread::TimeCriticalPriority);
-    t1->start(QThread::TimeCriticalPriority);
+    processing->start(QThread::TimeCriticalPriority);
+    t2->start(QThread::IdlePriority);
 }
 void Mainwindow::InitNetwork()
 {
-    //connect(&playbackTimer, SIGNAL(timeout()), this, SLOT(drawSign()));
-
-    //countdown = new CountdownReceiverDlg();
-
-    //QHostAddress mHost = QHostAddress("224.110.210.226");
-//    udpSocket = new QUdpSocket(this);
-//    udpSocket->bind(5000, QUdpSocket::ShareAddress);
-//    //udpSocket->joinMulticastGroup(mHost);
-//    connect(udpSocket, SIGNAL(readyRead()),
-//            this, SLOT(processFrame()));
-
         m_udpSocket = new QUdpSocket(this);
         if(!m_udpSocket->bind(8900))
         {
@@ -1391,8 +1468,6 @@ void Mainwindow::InitNetwork()
         }
         m_udpSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 10);
 
-//    udpARPA = new QUdpSocket(this);
-//    udpARPA->bind(1990,QUdpSocket::ShareAddress);
     connect(m_udpSocket, SIGNAL(readyRead()),
             this, SLOT(processARPA()));
 
@@ -1542,7 +1617,7 @@ void Mainwindow::on_actionConnect_triggered()
 {
 
 }
-void Mainwindow::sync10()//period 10 second
+void Mainwindow::sync5p()//period 10 second
 {
 
     if(radar_state!=DISCONNECTED)
@@ -1561,12 +1636,69 @@ void Mainwindow::sync10()//period 10 second
     }
 
 }
+void Mainwindow::updateTargetInfo()
+{
+    if(selectedTargetType==RADAR)
+    {
+        trackList* trackListPt = &processing->radarData->mTrackList;
+        for(uint trackId=0;trackId<trackListPt->size();trackId++)
+        {
 
-void Mainwindow::sync1()//period 1 second
+            if(!trackListPt->at(trackId).isConfirmed)continue;
+            if(selectedTargetIndex == trackId)
+            {
+                //printf("\ntrackId:%d",trackId);
+                double mLat,mLon;
+                vnmap.ConvKmXYToWGS(trackListPt->at(trackId).estX*processing->radarData->scale_ppi/mScale,trackListPt->at(trackId).estY*processing->radarData->scale_ppi/mScale,&mLon,&mLat);
+                ui->label_data_id->setText(QString::number(trackListPt->at(trackId).idCount));
+                float tmpazi = trackListPt->at(trackId).estA*DEG_RAD;
+                if(tmpazi<0)tmpazi+=360;
+                ui->label_data_type->setText("Radar");
+                ui->label_data_range->setText(QString::number(trackListPt->at(trackId).estR*processing->radarData->scale_ppi/mScale/1.852f,'f',2)+"Nm");
+                ui->label_data_azi->setText( QString::number(tmpazi,'f',2)+"\xB0");
+                ui->label_data_lat->setText( QString::number((short)mLat)+"\xB0"+QString::number((mLat-(short)mLat)*60,'f',2)+"'N");
+                ui->label_data_long->setText(QString::number((short)mLon)+"\xB0"+QString::number((mLon-(short)mLon)*60,'f',2)+"'E");
+                ui->label_data_speed->setText(QString::number(trackListPt->at(trackId).speed,'f',2)+"Kn");
+                ui->label_data_heading->setText(QString::number(trackListPt->at(trackId).heading*DEG_RAD)+"\xB0");
+                ui->label_data_dopler->setText(QString::number(trackListPt->at(trackId).dopler));
+            }
+        }
+
+    }
+    else if(selectedTargetType == AIS){
+
+    C2_Track *selectedTrack = &m_AISList.at(selectedTargetIndex);
+    float azi,rg;
+    double fx,fy;
+    vnmap.ConvWGSToKmXY(&fx,&fy,selectedTrack->getLon(),selectedTrack->getLat());
+    C_radar_data::kmxyToPolar(fx,fy,&azi,&rg);
+    ui->label_data_id->setText(QString::fromAscii((char*)(&selectedTrack->m_MMSI),9));
+    ui->label_data_range->setText(QString::number(rg,'f',2));
+    ui->label_data_azi->setText(QString::number(azi,'f',2));
+    ui->label_data_type->setText("AIS");
+    ui->label_data_lat->setText( QString::number((short)selectedTrack->getLat())+"\xB0"+QString::number((selectedTrack->getLat()-(short)selectedTrack->getLat())*60,'f',2)+"N");
+    ui->label_data_long->setText(QString::number((short)selectedTrack->getLon())+"\xB0"+QString::number((selectedTrack->getLon()-(short)selectedTrack->getLon())*60,'f',2)+"E");
+    ui->label_data_speed->setText(QString::number(selectedTrack->m_Speed,'f',2)+"Kn");
+    ui->label_data_heading->setText(QString::number(selectedTrack->getHead()*DEG_RAD)+"\xB0");
+    }
+    else if(selectedTargetType==NOTARGET)
+    {
+        ui->label_data_id->setText("--");
+        ui->label_data_type->setText("--");
+        ui->label_data_range->setText("--");
+        ui->label_data_azi->setText( "--");
+        ui->label_data_lat->setText( "--");
+        ui->label_data_long->setText("--");
+        ui->label_data_speed->setText("--");
+        ui->label_data_heading->setText("--");
+        ui->label_data_dopler->setText("--");
+    }
+}
+void Mainwindow::sync1S()//period 1 second
 {
     // display radar temperature:
     ui->label_temp->setText(QString::number(processing->radarData->tempType)+"|"+QString::number(processing->radarData->temp)+"\260C");
-
+    this->updateTargetInfo();
 
 //    int n = 32*256.0f/((processing->radarData->noise_level[0]*256 + processing->radarData->noise_level[1]));
 //    int m = 256.0f*((processing->radarData->noise_level[2]*256 + processing->radarData->noise_level[3]))
@@ -1595,10 +1727,10 @@ void Mainwindow::sync1()//period 1 second
         if(trackListPt->at(i).tclass==RED_OBJ)
         {
             str.append(QString::number(i+1)+":");
-            str.append(QString::number(trackListPt->at(i).estR*signsize/scale/CONST_NM,'g',3)+" | ");
-            str.append(QString::number((short)(trackListPt->at(i).estA*57.2957795f),'g',3)+" | ");
-            str.append(QString::number((short)(targetSpeed),'g',4)+" | ");
-            str.append(QString::number((short)(trackListPt->at(i).course*57.2957795f),'g',3)+" | ");
+            str.append(QString::number(trackListPt->at(i).estR*signsize/scale/CONST_NM,'f',2,3)+" | ");
+            str.append(QString::number((short)(trackListPt->at(i).estA*57.2957795f),'f',2,3)+" | ");
+            str.append(QString::number((short)(targetSpeed),'f',2,4)+" | ");
+            str.append(QString::number((short)(trackListPt->at(i).course*57.2957795f),'f',2,3)+" | ");
             if(items.size())
             {
                 (items[0])->setText(str);
@@ -1989,318 +2121,76 @@ void MainWindow::on_toolButton_13_clicked()
 void Mainwindow::UpdateScale()
 {
     float oldScale = mScale;
-    char byte2;
+    //char byte2;
     switch(range)
     {
     case 0:
         mScale = (height()/2-5)/(CONST_NM*1.5f );
         rangeStep = 1.5f/6.0f;
-        byte2 = 0x00;
+        //byte2 = 0x00;
         ui->label_range->setText("1.5 NM");
-        if(ui->toolButton_auto_adapt->isChecked())
-        {
-            sendToRadarHS("1aab200100000000");// bat thich nghi
-            sendToRadarHS("14abff1100000000");// do trong
-            sendToRadarHS("08ab000000000000");//do phan giai
-            sendToRadarHS("01ab040000000000");//tin hieu dttt32
-            sendToRadarHS("aaab020000000000");//tat phat
-            sendToRadarHS("aaab020000000000");//tat phat
-            sendToRadarHS("aaab020000000000");//tat phat
-            sendToRadarHS("1aab200000000000");//tat thich nghi
-            sendToRadarHS("aaab020100000000");//bat phat
-            sendToRadarHS("aaab020100000000");//bat phat
-            sendToRadarHS("aaab020100000000");//bat phat
-            sendToRadarHS("aaab030500000000");//toc do quay
-            sendToRadarHS("aaab030500000000");//toc do quay
-            sendToRadarHS("aaab030500000000");//toc do quay
-        }
-        break;
     case 1:
         mScale = (height()/2-5)/(CONST_NM*3 );
         rangeStep = 3/6.0f;
-        byte2 = 0x00;
+        //byte2 = 0x00;
         ui->label_range->setText("3 NM");
-        if(ui->toolButton_auto_adapt->isChecked())
-        {
-            sendToRadarHS("1aab200100000000");// bat thich nghi
-            sendToRadarHS("14abff1100000000");// do trong
-            sendToRadarHS("08ab000000000000");//do phan giai
-            sendToRadarHS("01ab040000000000");//tin hieu dttt32
-            sendToRadarHS("aaab020000000000");//tat phat
-            sendToRadarHS("aaab020000000000");//tat phat
-            sendToRadarHS("aaab020000000000");//tat phat
-            sendToRadarHS("1aab200000000000");//tat thich nghi
-            sendToRadarHS("aaab020100000000");//bat phat
-            sendToRadarHS("aaab020100000000");//bat phat
-            sendToRadarHS("aaab020100000000");//bat phat
-            sendToRadarHS("aaab030500000000");//toc do quay
-            sendToRadarHS("aaab030500000000");//toc do quay
-            sendToRadarHS("aaab030500000000");//toc do quay
-
-        }
-
         break;
-
     case 2:
         mScale = (height()/2-5)/(CONST_NM*6 );
         rangeStep = 6/6.0f;
-        byte2 = 0x00;
+        //byte2 = 0x00;
         ui->label_range->setText("6 NM");
-        if(ui->toolButton_auto_adapt->isChecked())
-        {
-            sendToRadarHS("1aab200100000000");// bat thich nghi
-            sendToRadarHS("14abff1100000000");// do trong
-            sendToRadarHS("08ab000000000000");//do phan giai
-            sendToRadarHS("01ab040000000000");//tin hieu dttt32
-            sendToRadarHS("aaab020000000000");//tat phat
-            sendToRadarHS("aaab020000000000");//tat phat
-            sendToRadarHS("aaab020000000000");//tat phat
-            sendToRadarHS("1aab200000000000");//tat thich nghi
-            sendToRadarHS("aaab020100000000");//bat phat
-            sendToRadarHS("aaab020100000000");//bat phat
-            sendToRadarHS("aaab020100000000");//bat phat
-            sendToRadarHS("aaab030500000000");//toc do quay
-            sendToRadarHS("aaab030500000000");//toc do quay
-            sendToRadarHS("aaab030500000000");//toc do quay
 
-        }
         break;
     case 3:
         mScale = (height()/2-5)/(CONST_NM*12 );
         rangeStep = 12/6.0f;
-        byte2 = 0x00;
+        //byte2 = 0x00;
         ui->label_range->setText("12 NM");
-        if(ui->toolButton_auto_adapt->isChecked())
-        {
-            sendToRadarHS("1aab200100000000");// bat thich nghi
-            sendToRadarHS("08ab010000000000");//do phan giai
-            sendToRadarHS("14abff0100000000");// do trong
-            sendToRadarHS("01ab040100000000");//tin hieu dttt64
-            sendToRadarHS("aaab020000000000");//tat phat
-            sendToRadarHS("aaab020000000000");//tat phat
-            sendToRadarHS("aaab020000000000");//tat phat
-            sendToRadarHS("1aab200000000000");//tat thich nghi
-            sendToRadarHS("aaab020100000000");//bat phat
-            sendToRadarHS("aaab020100000000");//bat phat
-            sendToRadarHS("aaab020100000000");//bat phat
-            sendToRadarHS("aaab030400000000");//toc do quay
-            sendToRadarHS("aaab030400000000");//toc do quay
-            sendToRadarHS("aaab030400000000");//toc do quay
 
-        }
         break;
     case 4:
         mScale = (height()/2-5)/(CONST_NM*24 );
         rangeStep = 24/6.0f;
-        byte2 = 0x01;
+        //byte2 = 0x01;
         ui->label_range->setText("24 NM");
-        if(ui->toolButton_auto_adapt->isChecked())
-        {
-            sendToRadarHS("1aab200100000000");// bat thich nghi
-            sendToRadarHS("08ab020000000000");//do phan giai 30
-            sendToRadarHS("14abff0100000000");// do trong           
-            sendToRadarHS("01ab040200000000");//tin hieu dttt128          
-            sendToRadarHS("aaab020000000000");//tat phat            
-            sendToRadarHS("aaab020000000000");//tat phat            
-            sendToRadarHS("aaab020000000000");//tat phat            
-            sendToRadarHS("1aab200000000000");//tat thich nghi            
-            sendToRadarHS("aaab020100000000");//bat phat            
-            sendToRadarHS("aaab020100000000");//bat phat            
-            sendToRadarHS("aaab020100000000");//bat phat            
-            sendToRadarHS("aaab030400000000");//toc do quay            
-            sendToRadarHS("aaab030400000000");//toc do quay            
-            sendToRadarHS("aaab030400000000");//toc do quay            
-        }
         break;
     case 5:
         mScale = (height()/2-5)/(CONST_NM*36 );
         rangeStep = 36/6.0f;
-        byte2 = 0x02;
+        //byte2 = 0x02;
         ui->label_range->setText("36 NM");
-        if(ui->toolButton_auto_adapt->isChecked())
-        {
-            sendToRadarHS("1aab200100000000");// bat thich nghi            
-            sendToRadarHS("08ab020000000000");//do phan giai 60            
-            sendToRadarHS("14abff0100000000");// do trong            
-            sendToRadarHS("01ab040300000000");//tin hieu dttt256            
-            sendToRadarHS("aaab020000000000");//tat phat            
-            sendToRadarHS("aaab020000000000");//tat phat            
-            sendToRadarHS("aaab020000000000");//tat phat            
-            sendToRadarHS("1aab200000000000");//tat thich nghi            
-            sendToRadarHS("aaab020100000000");//bat phat            
-            sendToRadarHS("aaab020100000000");//bat phat            
-            sendToRadarHS("aaab020100000000");//bat phat            
-            sendToRadarHS("aaab030300000000");//toc do quay            
-            sendToRadarHS("aaab030300000000");//toc do quay            
-            sendToRadarHS("aaab030300000000");//toc do quay            
-        }
         break;
     case 6:
         mScale = (height()/2-5)/(CONST_NM*48 );
         rangeStep = 48/6.0f;
-        byte2 = 0x03;
+        //byte2 = 0x03;
         ui->label_range->setText("48 NM");
-        if(ui->toolButton_auto_adapt->isChecked())
-        {
-            sendToRadarHS("1aab200100000000");// bat thich nghi
-
-            sendToRadarHS("08ab030000000000");//do phan giai 90
-
-            sendToRadarHS("14abff0100000000");// do trong
-
-            sendToRadarHS("01ab040300000000");//tin hieu dttt256
-
-            sendToRadarHS("aaab020000000000");//tat phat
-
-            sendToRadarHS("aaab020000000000");//tat phat
-
-            sendToRadarHS("aaab020000000000");//tat phat
-
-            sendToRadarHS("1aab200000000000");//tat thich nghi
-
-            sendToRadarHS("aaab020100000000");//bat phat
-
-            sendToRadarHS("aaab020100000000");//bat phat
-
-            sendToRadarHS("aaab020100000000");//bat phat
-
-            sendToRadarHS("aaab030200000000");//toc do quay
-
-            sendToRadarHS("aaab030200000000");//toc do quay
-
-            sendToRadarHS("aaab030200000000");//toc do quay
-
-        }
         break;
     case 7:
         mScale = (height()/2-5)/(CONST_NM*72 );
         rangeStep = 72/6.0f;
-        byte2 = 0x04;
+        //byte2 = 0x04;
         ui->label_range->setText("72 NM");
-        if(ui->toolButton_auto_adapt->isChecked())
-        {
-            sendToRadarHS("1aab200100000000");// bat thich nghi
-
-            sendToRadarHS("08ab040000000000");//do phan giai 120
-
-            sendToRadarHS("14abff0100000000");// do trong
-
-            sendToRadarHS("01ab040300000000");//tin hieu dttt256
-
-            sendToRadarHS("aaab020000000000");//tat phat
-
-            sendToRadarHS("aaab020000000000");//tat phat
-
-            sendToRadarHS("aaab020000000000");//tat phat
-
-            sendToRadarHS("1aab200000000000");//tat thich nghi
-
-            sendToRadarHS("aaab020100000000");//bat phat
-
-            sendToRadarHS("aaab020100000000");//bat phat
-
-            sendToRadarHS("aaab020100000000");//bat phat
-
-            sendToRadarHS("aaab030100000000");//toc do quay
-
-            sendToRadarHS("aaab030100000000");//toc do quay
-
-            sendToRadarHS("aaab030100000000");//toc do quay
-
-        }
         break;
     case 8:
         mScale = (height()/2-5)/(CONST_NM*96 );
         rangeStep = 96/6.0f;
-        byte2 = 0x05;
+        //byte2 = 0x05;
         ui->label_range->setText("96 NM");
-        if(ui->toolButton_auto_adapt->isChecked())
-        {
-            sendToRadarHS("1aab200100000000");// bat thich nghi
-
-            sendToRadarHS("08ab050000000000");//do phan giai 150
-
-            sendToRadarHS("14abff0100000000");// do trong
-
-            sendToRadarHS("01ab040300000000");//tin hieu dttt256
-
-            sendToRadarHS("aaab020000000000");//tat phat
-
-            sendToRadarHS("aaab020000000000");//tat phat
-
-            sendToRadarHS("aaab020000000000");//tat phat
-
-            sendToRadarHS("1aab200000000000");//tat thich nghi
-
-            sendToRadarHS("aaab020100000000");//bat phat
-
-            sendToRadarHS("aaab020100000000");//bat phat
-
-            sendToRadarHS("aaab020100000000");//bat phat
-
-            sendToRadarHS("aaab030100000000");//toc do quay
-
-            sendToRadarHS("aaab030100000000");//toc do quay
-
-            sendToRadarHS("aaab030100000000");//toc do quay
-
-        }
         break;
     case 9:
         mScale = (height()/2-5)/(CONST_NM*120 );
         rangeStep = 120/6.0f;
-        byte2 = 0x06;
+        //byte2 = 0x06;
         ui->label_range->setText("120 NM");
-        if(ui->toolButton_auto_adapt->isChecked())
-        {
-            sendToRadarHS("1aab200100000000");// bat thich nghi
-
-            sendToRadarHS("08ab060000000000");//do phan giai 180
-
-            sendToRadarHS("14abff0100000000");// do trong
-
-            sendToRadarHS("01ab040300000000");//tin hieu dttt256
-
-            sendToRadarHS("aaab020000000000");//tat phat
-
-            sendToRadarHS("aaab020000000000");//tat phat
-
-            sendToRadarHS("aaab020000000000");//tat phat
-
-            sendToRadarHS("1aab200000000000");//tat thich nghi
-
-            sendToRadarHS("aaab020100000000");//bat phat
-
-            sendToRadarHS("aaab020100000000");//bat phat
-
-            sendToRadarHS("aaab020100000000");//bat phat
-
-            sendToRadarHS("aaab030100000000");//toc do quay
-
-            sendToRadarHS("aaab030100000000");//toc do quay
-
-            sendToRadarHS("aaab030100000000");//toc do quay
-
-        }
         break;
     default:
         mScale = (height()/2-5)/(CONST_NM*48  );
         ui->label_range->setText("48 NM");
         break;
     }
-    if(ui->toolButton_auto_adapt->isChecked())
-    {
-//        unsigned char bytes[8] = {0x08,0xab,0x00,0x00,0x00,0x00,0x00,0x00};
 
-//        bytes[2]=byte2;
-//        sendToRadar(bytes);
-//        processing->radarData->resetTrack();
-        for(short i = 0;i<targetList.size();i++)
-        {
-            targetList.at(i)->deleteLater();
-        }
-        targetList.clear();
-    }
     ui->toolButton_grid->setText(QString::fromUtf8("Vòng cự ly(")+QString::number(rangeStep)+"NM)");
     isScaleChanged = true;
 //    isScreenUp2Date = false;
@@ -2588,76 +2478,77 @@ void Mainwindow::on_toolButton_open_record_clicked()
 //    processing->radarData->isDisplayAlpha = checked;
 //}
 
-
+/*
 void Mainwindow::updateTargets()
 {
     trackList* trackListPt = &processing->radarData->mTrackList;
 
-    for(short i = 0;i<targetList.size();i++)
+    for(short i = 0;i<targetDisplayList.size();i++)
     {
-        if(!targetList.at(i)->isUsed)
+        if(!targetDisplayList.at(i)->isUsed)
         {
             continue;
 
-            targetList.at(i)->hide();
+            targetDisplayList.at(i)->hide();
 
         }
-        if(trackListPt->at(targetList.at(i)->trackId).isManual == 0)
+        if(trackListPt->at(targetDisplayList.at(i)->trackId).isManual == 0)
         {
-            targetList.at(i)->isUsed = false;
+            targetDisplayList.at(i)->isUsed = false;
             ui->label_status_warning->setText(QString::fromUtf8("Mất MT số:")+QString::number(i+1));
             warningList.append(QString::fromUtf8("Mất MT số:")+QString::number(i+1));
             ui->label_status_warning->setStyleSheet("background-color: rgb(255, 150, 50,255);");
-            targetList.at(i)->hide();
+            targetDisplayList.at(i)->hide();
             //targetList.at(i)->isLost=true;
             continue;
         }
-        float x	= targetList.at(i)->x*mScale + scrCtX-dx ;
-        float y	= -targetList.at(i)->y*mScale + scrCtY-dy ;
+        float x	= targetDisplayList.at(i)->x*mScale + scrCtX-dx ;
+        float y	= -targetDisplayList.at(i)->y*mScale + scrCtY-dy ;
         float w = scrCtY-30;
         float dx = x-scrCtX;
         float dy = y-scrCtY;
         if(dx*dx+dy*dy>(w*w))
         {
-            targetList.at(i)->hide();
+            targetDisplayList.at(i)->hide();
         }
         else
         {
-            targetList.at(i)->show();
-            targetList.at(i)->setScrPos(x,y);
+            targetDisplayList.at(i)->show();
+            targetDisplayList.at(i)->setScrPos(x,y);
         }
 
-        if(targetList.at(i)->clicked)
+        if(targetDisplayList.at(i)->clicked)
         {
 
             selected_target_index = i;
-            targetList.at(i)->setSelected(true);
-            targetList.at(i)->clicked = false;
+            targetDisplayList.at(i)->setSelected(true);
+            targetDisplayList.at(i)->clicked = false;
         }
-        if(targetList.at(i)->doubleClicked)
+        if(targetDisplayList.at(i)->doubleClicked)
         {
 
             selected_target_index = i;
-            trackListPt->at((targetList.at(i)->trackId)).isManual = true;
-            targetList.at(i)->isManual = true;
-            targetList.at(i)->doubleClicked = false;
+            trackListPt->at((targetDisplayList.at(i)->trackId)).isManual = true;
+            targetDisplayList.at(i)->isManual = true;
+            targetDisplayList.at(i)->doubleClicked = false;
         }
         if(selected_target_index == i)
         {
-            float tmpazi = trackListPt->at(targetList.at(i)->trackId).estA/PI*180;
+            float tmpazi = trackListPt->at(targetDisplayList.at(i)->trackId).estA*DEG_RAD;
             if(tmpazi<0)tmpazi+=360;
-            ui->label_radar_id->setText(QString::number(i+1));
-            ui->label_radar_range->setText(QString::number(trackListPt->at(targetList.at(i)->trackId).estR*processing->radarData->scale_ppi/mScale/1.852f)+"Nm");
-            ui->label_radar_azi->setText( QString::number(tmpazi)+"\xB0");
-            ui->label_radar_lat->setText( QString::number((short)targetList.at(i)->m_lat)+"\xB0"+QString::number((targetList.at(i)->m_lat-(short)targetList.at(i)->m_lat)*60,'g',4)+"N");
-            ui->label_radar_long->setText(QString::number((short)targetList.at(i)->m_lon)+"\xB0"+QString::number((targetList.at(i)->m_lon-(short)targetList.at(i)->m_lon)*60,'g',4)+"E");
-            ui->label_radar_speed->setText(QString::number(trackListPt->at(targetList.at(i)->trackId).speed,'g',3)+"Kn");
-            ui->label_radar_heading->setText(QString::number(trackListPt->at(targetList.at(i)->trackId).head_r*180/PI)+"\xB0");
-            ui->label_radar_dopler->setText(QString::number(trackListPt->at(targetList.at(i)->trackId).dopler));
+            ui->label_data_id->setText(QString::number(i+1));
+            ui->label_data_type->setText("Radar");
+            ui->label_data_range->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).estR*processing->radarData->scale_ppi/mScale/1.852f,'f',2)+"Nm");
+            ui->label_data_azi->setText( QString::number(tmpazi,'f',2)+"\xB0");
+            ui->label_data_lat->setText( QString::number((short)targetDisplayList.at(i)->m_lat)+"\xB0"+QString::number((targetDisplayList.at(i)->m_lat-(short)targetDisplayList.at(i)->m_lat)*60,'f',2)+"'N");
+            ui->label_data_long->setText(QString::number((short)targetDisplayList.at(i)->m_lon)+"\xB0"+QString::number((targetDisplayList.at(i)->m_lon-(short)targetDisplayList.at(i)->m_lon)*60,'f',2)+"'E");
+            ui->label_data_speed->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).speed,'f',2)+"Kn");
+            ui->label_data_heading->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).head_r*DEG_RAD)+"\xB0");
+            ui->label_data_dopler->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).dopler));
         }
         else
         {
-            targetList.at(i)->setSelected(false);// = false;
+            targetDisplayList.at(i)->setSelected(false);// = false;
         }
         //printf("\nx:%f y:%f",x,y);
     }
@@ -2665,7 +2556,7 @@ void Mainwindow::updateTargets()
     //t1.setGeometry(400,400,20,20);
     //targetList.append(t1);
 }
-
+*/
 void Mainwindow::on_toolButton_centerView_clicked()
 {
     dx = 0;
@@ -2862,11 +2753,11 @@ void Mainwindow::on_toolButton_xl_dopler_2_toggled(bool checked)
 void Mainwindow::on_toolButton_reset_3_clicked()
 {
     processing->radarData->resetTrack();
-    for(short i = 0;i<targetList.size();i++)
-    {
-        targetList.at(i)->deleteLater();
-    }
-    targetList.clear();
+//    for(short i = 0;i<targetDisplayList.size();i++)
+//    {
+//        targetDisplayList.at(i)->deleteLater();
+//    }
+//    targetDisplayList.clear();
 }
 
 void Mainwindow::on_toolButton_reset_2_clicked()
@@ -2904,7 +2795,7 @@ void Mainwindow::on_toolButton_delete_target_clicked()
     }
 
     else*/
-    processing->radarData->mTrackList.at(targetList.at(selected_target_index)->trackId).isManual = false;
+//    processing->radarData->mTrackList.at(targetDisplayList.at(selected_target_index)->trackId).isManual = false;
 }
 
 void Mainwindow::on_toolButton_tx_clicked()
@@ -3000,18 +2891,18 @@ bool Mainwindow::ProcDataAIS(BYTE *szBuff, int nLeng )
 
      if(!m_CLocal.GetTrackAIS(m_CLocal.m_Buff, m_CLocal.m_Leng, &nTkNew,nRec))
          return 0;
-     for(short i = 0;i<m_trackList.size();i++)
+     for(short i = 0;i<m_AISList.size();i++)
      {
-         if(m_trackList.at(i).CheckMMSI(nTkNew.m_MMSI))
+         if(m_AISList.at(i).CheckMMSI(nTkNew.m_MMSI))
          {
-             m_trackList.at(i).Update(&nTkNew);
+             m_AISList.at(i).Update(&nTkNew);
              nIndex = i;
              return true;
          }
      }
      if(nIndex<0)
      {
-        m_trackList.push_back(nTkNew);
+        m_AISList.push_back(nTkNew);
      }
      return true;
 }
@@ -3022,7 +2913,7 @@ bool Mainwindow::ProcDataAIS(BYTE *szBuff, int nLeng )
 void Mainwindow::on_toolButton_auto_select_toggled(bool checked)
 {
     isSelectingTarget = false;
-    if(checked)
+    if(!checked)
     {
         this->setCursor(Qt::ArrowCursor);
 
@@ -3035,5 +2926,171 @@ void Mainwindow::on_toolButton_auto_select_toggled(bool checked)
 
 void Mainwindow::on_toolButton_ais_reset_clicked()
 {
-    m_trackList.clear();
+    m_AISList.clear();
+}
+
+
+
+void Mainwindow::on_toolButton_2x_zoom_clicked(bool checked)
+{
+    if(checked)
+    {
+        processing->radarData->setScaleZoom(8);
+    }
+    else
+    {
+        processing->radarData->setScaleZoom(4);
+    }
+}
+
+void Mainwindow::on_toolButton_auto_adapt_clicked()
+{
+    if(range<=2)
+    {
+        sendToRadarHS("1aab200100000000");// bat thich nghi
+        sendToRadarHS("14abff1100000000");// do trong
+        sendToRadarHS("08ab000000000000");//do phan giai
+        sendToRadarHS("01ab040000000000");//tin hieu dttt32
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("1aab200000000000");//tat thich nghi
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab030500000000");//toc do quay
+        sendToRadarHS("aaab030500000000");//toc do quay
+        sendToRadarHS("aaab030500000000");//toc do quay
+
+    }
+    else if(range ==3)
+    {
+        sendToRadarHS("1aab200100000000");// bat thich nghi
+        sendToRadarHS("08ab010000000000");//do phan giai
+        sendToRadarHS("14abff0100000000");// do trong
+        sendToRadarHS("01ab040100000000");//tin hieu dttt64
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("1aab200000000000");//tat thich nghi
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab030400000000");//toc do quay
+        sendToRadarHS("aaab030400000000");//toc do quay
+        sendToRadarHS("aaab030400000000");//toc do quay
+    }
+    else if(range==4)
+    {
+        sendToRadarHS("1aab200100000000");// bat thich nghi
+        sendToRadarHS("08ab020000000000");//do phan giai 30
+        sendToRadarHS("14abff0100000000");// do trong
+        sendToRadarHS("01ab040200000000");//tin hieu dttt128
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("1aab200000000000");//tat thich nghi
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab030400000000");//toc do quay
+        sendToRadarHS("aaab030400000000");//toc do quay
+        sendToRadarHS("aaab030400000000");//toc do quay
+    }
+    else if(range==5)
+    {
+        sendToRadarHS("1aab200100000000");// bat thich nghi
+        sendToRadarHS("08ab020000000000");//do phan giai 60
+        sendToRadarHS("14abff0100000000");// do trong
+        sendToRadarHS("01ab040300000000");//tin hieu dttt256
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("1aab200000000000");//tat thich nghi
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab030300000000");//toc do quay
+        sendToRadarHS("aaab030300000000");//toc do quay
+        sendToRadarHS("aaab030300000000");//toc do quay
+    }
+    else if(range==6)
+    {
+        sendToRadarHS("1aab200100000000");// bat thich nghi
+        sendToRadarHS("08ab030000000000");//do phan giai 90
+        sendToRadarHS("14abff0100000000");// do trong
+        sendToRadarHS("01ab040300000000");//tin hieu dttt256
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("1aab200000000000");//tat thich nghi
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab030200000000");//toc do quay
+        sendToRadarHS("aaab030200000000");//toc do quay
+        sendToRadarHS("aaab030200000000");//toc do quay
+    }
+    else if(range==7)
+    {
+        sendToRadarHS("1aab200100000000");// bat thich nghi
+        sendToRadarHS("08ab040000000000");//do phan giai 120
+        sendToRadarHS("14abff0100000000");// do trong
+        sendToRadarHS("01ab040300000000");//tin hieu dttt256
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("1aab200000000000");//tat thich nghi
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab030100000000");//toc do quay
+        sendToRadarHS("aaab030100000000");//toc do quay
+        sendToRadarHS("aaab030100000000");//toc do quay
+    }
+    else if(range ==8)
+    {
+        sendToRadarHS("1aab200100000000");// bat thich nghi
+        sendToRadarHS("08ab050000000000");//do phan giai 150
+        sendToRadarHS("14abff0100000000");// do trong
+        sendToRadarHS("01ab040300000000");//tin hieu dttt256
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("1aab200000000000");//tat thich nghi
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab030100000000");//toc do quay
+        sendToRadarHS("aaab030100000000");//toc do quay
+        sendToRadarHS("aaab030100000000");//toc do quay
+    }
+    else if(range==9)
+    {
+        sendToRadarHS("1aab200100000000");// bat thich nghi
+        sendToRadarHS("08ab060000000000");//do phan giai 180
+        sendToRadarHS("14abff0100000000");// do trong
+        sendToRadarHS("01ab040300000000");//tin hieu dttt256
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("aaab020000000000");//tat phat
+        sendToRadarHS("1aab200000000000");//tat thich nghi
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab020100000000");//bat phat
+        sendToRadarHS("aaab030100000000");//toc do quay
+        sendToRadarHS("aaab030100000000");//toc do quay
+        sendToRadarHS("aaab030100000000");//toc do quay
+    }
+    processing->radarData->resetTrack();
+//    for(short i = 0;i<targetDisplayList.size();i++)
+//    {
+//        targetDisplayList.at(i)->deleteLater();
+//    }
+//    targetDisplayList.clear();
+}
+
+void Mainwindow::on_toolButton_set_header_size_clicked()
+{
+    processing->radarData->SetHeaderLen(ui->textEdit_header_len->text().toInt());
 }

@@ -208,18 +208,18 @@ void Q_vnmap::LoadPlaces(const char* binfileName)
 
 
 }
-void Q_vnmap::ConvDegToScr(float* x, float *y, float *m_Long,float *m_Lat)
+void Q_vnmap::ConvWGSToKmXY(double* x, double *y, double m_Long,double m_Lat)
 {
-    float refLat = (currPos.m_Lat + (*m_Lat))*0.00872664625997;//pi/360
-    *x	= (((*m_Long)-currPos.m_Long) * 111.31949079327357f)*cosf(refLat);// 3.14159265358979324/180.0*6378.137);//deg*pi/180*rEarth
-    *y	= ((currPos.m_Lat - (*m_Lat)) * 111.31949079327357f);
+    float refLat = (currPos.m_Lat + (m_Lat))*0.00872664625997;//pi/360
+    *x	= (((m_Long)-currPos.m_Long) * 111.31949079327357f)*cosf(refLat);// 3.14159265358979324/180.0*6378.137);//deg*pi/180*rEarth
+    *y	= ((currPos.m_Lat - (m_Lat)) * 111.31949079327357f);
     //toa do tinh bang KM so voi diem currPos
 }
-void Q_vnmap::ConvScrToDeg(float *x, float *y, float *m_Long, float *m_Lat)
+void Q_vnmap::ConvKmXYToWGS(double x, double y, double *m_Long, double *m_Lat)
 {
-
-    *m_Long = (*x)/111.31949079327357f+currPos.m_Long;
-    *m_Lat  = currPos.m_Lat -  (*y)/111.31949079327357f;
+    double refLat = (currPos.m_Lat + (*m_Lat))*0.00872664625997;//pi/360
+    *m_Long = (x)/111.31949079327357f/cos(refLat)+currPos.m_Long;
+    *m_Lat  = currPos.m_Lat +  (y)/111.31949079327357f;
     //toa do lat long
 }
 

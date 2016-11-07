@@ -15,6 +15,10 @@
 #define MIN_TERRAIN                 10
 #define TRACK_CONFIRMED_SIZE        3
 #define TRACK_INIT_STATE            3
+#define DEG_RAD 57.295779513
+#ifndef CONST_NM
+    #define CONST_NM 1.852f// he so chuyen doi tu km sang hai ly
+#endif
 #define PI_NHAN2                    6.2831853072f
 #define PI_CHIA2                    1.5707963268f
 #ifndef PI
@@ -44,6 +48,8 @@
 #define ZOOM_SIZE                   550
 #define DISPLAY_RES_ZOOM            5120
 #define DISPLAY_SCALE_ZOOM          4
+#include "jtarget.h"
+
 #include <vector>
 #include <QImage>
 #include <QDateTime>
@@ -142,7 +148,7 @@ using Eigen::MatrixXf;
 //    }
 //};
 //______________________________________//
-class track_t {
+class track_t : public JTarget{
 public:
     track_t()
     {
@@ -164,26 +170,23 @@ public:
     double estA, estR;
     double mesA;
     double mesR;
-    float speed;
-    float course;
     char state;
-    float dTime;
-    bool isTracking,isManual;
-    bool isManeuvering;
+    short idCount;
+    //float dTime;
+    bool isTracking,isManual,isLost;
     char dopler;
     //QDateTime time;
     bool isProcessed;
     bool isUpdated;
-    float head_r;
     short trackLen;
-    void updateTime()
-    {
-    }
     void init(object_t *object);
     void update();
     void predict();
     bool checkProb(object_t* object);
+    void setManual(bool isMan);
 
+private:
+    void stateUpdate(bool isNewPlot);
 };
 typedef std::vector<track_t> trackList;
 //______________________________________//
@@ -205,7 +208,7 @@ public:
     plotList                plot_list;
     unsigned char           spectre[16];
     unsigned char           overload, init_time, clk_adc;
-    float                   scale_ppi,scale_zoom;
+    float                   scale_ppi,scale_zoom_ppi;
     short                   curAzir;
     void                    updateZoomRect(float ctx, float cty);
     unsigned short          sn_stat;
@@ -256,7 +259,7 @@ public:
 //    void        blackLine(short x0, short y0, short x1, short y1);
     void        addTrackManual(float x, float y);
     void        addTrack(object_t *mObject);
-    void        getPolar(float x,float y,float *azi,float *range);
+    static    void        kmxyToPolar(float x,float y,float *azi,float *range);
     void        setTrueN(float trueN_deg){
 
         while(trueN_deg<0)trueN_deg+=360;
@@ -278,6 +281,7 @@ public:
         return (char*)&command_feedback[0];
     }
     void        resetTrack();
+    void SetHeaderLen(short len);
 private:
     bool        avtodetect;
     uint        getColor(unsigned char pvalue, unsigned char dopler, unsigned char sled);
