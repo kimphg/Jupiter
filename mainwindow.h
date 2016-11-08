@@ -280,6 +280,18 @@ private slots:
 
     void on_tabWidget_2_currentChanged(int index);
 
+    void on_toolButton_command_dopler_clicked();
+
+    void on_toolButton_command_radar_res_clicked();
+
+    void on_toolButton_command_radar_rot_2_clicked();
+
+    void on_toolButton_command_radar_rot_3_clicked();
+
+    void on_toolButton_command_radar_rot_4_clicked();
+
+    void on_toolButton_command_radar_rot_5_clicked();
+
 private:
     void initActionsConnections();
     void initGraphicView();

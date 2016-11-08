@@ -3099,13 +3099,73 @@ void Mainwindow::on_toolButton_command_dttt_clicked()
 {
     ui->lineEdit_byte_1->setText("01");
     ui->lineEdit_byte_2->setText("ab");
-    ui->lineEdit_byte_3->setText("01");
-    ui->lineEdit_byte_4->setText("01");
-    ui->lineEdit_byte_5->setText("01");
-    ui->lineEdit_byte_6->setText("01");
+    ui->lineEdit_byte_3->setText("04");
+    ui->lineEdit_byte_4->setText("00");
+    ui->lineEdit_byte_5->setText("00");
+    ui->lineEdit_byte_6->setText("00");
 }
 
 void Mainwindow::on_tabWidget_2_currentChanged(int index)
 {
-    ui->tabWidget_2->resetView();
+    //ui->tabWidget_2->resetView();
+}
+
+void Mainwindow::on_toolButton_command_dopler_clicked()
+{
+    ui->lineEdit_byte_1->setText("05");
+    ui->lineEdit_byte_2->setText("ab");
+    ui->lineEdit_byte_3->setText("02");
+    ui->lineEdit_byte_4->setText("00");
+    ui->lineEdit_byte_5->setText("00");
+    ui->lineEdit_byte_6->setText("00");
+}
+
+void Mainwindow::on_toolButton_command_radar_res_clicked()
+{
+    ui->lineEdit_byte_1->setText("08");
+    ui->lineEdit_byte_2->setText("ab");
+    ui->lineEdit_byte_3->setText("00");
+    ui->lineEdit_byte_4->setText("00");
+    ui->lineEdit_byte_5->setText("00");
+    ui->lineEdit_byte_6->setText("00");
+}
+
+void Mainwindow::on_toolButton_command_radar_rot_2_clicked()
+{
+    ui->lineEdit_byte_1->setText("17");
+    ui->lineEdit_byte_2->setText("ab");
+    ui->lineEdit_byte_3->setText("64");
+    ui->lineEdit_byte_4->setText("00");
+    ui->lineEdit_byte_5->setText("00");
+    ui->lineEdit_byte_6->setText("00");
+}
+
+void Mainwindow::on_toolButton_command_radar_rot_3_clicked()
+{
+    ui->lineEdit_byte_1->setText("aa");
+    ui->lineEdit_byte_2->setText("ab");
+    ui->lineEdit_byte_3->setText("01");
+    ui->lineEdit_byte_4->setText("01");
+    ui->lineEdit_byte_5->setText("1f");
+    ui->lineEdit_byte_6->setText("00");
+}
+
+void Mainwindow::on_toolButton_command_radar_rot_4_clicked()
+{
+    ui->lineEdit_byte_1->setText("14");
+    ui->lineEdit_byte_2->setText("ab");
+    ui->lineEdit_byte_3->setText("ff");
+    ui->lineEdit_byte_4->setText("00");
+    ui->lineEdit_byte_5->setText("00");
+    ui->lineEdit_byte_6->setText("00");
+}
+
+void Mainwindow::on_toolButton_command_radar_rot_5_clicked()
+{
+    ui->lineEdit_byte_1->setText("1a");
+    ui->lineEdit_byte_2->setText("ab");
+    ui->lineEdit_byte_3->setText("20");
+    ui->lineEdit_byte_4->setText("01");
+    ui->lineEdit_byte_5->setText("00");
+    ui->lineEdit_byte_6->setText("00");
 }
