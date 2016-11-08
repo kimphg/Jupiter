@@ -292,6 +292,8 @@ private slots:
 
     void on_toolButton_command_radar_rot_5_clicked();
 
+    void on_toolButton_command_radar_rot_clicked();
+
 private:
     void initActionsConnections();
     void initGraphicView();

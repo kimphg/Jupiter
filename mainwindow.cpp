@@ -3169,3 +3169,8 @@ void Mainwindow::on_toolButton_command_radar_rot_5_clicked()
     ui->lineEdit_byte_5->setText("00");
     ui->lineEdit_byte_6->setText("00");
 }
+
+void Mainwindow::on_toolButton_command_radar_rot_clicked()
+{
+
+}
