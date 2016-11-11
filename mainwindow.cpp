@@ -2350,17 +2350,20 @@ void Mainwindow::setCodeType(short index)// chuyen ma
 void Mainwindow::on_horizontalSlider_gain_valueChanged(int value)
 {
     processing->radarData->kgain = 7-(float)value/(ui->horizontalSlider_gain->maximum())*10;
+    ui->label_gain->setText("Gain:"+QString::number(-processing->radarData->kgain));
     //printf("processing->radarData->kgain %f \n",processing->radarData->kgain);
 }
 
 void Mainwindow::on_horizontalSlider_rain_valueChanged(int value)
 {
     processing->radarData->krain = (float)value/(ui->horizontalSlider_rain->maximum()+ui->horizontalSlider_rain->maximum()/3);
+    ui->label_rain->setText("Rain:" + QString::number(processing->radarData->krain,'f',2));
 }
 
 void Mainwindow::on_horizontalSlider_sea_valueChanged(int value)
 {
     processing->radarData->ksea = (float)value/(ui->horizontalSlider_sea->maximum());
+    //ui->label_rain->setText("Rain:" + QString::number(-processing->radarData->krain));
 }
 
 
@@ -2441,6 +2444,18 @@ void Mainwindow::on_toolButton_tx_toggled(bool checked)
 void Mainwindow::on_toolButton_xl_nguong_toggled(bool checked)
 {
     processing->radarData->setAutorgs(checked);
+    if(checked)
+    {
+        ui->horizontalSlider_gain->setVisible(false);
+        ui->horizontalSlider_rain->setVisible(false);
+        ui->horizontalSlider_sea->setVisible(false);
+    }
+    else
+    {
+        ui->horizontalSlider_gain->setVisible(true);
+        ui->horizontalSlider_rain->setVisible(true);
+        ui->horizontalSlider_sea->setVisible(true);
+    }
 }
 
 void Mainwindow::on_toolButton_replay_toggled(bool checked)
@@ -3095,19 +3110,19 @@ void Mainwindow::on_toolButton_set_header_size_clicked()
     processing->radarData->SetHeaderLen(ui->textEdit_header_len->text().toInt());
 }
 
-void Mainwindow::on_toolButton_command_dttt_clicked()
+void Mainwindow::on_toolButton_xl_nguong_clicked()
 {
-    ui->lineEdit_byte_1->setText("01");
-    ui->lineEdit_byte_2->setText("ab");
-    ui->lineEdit_byte_3->setText("04");
-    ui->lineEdit_byte_4->setText("00");
-    ui->lineEdit_byte_5->setText("00");
-    ui->lineEdit_byte_6->setText("00");
+
 }
 
-void Mainwindow::on_tabWidget_2_currentChanged(int index)
+void Mainwindow::on_toolButton_xl_nguong_clicked(bool checked)
 {
-    //ui->tabWidget_2->resetView();
+
+}
+
+void Mainwindow::on_toolButton_filter2of3_2_clicked(bool checked)
+{
+    processing->radarData->setDoubleFilter(checked);
 }
 
 void Mainwindow::on_toolButton_command_dopler_clicked()
@@ -3120,37 +3135,7 @@ void Mainwindow::on_toolButton_command_dopler_clicked()
     ui->lineEdit_byte_6->setText("00");
 }
 
-void Mainwindow::on_toolButton_command_radar_res_clicked()
-{
-    ui->lineEdit_byte_1->setText("08");
-    ui->lineEdit_byte_2->setText("ab");
-    ui->lineEdit_byte_3->setText("00");
-    ui->lineEdit_byte_4->setText("00");
-    ui->lineEdit_byte_5->setText("00");
-    ui->lineEdit_byte_6->setText("00");
-}
-
-void Mainwindow::on_toolButton_command_radar_rot_2_clicked()
-{
-    ui->lineEdit_byte_1->setText("17");
-    ui->lineEdit_byte_2->setText("ab");
-    ui->lineEdit_byte_3->setText("64");
-    ui->lineEdit_byte_4->setText("00");
-    ui->lineEdit_byte_5->setText("00");
-    ui->lineEdit_byte_6->setText("00");
-}
-
-void Mainwindow::on_toolButton_command_radar_rot_3_clicked()
-{
-    ui->lineEdit_byte_1->setText("aa");
-    ui->lineEdit_byte_2->setText("ab");
-    ui->lineEdit_byte_3->setText("01");
-    ui->lineEdit_byte_4->setText("01");
-    ui->lineEdit_byte_5->setText("1f");
-    ui->lineEdit_byte_6->setText("00");
-}
-
-void Mainwindow::on_toolButton_command_radar_rot_4_clicked()
+void Mainwindow::on_toolButton_command_period_clicked()
 {
     ui->lineEdit_byte_1->setText("14");
     ui->lineEdit_byte_2->setText("ab");
@@ -3160,7 +3145,7 @@ void Mainwindow::on_toolButton_command_radar_rot_4_clicked()
     ui->lineEdit_byte_6->setText("00");
 }
 
-void Mainwindow::on_toolButton_command_radar_rot_5_clicked()
+void Mainwindow::on_toolButton_noise_balance_clicked()
 {
     ui->lineEdit_byte_1->setText("1a");
     ui->lineEdit_byte_2->setText("ab");
@@ -3170,7 +3155,42 @@ void Mainwindow::on_toolButton_command_radar_rot_5_clicked()
     ui->lineEdit_byte_6->setText("00");
 }
 
-void Mainwindow::on_toolButton_command_radar_rot_clicked()
+void Mainwindow::on_toolButton_limit_signal_clicked()
 {
+    ui->lineEdit_byte_1->setText("17");
+    ui->lineEdit_byte_2->setText("ab");
+    ui->lineEdit_byte_3->setText("64");
+    ui->lineEdit_byte_4->setText("00");
+    ui->lineEdit_byte_5->setText("00");
+    ui->lineEdit_byte_6->setText("00");
+}
 
+void Mainwindow::on_toolButton_command_amplifier_clicked()
+{
+    ui->lineEdit_byte_1->setText("aa");
+    ui->lineEdit_byte_2->setText("ab");
+    ui->lineEdit_byte_3->setText("01");
+    ui->lineEdit_byte_4->setText("01");
+    ui->lineEdit_byte_5->setText("1f");
+    ui->lineEdit_byte_6->setText("00");
+}
+
+void Mainwindow::on_toolButton_command_dttt_clicked()
+{
+    ui->lineEdit_byte_1->setText("01");
+    ui->lineEdit_byte_2->setText("ab");
+    ui->lineEdit_byte_3->setText("04");
+    ui->lineEdit_byte_4->setText("00");
+    ui->lineEdit_byte_5->setText("00");
+    ui->lineEdit_byte_6->setText("00");
+}
+
+void Mainwindow::on_toolButton_command_res_clicked()
+{
+    ui->lineEdit_byte_1->setText("08");
+    ui->lineEdit_byte_2->setText("ab");
+    ui->lineEdit_byte_3->setText("00");
+    ui->lineEdit_byte_4->setText("00");
+    ui->lineEdit_byte_5->setText("00");
+    ui->lineEdit_byte_6->setText("00");
 }

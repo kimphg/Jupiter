@@ -214,6 +214,7 @@ public:
     unsigned short          sn_stat;
     bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled,filter2of3;
     bool                    isManualTune,rgs_auto,bo_bang_0,data_export;
+
     float                   krain,kgain,ksea,brightness;
     float                   krain_auto,kgain_auto,ksea_auto;
     void setAutorgs( bool aut)
@@ -282,8 +283,12 @@ public:
     }
     void        resetTrack();
     void SetHeaderLen(short len);
+    bool getDoubleFilter() const;
+    void setDoubleFilter(bool value);
+
 private:
     bool        avtodetect;
+    bool        doubleFilter;
     uint        getColor(unsigned char pvalue, unsigned char dopler, unsigned char sled);
     void        drawSgn(short azi_draw, short r_pos);
     void        drawSgnZoom(short azi_draw, short r_pos);

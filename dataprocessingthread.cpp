@@ -289,7 +289,7 @@ void dataProcessingThread::radTxOn()
     command.bytes[0] = 0xaa;
     command.bytes[1] = 0xab;
     command.bytes[2] = 0x03;
-    command.bytes[3] = 0x03;
+    command.bytes[3] = 0x05;
     command.bytes[4] = 0x00;
     command.bytes[5] = 0x00;
     command.bytes[6] = 0x00;
@@ -297,20 +297,20 @@ void dataProcessingThread::radTxOn()
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    //tx off
-    command.bytes[0] = 0xaa;
-    command.bytes[2] = 0x02;
-    command.bytes[3] = 0x00;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    //thich nghi
-    command.bytes[0] = 0x1a;
-    command.bytes[2] = 0x20;
-    command.bytes[3] = 0x01;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+//    //tx off
+//    command.bytes[0] = 0xaa;
+//    command.bytes[2] = 0x02;
+//    command.bytes[3] = 0x00;
+//    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+//    //thich nghi
+//    command.bytes[0] = 0x1a;
+//    command.bytes[2] = 0x20;
+//    command.bytes[3] = 0x01;
+//    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     //do trong
     command.bytes[0] = 0x14;
     command.bytes[2] = 0xff;
-    command.bytes[3] = 0x01;
+    command.bytes[3] = 0x0a;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     //set 1536
     command.bytes[0] = 0x04;
@@ -320,18 +320,18 @@ void dataProcessingThread::radTxOn()
     //dttt 256
     command.bytes[0] = 0x01;
     command.bytes[2] = 0x04;
-    command.bytes[3] = 0x03;
+    command.bytes[3] = 0x01;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     //set resolution 60m
     command.bytes[0] = 0x08;
-    command.bytes[2] = 0x02;
+    command.bytes[2] = 0x00;
     command.bytes[3] = 0x00;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    //tat thich nghi
-    command.bytes[0] = 0x1a;
-    command.bytes[2] = 0x20;
-    command.bytes[3] = 0x00;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+//    //tat thich nghi
+//    command.bytes[0] = 0x1a;
+//    command.bytes[2] = 0x20;
+//    command.bytes[3] = 0x00;
+//    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
 
     //tx on 1
     command.bytes[0] = 0xaa;
@@ -361,6 +361,7 @@ void dataProcessingThread::radTxOn()
 
 
 }
+
 
 void dataProcessingThread::radTxOff()
 {

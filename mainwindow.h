@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #define _CRT_SECURE_NO_WARNINGS
+
 #define SCR_W 1920
 #define SCR_H 1080
 #define SCR_LEFT_MARGIN 50
@@ -276,23 +277,25 @@ private slots:
 
     void on_toolButton_set_header_size_clicked();
 
-    void on_toolButton_command_dttt_clicked();
+    void on_toolButton_xl_nguong_clicked();
 
-    void on_tabWidget_2_currentChanged(int index);
+    void on_toolButton_xl_nguong_clicked(bool checked);
+
+    void on_toolButton_filter2of3_2_clicked(bool checked);
 
     void on_toolButton_command_dopler_clicked();
 
-    void on_toolButton_command_radar_res_clicked();
+    void on_toolButton_command_period_clicked();
 
-    void on_toolButton_command_radar_rot_2_clicked();
+    void on_toolButton_noise_balance_clicked();
 
-    void on_toolButton_command_radar_rot_3_clicked();
+    void on_toolButton_limit_signal_clicked();
 
-    void on_toolButton_command_radar_rot_4_clicked();
+    void on_toolButton_command_amplifier_clicked();
 
-    void on_toolButton_command_radar_rot_5_clicked();
+    void on_toolButton_command_dttt_clicked();
 
-    void on_toolButton_command_radar_rot_clicked();
+    void on_toolButton_command_res_clicked();
 
 private:
     void initActionsConnections();
