@@ -15,7 +15,6 @@
 //#include <CpView.h>
 #include <CLocal.h>
 #include <Config.h>
-#include <gpsdialog.h>
 #include <dataprocessingthread.h>
 #include <onexitdialog.h>
 #include <C_radar_data.h>
@@ -28,7 +27,13 @@
 //#include "radarcontroldialog.h"
 //#include "c_arpa_data.h"
 //#include <QtSerialPort/QSerialPort>
-
+#ifdef TIXML_USE_STL
+    #include <iostream>
+    #include <sstream>
+    using namespace std;
+#else
+    #include <stdio.h>
+#endif
 namespace Ui {
 class MainWindow;
 //class QLabel;

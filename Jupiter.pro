@@ -23,7 +23,6 @@ SOURCES += main.cpp\
     mainwindow.cpp \
     vnmap.cpp \
     Config.cpp \
-    gpsdialog.cpp \
     C_radar_data.cpp \
     c_arpa_data.cpp \
     dataprocessingthread.cpp \
@@ -40,11 +39,12 @@ SOURCES += main.cpp\
     CDefine.cpp \
     jtarget.cpp \
     jviewport.cpp \
-    jgraphictarget.cpp
+    jgraphictarget.cpp \
+    tinyxml/tinyxml2.cpp
+
 HEADERS  += mainwindow.h \
     vnmap.h \
     Config.h \
-    gpsdialog.h \
     C_radar_data.h \
     c_arpa_data.h \
     dataprocessingthread.h \
@@ -62,10 +62,10 @@ HEADERS  += mainwindow.h \
     CDefine.h \
     jtarget.h \
     jviewport.h \
-    jgraphictarget.h
+    jgraphictarget.h \
+    tinyxml/tinyxml2.h
 
 FORMS    += mainwindow.ui \
-    gpsdialog.ui \
     onexitdialog.ui
 #win32:CONFIG(release, debug|release): LIBS += -L$$PWD/shapelib/ -lshapelib
 #else:unix: LIBS += -L$$PWD\shapelib\ -lshapelib
@@ -74,6 +74,8 @@ FORMS    += mainwindow.ui \
 
 INCLUDEPATH += $$PWD/WpdPack/Include
 DEPENDPATH += $$PWD/WpdPack/Include
+INCLUDEPATH += $$PWD/tinyxml/
+DEPENDPATH += $$PWD/tinyxml/
 INCLUDEPATH += $$PWD/
 DEPENDPATH += $$PWD/
 #RESOURCES +=
@@ -87,6 +89,7 @@ DEPENDPATH += $$PWD/
 #unix: LIBS += -larmadillo
 win32:LIBS += -L$$PWD//WpdPack/Lib/ -lPacket
 win32:LIBS += -L$$PWD//WpdPack/Lib/ -lwpcap
+#LIBS += -ltinyxml
 #INCLUDEPATH += $$PWD/../opencv/build/include
 #win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_core249
 #win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_highgui249

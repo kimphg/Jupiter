@@ -72,22 +72,22 @@ guard_zone_t gz1,gz2,gz3;
 //static unsigned short cur_object_index = 0;
 short lon2x(float lon)
 {
-   float refLat = (config.m_config.m_lat )*0.00872664625997f;
-   return  (- dx + scrCtX + ((lon - config.m_config.m_long) * 111.31949079327357f*cosf(refLat))*mScale);
+   float refLat = (config.getLat() )*0.00872664625997f;
+   return  (- dx + scrCtX + ((lon - config.getLon()) * 111.31949079327357f*cosf(refLat))*mScale);
 }
 short lat2y(float lat)
 {
 
-   return (- dy + scrCtY - ((lat - config.m_config.m_lat) * 111.31949079327357f)*mScale);
+   return (- dy + scrCtY - ((lat - config.getLat()) * 111.31949079327357f)*mScale);
 }
 double y2lat(short y)
 {
-   return (y  )/mScale/111.31949079327357f + config.m_config.m_lat;
+   return (y  )/mScale/111.31949079327357f + config.getLat();
 }
 double x2lon(short x)
 {
-    float refLat = (config.m_config.m_lat )*0.00872664625997;
-   return (x  )/mScale/111.31949079327357f/cosf(refLat) + config.m_config.m_long;
+    float refLat = (config.getLat() )*0.00872664625997;
+   return (x  )/mScale/111.31949079327357f/cosf(refLat) + config.getLon();
 }
 void Mainwindow::mouseDoubleClickEvent( QMouseEvent * e )
 {
@@ -382,7 +382,7 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
             float xAIS = event->x();//(e->x() - scrCtX+dx)/mScale ;//coordinates in  radar xy system
             float yAIS = event->y();//-(e->y() - scrCtY+dy)/mScale;
 
-            for(int i=0; i<m_AISList.size(); i++)
+            for(ushort i=0; i<m_AISList.size(); i++)
             {
                 //p->setPen((penTarget));
 //                float mlat, mlong; //kinh do
@@ -1158,9 +1158,9 @@ void Mainwindow::paintEvent(QPaintEvent *event)
 
 bool Mainwindow::LoadISMapFile()
 {
-    if(config.m_config.mapFilename.size())
+    if(config.getMapFilename().size())
     {
-        vnmap.LoadBinFile((config.m_config.mapFilename).data());
+        vnmap.LoadBinFile((config.getMapFilename()).data());
     }else return false;
     return true;
 }
@@ -1204,8 +1204,8 @@ void Mainwindow::InitSetting()
     mousePointerX = scrCtX = SCR_H/2 + SCR_LEFT_MARGIN;//+ ui->toolBar_Main->width()+20;//ENVDEP
     mousePointerY = scrCtY = SCR_H/2;
     UpdateScale();
-    ui->textEdit_heading->setText(QString::number(config.m_config.trueN));
-    processing->radarData->setTrueN(config.m_config.trueN);
+    ui->textEdit_heading->setText(QString::number(config.getTrueN()));
+    processing->radarData->setTrueN(config.getTrueN());
     //ui->horizontalSlider_2->setValue(config.m_config.cfarThresh);
 
     ui->horizontalSlider_brightness->setValue(ui->horizontalSlider_brightness->maximum()/4);
@@ -1219,8 +1219,8 @@ void Mainwindow::InitSetting()
     range = 5; UpdateScale();
     if(true)
     {
-        SetGPS(config.m_config.m_lat, config.m_config.m_long);
-        //vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 200,config.m_config.mapFilename.data());
+        SetGPS(config.getLat(), config.getLon());
+        //vnmap.setUp(config.m_config.lat(), config.m_config.lon(), 200,config.m_config.mapFilename.data());
         if(pMap)delete pMap;
         pMap = new QPixmap(height(),height());
 
@@ -1936,13 +1936,13 @@ void Mainwindow::on_actionSaveMap_triggered()
 
 void Mainwindow::on_actionSetting_triggered()
 {
-    GPSDialog *dlg = new GPSDialog(this);
-    dlg->setModal(false);
-    dlg->loadConfig(&config);
-    dlg->show();
-    dlg->setAttribute(Qt::WA_DeleteOnClose);
-    connect(dlg, SIGNAL(destroyed(QObject*)), SLOT(UpdateSetting()));
-    connect(dlg, SIGNAL(destroyed(QObject*)), SLOT(setCodeType()));
+//    GPSDialog *dlg = new GPSDialog(this);
+//    dlg->setModal(false);
+//    dlg->loadConfig(&config);
+//    dlg->show();
+//    dlg->setAttribute(Qt::WA_DeleteOnClose);
+//    connect(dlg, SIGNAL(destroyed(QObject*)), SLOT(UpdateSetting()));
+//    connect(dlg, SIGNAL(destroyed(QObject*)), SLOT(setCodeType()));
 }
 void Mainwindow::on_actionAddTarget_toggled(bool arg1)
 {
@@ -2129,6 +2129,7 @@ void Mainwindow::UpdateScale()
         rangeStep = 1.5f/6.0f;
         //byte2 = 0x00;
         ui->label_range->setText("1.5 NM");
+        break;
     case 1:
         mScale = (height()/2-5)/(CONST_NM*3 );
         rangeStep = 3/6.0f;
@@ -2670,11 +2671,11 @@ void Mainwindow::on_toolButton_zoom_out_clicked()
 
 void Mainwindow::SetGPS(float mlat,float mlong)
 {
-    config.m_config.m_lat = mlat;
-    config.m_config.m_long = mlong;
+    config.setLat(mlat);
+    config.setLon(mlong);
     ui->text_latInput_2->setText(QString::number(mlat));
     ui->text_longInput_2->setText(QString::number(mlong));
-    vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 300,config.m_config.mapFilename.data());
+    vnmap.setUp(config.getLat(), config.getLon(), 300,config.getMapFilename().data());
     DrawMap();
     update();
 }
@@ -2682,11 +2683,11 @@ void Mainwindow::on_toolButton_map_select_clicked()
 {
     QString filename = QFileDialog::getOpenFileName(this,    QString::fromUtf8("Open Map"), NULL, tr("ISM file (*.ism)"));
     if(!filename.size())return;
-    config.m_config.mapFilename =  filename.toStdString();
+    config.setMapFilename( filename.toStdString().data());
     vnmap.ClearData();
     if(pMap)delete pMap;
     pMap = new QPixmap(height(),height());
-    vnmap.setUp(config.m_config.m_lat, config.m_config.m_long, 300,config.m_config.mapFilename.data());//100km  max range
+    vnmap.setUp(config.getLat(), config.getLon(), 300,config.getMapFilename().data());//100km  max range
     DrawMap();
     repaint();
 }
@@ -2702,8 +2703,8 @@ void Mainwindow::on_toolButton_set_heading_clicked()
 {
 
     float heading = ui->textEdit_heading->text().toFloat();
-    config.m_config.trueN = heading;
-    processing->radarData->setTrueN(config.m_config.trueN);
+    config.setTrueN(heading);
+    processing->radarData->setTrueN(config.getTrueN());
 
 }
 
@@ -2721,8 +2722,8 @@ void Mainwindow::on_comboBox_code_type_currentIndexChanged(const QString &arg1)
 
 void Mainwindow::on_comboBox_code_type_currentIndexChanged(int index)
 {
-    config.m_config.codeType = index;
-    setCodeType(config.m_config.codeType);
+//    config.codeType = index;
+//    setCodeType(config.codeType);
 }
 
 //void Mainwindow::on_toolButton_centerZoom_clicked()
