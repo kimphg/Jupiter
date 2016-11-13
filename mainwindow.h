@@ -14,10 +14,10 @@
 #include <vnmap.h>
 //#include <CpView.h>
 #include <CLocal.h>
-#include <Config.h>
+#include <c_config.h>
 #include <dataprocessingthread.h>
 #include <onexitdialog.h>
-#include <C_radar_data.h>
+#include <c_radar_data.h>
 #include <QFileDialog>
 #include <QImage>
 #include <QHostAddress>

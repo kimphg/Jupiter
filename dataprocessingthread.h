@@ -3,7 +3,7 @@
 #include <QThread>
 #include <queue>
 #include <QTimer>
-#include "C_radar_data.h"
+#include "c_radar_data.h"
 #include "c_arpa_data.h"
 #include <vector>
 #include <QFile>

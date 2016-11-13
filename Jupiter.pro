@@ -22,8 +22,6 @@ TEMPLATE = app
 SOURCES += main.cpp\
     mainwindow.cpp \
     vnmap.cpp \
-    Config.cpp \
-    C_radar_data.cpp \
     c_arpa_data.cpp \
     dataprocessingthread.cpp \
     onexitdialog.cpp \
@@ -40,12 +38,12 @@ SOURCES += main.cpp\
     jtarget.cpp \
     jviewport.cpp \
     jgraphictarget.cpp \
-    tinyxml/tinyxml2.cpp
+    tinyxml/tinyxml2.cpp \
+    c_config.cpp \
+    c_radar_data.cpp
 
 HEADERS  += mainwindow.h \
     vnmap.h \
-    Config.h \
-    C_radar_data.h \
     c_arpa_data.h \
     dataprocessingthread.h \
     onexitdialog.h \
@@ -63,7 +61,9 @@ HEADERS  += mainwindow.h \
     jtarget.h \
     jviewport.h \
     jgraphictarget.h \
-    tinyxml/tinyxml2.h
+    tinyxml/tinyxml2.h \
+    c_config.h \
+    c_radar_data.h
 
 FORMS    += mainwindow.ui \
     onexitdialog.ui

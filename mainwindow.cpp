@@ -1212,11 +1212,11 @@ void Mainwindow::InitSetting()
     ui->horizontalSlider_gain->setValue(ui->horizontalSlider_gain->maximum());
     ui->horizontalSlider_rain->setValue(ui->horizontalSlider_rain->minimum());
     ui->horizontalSlider_sea->setValue(ui->horizontalSlider_sea->minimum());
-    //ui->tabWidget_2->processing = processing;
-    //ui->horizontalSlider_signal_scale->setValue(ui->horizontalSlider_sea->minimum());
     ui->comboBox_radar_resolution->setCurrentIndex(0);
+    connect(ui->textEdit_heading, SIGNAL(returnPressed()),ui->toolButton_set_heading,SIGNAL(clicked()));
     setCursor(QCursor(Qt::ArrowCursor));
-    range = 5; UpdateScale();
+    range = 5;
+    UpdateScale();
     if(true)
     {
         SetGPS(config.getLat(), config.getLon());

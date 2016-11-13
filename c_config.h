@@ -47,8 +47,8 @@ private:
     char mapEnabled;
     char cfarThresh;
     char codeType;
-    float trueN;
-    float scale;
+    double trueN;
+    double scale;
     short   dxView ,dyView;
 };
 #endif

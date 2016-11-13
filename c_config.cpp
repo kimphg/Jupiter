@@ -1,5 +1,5 @@
 
-#include "Config.h"
+#include "c_config.h"
 
  
 CConfig::CConfig(void)
@@ -18,8 +18,8 @@ void CConfig::SaveToFile()
     doc.LinkEndChild( radar_config );
     radar_config->SetAttribute("mLat",mLat);
     radar_config->SetAttribute("mLong",mLon);
-    radar_config->SetAttribute("scale",mLon);
-    radar_config->SetAttribute("trueN",mLon);
+    radar_config->SetAttribute("scale",scale);
+    radar_config->SetAttribute("trueN",trueN);
     radar_config->SetAttribute("mapFilename",this->mapFilename.data());
     doc.SaveFile(CFG_FILE_NAME);
     /*QFile configFile(CFG_FILE);
@@ -48,7 +48,7 @@ void CConfig::setDefault()
 	//m_config.comPort.Empty();
     //m_config.comRate    = 4800;
     mLat      = DEFAULT_LAT;//20.8;20.705434, 106.785371
-    mLon     = DEFAULT_LONG;//106.87;
+    mLon      = DEFAULT_LONG;//106.87;
     scale      = SCALE_MIN;
     trueN      = 0;
     dxView     = 0;
@@ -56,7 +56,7 @@ void CConfig::setDefault()
     mapEnabled = false;
     cfarThresh = 15;
     codeType   = 0;
-    this->mapFilename = "";
+    this->mapFilename = "outputmap4layer.ism";
     SaveToFile();
 	//m_config.mapFilename.Empty();
 	
@@ -73,8 +73,8 @@ bool CConfig::LoadFromFile()
         pParm = xmlDoc.FirstChildElement("radar_pk");
         pParm->QueryDoubleAttribute("mLat",&mLat);
         pParm->QueryDoubleAttribute("mLong",&mLon);
-        pParm->QueryDoubleAttribute("scale",&mLon);
-        pParm->QueryDoubleAttribute("trueN",&mLon);
+        pParm->QueryDoubleAttribute("scale",&scale);
+        pParm->QueryDoubleAttribute("trueN",&trueN);
         const char *pName=pParm->Attribute("mapFilename");
         if(pName)mapFilename.append(pName);
         return true;
@@ -82,7 +82,7 @@ bool CConfig::LoadFromFile()
     else
     {
         printf("Could not load config File.");
-        SaveToFile();
+        setDefault();
         return false;
     }
     /*
@@ -129,6 +129,7 @@ double CConfig::getLat() const
 void CConfig::setLat(double lat)
 {
     mLat = lat;
+    SaveToFile();
 }
 
 double CConfig::getLon() const
@@ -139,6 +140,7 @@ double CConfig::getLon() const
 void CConfig::setLon(double lon)
 {
     mLon = lon;
+    SaveToFile();
 }
 
 std::string CConfig::getMapFilename() const
@@ -150,6 +152,7 @@ void CConfig::setMapFilename(const char *filename)
 {
     mapFilename.clear();
     mapFilename.append(filename);
+    SaveToFile();
 }
 
 float CConfig::getTrueN() const
@@ -160,4 +163,5 @@ float CConfig::getTrueN() const
 void CConfig::setTrueN(float value)
 {
     trueN = value;
+    SaveToFile();
 }
