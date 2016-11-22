@@ -15,7 +15,7 @@
 @CONFIG += debug_and_release@
 QT       += core gui
 QT       += network
-QT   += serialport
+QT      += serialport
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 QMAKE_CXXFLAGS_WARN_OFF -= -Wunused-parameter
 TARGET = Jupiter_3.0.1

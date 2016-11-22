@@ -287,6 +287,7 @@ public:
     void setDoubleFilter(bool value);
 
 private:
+    float       k_rain_auto,k_gain_auto;
     bool        avtodetect;
     bool        doubleFilter;
     uint        getColor(unsigned char pvalue, unsigned char dopler, unsigned char sled);
