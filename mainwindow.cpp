@@ -169,11 +169,11 @@ void Mainwindow::drawAisTarget2(QPainter *p, short xAIS, short yAIS)
             p->setFont(font);
             p->drawText(x+5,y+10,(m_AISList.at(i).m_szName));
         }
-        QPushButton *m_button;
-        m_button = new QPushButton("My Button", this);
-            // set size and location of the button
-        m_button->setGeometry(QRect(QPoint(x, y),
-        QSize(16, 16)));
+//        QPushButton *m_button;
+//        m_button = new QPushButton("My Button", this);
+//            // set size and location of the button
+//        m_button->setGeometry(QRect(QPoint(x, y),
+//        QSize(16, 16)));
 
         //p->drawText(x+5,y+5,QString::fromAscii((char*)&m_trackList.at(i).m_MMSI[0],9));
         //printf("\nj:%d,%d,%d,%f,%f",j,x,y,arpa_data.ais_track_list[i].object_list[j].mlong,arpa_data.ais_track_list[i].object_list[j].mlat);
@@ -951,7 +951,7 @@ void Mainwindow::DrawRadarTargetByPainter(QPainter* p)//draw radar target from p
         {
             char buf[50];
             p.setPen(penyellow);
-            sprintf(buf, "%3d:%3.3fNM:%3.3f\xB0",processing->arpaData->track_list[i].id,processing->arpaData->track_list[i].centerR/DEFAULT_NM, processing->arpaData->track_list[i].centerA*57.2957795);
+            sprintf(buf, "%3d:%3.3fNM:%3.3f\260",processing->arpaData->track_list[i].id,processing->arpaData->track_list[i].centerR/DEFAULT_NM, processing->arpaData->track_list[i].centerA*57.2957795);
             QString info = QString::fromAscii(buf);
             p.drawText(10,infoPosy,150,20,0,info);
             infoPosy+=20;
@@ -1076,10 +1076,10 @@ void Mainwindow::paintEvent(QPaintEvent *event)
 //    p.drawText(mousePointerX+5,mousePointerY+5,100,20,0,QString::number(range,'f',2,4)+"|"+QString::number(azi,'f',2,4),0);
 
     ui->label_cursor_range->setText(QString::number(rg,'f',2)+"Nm");
-    ui->label_cursor_azi->setText(QString::number((short)azi)+"\xB0"+QString::number((azi - (short)azi)*60,'f',2)+"'");
-    ui->label_cursor_lat->setText(QString::number( (short)y2lat(-(y - scrCtY+dy)))+"\xB0"+
+    ui->label_cursor_azi->setText(QString::number((short)azi)+QString::fromLocal8Bit("\260")+QString::number((azi - (short)azi)*60,'f',2)+"'");
+    ui->label_cursor_lat->setText(QString::number( (short)y2lat(-(y - scrCtY+dy)))+QString::fromLocal8Bit("\260")+
                                   QString::number(((float)y2lat(-(y - scrCtY+dy))-(short)(y2lat(-(y - scrCtY+dy))))*60,'f',2)+"'N");
-    ui->label_cursor_long->setText(QString::number( (short)x2lon(x - scrCtX+dx))+"\xB0"+
+    ui->label_cursor_long->setText(QString::number( (short)x2lon(x - scrCtX+dx))+QString::fromLocal8Bit("\260")+
                                        QString::number(((float)x2lon(x - scrCtX+dx)-(short)(x2lon(x - scrCtX+dx)))*60,'f',2)+"'E");
 
     //draw zooom
@@ -1214,6 +1214,14 @@ void Mainwindow::InitSetting()
     ui->horizontalSlider_sea->setValue(ui->horizontalSlider_sea->minimum());
     ui->comboBox_radar_resolution->setCurrentIndex(0);
     connect(ui->textEdit_heading, SIGNAL(returnPressed()),ui->toolButton_set_heading,SIGNAL(clicked()));
+    connect(ui->lineEdit_byte_1, SIGNAL(returnPressed()),ui->toolButton_send_command,SIGNAL(clicked()));
+    connect(ui->lineEdit_byte_2, SIGNAL(returnPressed()),ui->toolButton_send_command,SIGNAL(clicked()));
+    connect(ui->lineEdit_byte_3, SIGNAL(returnPressed()),ui->toolButton_send_command,SIGNAL(clicked()));
+    connect(ui->lineEdit_byte_4, SIGNAL(returnPressed()),ui->toolButton_send_command,SIGNAL(clicked()));
+    connect(ui->lineEdit_byte_5, SIGNAL(returnPressed()),ui->toolButton_send_command,SIGNAL(clicked()));
+    connect(ui->lineEdit_byte_6, SIGNAL(returnPressed()),ui->toolButton_send_command,SIGNAL(clicked()));
+    connect(ui->lineEdit_byte_7, SIGNAL(returnPressed()),ui->toolButton_send_command,SIGNAL(clicked()));
+    ui->tabWidget_2->setCurrentIndex(0);
     setCursor(QCursor(Qt::ArrowCursor));
     range = 5;
     UpdateScale();
@@ -1655,11 +1663,11 @@ void Mainwindow::updateTargetInfo()
                 if(tmpazi<0)tmpazi+=360;
                 ui->label_data_type->setText("Radar");
                 ui->label_data_range->setText(QString::number(trackListPt->at(trackId).estR*processing->radarData->scale_ppi/mScale/1.852f,'f',2)+"Nm");
-                ui->label_data_azi->setText( QString::number(tmpazi,'f',2)+"\xB0");
-                ui->label_data_lat->setText( QString::number((short)mLat)+"\xB0"+QString::number((mLat-(short)mLat)*60,'f',2)+"'N");
-                ui->label_data_long->setText(QString::number((short)mLon)+"\xB0"+QString::number((mLon-(short)mLon)*60,'f',2)+"'E");
+                ui->label_data_azi->setText( QString::number(tmpazi,'f',2)+QString::fromLocal8Bit("\260"));
+                ui->label_data_lat->setText( QString::number((short)mLat)+QString::fromLocal8Bit("\260")+QString::number((mLat-(short)mLat)*60,'f',2)+"'N");
+                ui->label_data_long->setText(QString::number((short)mLon)+QString::fromLocal8Bit("\260")+QString::number((mLon-(short)mLon)*60,'f',2)+"'E");
                 ui->label_data_speed->setText(QString::number(trackListPt->at(trackId).speed,'f',2)+"Kn");
-                ui->label_data_heading->setText(QString::number(trackListPt->at(trackId).heading*DEG_RAD)+"\xB0");
+                ui->label_data_heading->setText(QString::number(trackListPt->at(trackId).heading*DEG_RAD)+QString::fromLocal8Bit("\260"));
                 ui->label_data_dopler->setText(QString::number(trackListPt->at(trackId).dopler));
             }
         }
@@ -1672,14 +1680,14 @@ void Mainwindow::updateTargetInfo()
     double fx,fy;
     vnmap.ConvWGSToKmXY(&fx,&fy,selectedTrack->getLon(),selectedTrack->getLat());
     C_radar_data::kmxyToPolar(fx,fy,&azi,&rg);
-    ui->label_data_id->setText(QString::fromAscii((char*)(&selectedTrack->m_MMSI),9));
+    ui->label_data_id->setText(QString::fromUtf8((char*)(&selectedTrack->m_MMSI),9));
     ui->label_data_range->setText(QString::number(rg,'f',2));
     ui->label_data_azi->setText(QString::number(azi,'f',2));
     ui->label_data_type->setText("AIS");
-    ui->label_data_lat->setText( QString::number((short)selectedTrack->getLat())+"\xB0"+QString::number((selectedTrack->getLat()-(short)selectedTrack->getLat())*60,'f',2)+"N");
-    ui->label_data_long->setText(QString::number((short)selectedTrack->getLon())+"\xB0"+QString::number((selectedTrack->getLon()-(short)selectedTrack->getLon())*60,'f',2)+"E");
+    ui->label_data_lat->setText( QString::number((short)selectedTrack->getLat())+QString::fromLocal8Bit("\260")+QString::number((selectedTrack->getLat()-(short)selectedTrack->getLat())*60,'f',2)+"N");
+    ui->label_data_long->setText(QString::number((short)selectedTrack->getLon())+QString::fromLocal8Bit("\260")+QString::number((selectedTrack->getLon()-(short)selectedTrack->getLon())*60,'f',2)+"E");
     ui->label_data_speed->setText(QString::number(selectedTrack->m_Speed,'f',2)+"Kn");
-    ui->label_data_heading->setText(QString::number(selectedTrack->getHead()*DEG_RAD)+"\xB0");
+    ui->label_data_heading->setText(QString::number(selectedTrack->getHead()*DEG_RAD)+QString::fromLocal8Bit("\260"));
     }
     else if(selectedTargetType==NOTARGET)
     {
@@ -1697,7 +1705,7 @@ void Mainwindow::updateTargetInfo()
 void Mainwindow::sync1S()//period 1 second
 {
     // display radar temperature:
-    ui->label_temp->setText(QString::number(processing->radarData->tempType)+"|"+QString::number(processing->radarData->temp)+"\260C");
+    ui->label_temp->setText(QString::number(processing->radarData->tempType)+"|"+QString::number(processing->radarData->temp,'f',0)+ QString::fromLocal8Bit("\260 C"));
     this->updateTargetInfo();
 
 //    int n = 32*256.0f/((processing->radarData->noise_level[0]*256 + processing->radarData->noise_level[1]));
@@ -2555,11 +2563,11 @@ void Mainwindow::updateTargets()
             ui->label_data_id->setText(QString::number(i+1));
             ui->label_data_type->setText("Radar");
             ui->label_data_range->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).estR*processing->radarData->scale_ppi/mScale/1.852f,'f',2)+"Nm");
-            ui->label_data_azi->setText( QString::number(tmpazi,'f',2)+"\xB0");
-            ui->label_data_lat->setText( QString::number((short)targetDisplayList.at(i)->m_lat)+"\xB0"+QString::number((targetDisplayList.at(i)->m_lat-(short)targetDisplayList.at(i)->m_lat)*60,'f',2)+"'N");
-            ui->label_data_long->setText(QString::number((short)targetDisplayList.at(i)->m_lon)+"\xB0"+QString::number((targetDisplayList.at(i)->m_lon-(short)targetDisplayList.at(i)->m_lon)*60,'f',2)+"'E");
+            ui->label_data_azi->setText( QString::number(tmpazi,'f',2)+QString::fromLocal8Bit("\260"));
+            ui->label_data_lat->setText( QString::number((short)targetDisplayList.at(i)->m_lat)+QString::fromLocal8Bit("\260")+QString::number((targetDisplayList.at(i)->m_lat-(short)targetDisplayList.at(i)->m_lat)*60,'f',2)+"'N");
+            ui->label_data_long->setText(QString::number((short)targetDisplayList.at(i)->m_lon)+QString::fromLocal8Bit("\260")+QString::number((targetDisplayList.at(i)->m_lon-(short)targetDisplayList.at(i)->m_lon)*60,'f',2)+"'E");
             ui->label_data_speed->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).speed,'f',2)+"Kn");
-            ui->label_data_heading->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).head_r*DEG_RAD)+"\xB0");
+            ui->label_data_heading->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).head_r*DEG_RAD)+QString::fromLocal8Bit("\260"));
             ui->label_data_dopler->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).dopler));
         }
         else
@@ -2624,7 +2632,9 @@ void Mainwindow::on_toolButton_send_command_clicked()
         hex2bin(ui->lineEdit_byte_5->text().toStdString().data(),&bytes[4]);
         hex2bin(ui->lineEdit_byte_6->text().toStdString().data(),&bytes[5]);
         hex2bin(ui->lineEdit_byte_7->text().toStdString().data(),&bytes[6]);
-        hex2bin(ui->lineEdit_byte_8->text().toStdString().data(),&bytes[7]);
+        bytes[7] = bytes[0]+bytes[1]+bytes[2]+bytes[3]+bytes[4]+bytes[5]+bytes[6];
+        ui->lineEdit_byte_8->setText(QString::number(bytes[7]));
+        //hex2bin(ui->lineEdit_byte_8->text().toStdString().data(),&bytes[7]);
         sendToRadar((unsigned char*)&bytes[0]);
         //udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
     }
@@ -3191,6 +3201,16 @@ void Mainwindow::on_toolButton_command_res_clicked()
     ui->lineEdit_byte_1->setText("08");
     ui->lineEdit_byte_2->setText("ab");
     ui->lineEdit_byte_3->setText("00");
+    ui->lineEdit_byte_4->setText("00");
+    ui->lineEdit_byte_5->setText("00");
+    ui->lineEdit_byte_6->setText("00");
+}
+
+void Mainwindow::on_toolButton_command_antenna_rot_clicked()
+{
+    ui->lineEdit_byte_1->setText("aa");
+    ui->lineEdit_byte_2->setText("ab");
+    ui->lineEdit_byte_3->setText("03");
     ui->lineEdit_byte_4->setText("00");
     ui->lineEdit_byte_5->setText("00");
     ui->lineEdit_byte_6->setText("00");

@@ -42,7 +42,7 @@ int ConvStrChar(QString szStr, char *szBuff)
 	
 	nLen = (nLen < 254)? nLen : 254;		// Get min(nLeng,nSize)	- 254 = max buff	
 	for (int i = 0; i < nLen; i ++)		
-        szBuff[i] = szStr.toAscii().at(i);
+        szBuff[i] = szStr.toStdString().at(i);
 
 	szBuff[nLen] = 0x00;
 	return nLen;
@@ -54,7 +54,7 @@ int ConvStrChar(QString szStr, char *szBuff, int nMax)
 
 	nLen = (nLen < nMax)? nLen : nMax;		// Get min(nLeng,nSize)	- 254 = max buff
 	for (int i = 0; i < nLen; i ++)
-        szBuff[i] = szStr.toAscii().at(i);
+        szBuff[i] = szStr.toStdString().at(i);
 	szBuff[nLen] = 0x00;
 	return nLen;
 } 
@@ -67,7 +67,7 @@ int ConvStrBuff(QString szStr, BYTE *szBuff)
 
 	nLen = (nLen < 254) ? nLen : 254;		// max name = 128 byte	
 	for (int i = 0; i < nLen; i ++)
-        szBuff[i] = szStr.toAscii().at(i);
+        szBuff[i] = szStr.toStdString().at(i);
 
 	szBuff[nLen] = 0x00;
 	return nLen;
@@ -79,7 +79,7 @@ int ConvStrBuff(QString szStr, BYTE *szBuff, int nMax)
 
 	nLen = (nLen < nMax)? nLen : nMax;		// max name = 254 byte	
 	for (int i = 0; i < nLen; i ++)
-        szBuff[i] = szStr.toAscii().at(i);
+        szBuff[i] = szStr.toStdString().at(i);
 
 	szBuff[nLen] = 0x00;
 	return nLen;

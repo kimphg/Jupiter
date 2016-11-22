@@ -204,7 +204,7 @@ void dataProcessingThread::run()
     char errbuf[PCAP_ERRBUF_SIZE];
     //
     /* Retrieve the device list on the local machine */
-    if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
+    if (pcap_findalldevs_ex((char*)PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
     {
         isRunning = false;
         printf( errbuf); return;

@@ -2,11 +2,12 @@
 #define MAINWINDOW_H
 
 #define _CRT_SECURE_NO_WARNINGS
-
+#define _WINSOCKAPI_
 #define SCR_W 1920
 #define SCR_H 1080
 #define SCR_LEFT_MARGIN 50
 #define HR_FILE_EXTENSION ".r2d"
+//#include <qse>
 #include <QtNetwork>
 #include <QMainWindow>
 #include <QtCore>
@@ -16,7 +17,7 @@
 #include <CLocal.h>
 #include <c_config.h>
 #include <dataprocessingthread.h>
-#include <onexitdialog.h>
+#include <QDesktopWidget>
 #include <c_radar_data.h>
 #include <QFileDialog>
 #include <QImage>
@@ -301,6 +302,8 @@ private slots:
     void on_toolButton_command_dttt_clicked();
 
     void on_toolButton_command_res_clicked();
+
+    void on_toolButton_command_antenna_rot_clicked();
 
 private:
     void initActionsConnections();

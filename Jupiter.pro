@@ -7,7 +7,7 @@
 #Control and process data from HR2D radar
 #view ARPA data
 #-------------------------------------------------
-# Version 2.4
+# Version 3.0.1
 #-------------------------------------------------
 #data file type defined as .r2d, data starts from 22nd byte of each frame
 #run for both 1024 and 1536 data type
@@ -15,16 +15,16 @@
 @CONFIG += debug_and_release@
 QT       += core gui
 QT       += network
-#greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT   += serialport
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 QMAKE_CXXFLAGS_WARN_OFF -= -Wunused-parameter
-TARGET = Jupiter_2.5
+TARGET = Jupiter_3.0.1
 TEMPLATE = app
 SOURCES += main.cpp\
     mainwindow.cpp \
     vnmap.cpp \
     c_arpa_data.cpp \
     dataprocessingthread.cpp \
-    onexitdialog.cpp \
     qcustombutton.cpp \
     qcustomframe.cpp \
     qcustomcombobox.cpp \
@@ -46,7 +46,6 @@ HEADERS  += mainwindow.h \
     vnmap.h \
     c_arpa_data.h \
     dataprocessingthread.h \
-    onexitdialog.h \
     qcustombutton.h \
     qcustomframe.h \
     qcustomcombobox.h \
@@ -65,8 +64,7 @@ HEADERS  += mainwindow.h \
     c_config.h \
     c_radar_data.h
 
-FORMS    += mainwindow.ui \
-    onexitdialog.ui
+FORMS    += mainwindow.ui
 #win32:CONFIG(release, debug|release): LIBS += -L$$PWD/shapelib/ -lshapelib
 #else:unix: LIBS += -L$$PWD\shapelib\ -lshapelib
 #INCLUDEPATH += $$PWD/shapelib
