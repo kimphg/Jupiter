@@ -27,14 +27,14 @@
 //#include "ctarget.h"
 //#include "radarcontroldialog.h"
 //#include "c_arpa_data.h"
-//#include <QtSerialPort/QSerialPort>
-#ifdef TIXML_USE_STL
-    #include <iostream>
-    #include <sstream>
-    using namespace std;
-#else
-    #include <stdio.h>
-#endif
+#include <QtSerialPort/QSerialPort>
+//#ifdef TIXML_USE_STL
+//    #include <iostream>
+//    #include <sstream>
+//    using namespace std;
+//#else
+//    #include <stdio.h>
+//#endif
 namespace Ui {
 class MainWindow;
 //class QLabel;
