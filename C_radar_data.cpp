@@ -10,7 +10,7 @@
 #define TERRAIN_MAX 40
 #define TERRAIN_INIT 20
 #define RADAR_COMMAND_FEEDBACK  6
-#define RADAR_DATA_HEADER_MAX   62
+#define RADAR_DATA_HEADER_MAX   22//62
 #define RADAR_DATA_SPECTRE      22
 #define RADAR_DATA_MAX_SIZE     2688
 #define RADAR_
@@ -381,8 +381,8 @@ C_radar_data::C_radar_data()
     clk_adc = 0;
     noiseAverage = 0;
     noiseVar = 0;
-    krain_auto = 0.5;
-    kgain_auto  = 3;
+    krain_auto = 0.4;
+    kgain_auto  = 2.1;
     ksea_auto = 0;
     kgain = 1;
     krain  = ksea = 0;
@@ -931,18 +931,18 @@ void C_radar_data::ProcessData(unsigned short azi)
         for(short r_pos=range_max-1;r_pos>0;r_pos--)
         {
             // RGS threshold
-            rainLevel += 0.4f*(data_mem.level[azi][r_pos]-rainLevel);
+            rainLevel += krain_auto*(data_mem.level[azi][r_pos]-rainLevel);
             if(rainLevel>(noiseAverage+9*noiseVar))rainLevel = noiseAverage + 9*noiseVar;
-            thresh[r_pos] = rainLevel + noiseVar*2;//kgain = 4
+            thresh[r_pos] = rainLevel + noiseVar*kgain_auto;//kgain = 4
         }
     }
     rainLevel = noiseAverage ;
     for(short r_pos=0;r_pos<range_max;r_pos++)
     {
         // RGS threshold
-        rainLevel += 0.4f*(data_mem.level[azi][r_pos]-rainLevel);
+        rainLevel += krain_auto*(data_mem.level[azi][r_pos]-rainLevel);
         if(rainLevel>(noiseAverage+9*noiseVar))rainLevel = noiseAverage + 9*noiseVar;
-        short nthresh = rainLevel + noiseVar*2;//kgain = 4
+        short nthresh = rainLevel + noiseVar*kgain_auto;//kgain = 4
         thresh[r_pos] = thresh[r_pos]<nthresh?nthresh:thresh[r_pos];
         bool cutoff = data_mem.level[azi][r_pos]<thresh[r_pos];
         //            short dvar;

@@ -9,7 +9,7 @@
 #include <QFile>
 #include <QUdpSocket>
 #include <QStringList>
-#define MAX_COMMAND_QUEUE_SIZE 50
+#define MAX_COMMAND_QUEUE_SIZE 100
 #define HAVE_REMOTE
 #include "pcap.h"
 #ifndef CONST_NM
