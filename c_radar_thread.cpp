@@ -1,4 +1,4 @@
-#include "dataprocessingthread.h"
+#include "c_radar_thread.h"
 #define MAX_IREC 500
 
 DataBuff dataB[MAX_IREC];
@@ -54,11 +54,18 @@ dataProcessingThread::dataProcessingThread()
     radarData = new C_radar_data();
     isPlaying = false;
     radarSocket = new QUdpSocket(this);
-    radarSocket->bind(5555, QUdpSocket::ShareAddress);
-    connect(&UpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadar()));
+    int port = 8000;
+    while(port<9000)
+    {
+        if(radarSocket->bind(port))
+        {
+            break;
+        }
+    }
+    connect(&UpdateTimer, SIGNAL(timeout()), this, SLOT(PushCommandQueue()));
     UpdateTimer.start(200);
 }
-void dataProcessingThread::UpdateRadar()
+void dataProcessingThread::PushCommandQueue()
 {
     if(radarComQ.size())
     {
@@ -108,6 +115,11 @@ void dataProcessingThread::playbackRadarData()
         return;
     }
 }
+void dataProcessingThread::setIsDrawn(bool value)
+{
+    isDrawn = value;
+}
+
 void dataProcessingThread::SetRadarPort( unsigned short portNumber)
 {
     radarSocket->bind(portNumber, QUdpSocket::ShareAddress);
@@ -197,7 +209,8 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
 }
 void dataProcessingThread::run()
 {
-
+    QTimer timer_read_buffer;
+    connect(&timer_read_buffer, SIGNAL(timeout()), this, SLOT(ReadDataBuffer()));
     pcap_if_t *alldevs;
     pcap_if_t *d;
     pcap_t *adhandle;
@@ -260,6 +273,14 @@ void dataProcessingThread::run()
         }
         else { usleep(100);}
     }*/
+}
+
+bool dataProcessingThread::getIsDrawn()
+{
+
+       if(!isDrawn){isDrawn = true;return false;}
+       else return true;
+
 }
 void dataProcessingThread::stopThread()
 {

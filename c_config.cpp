@@ -4,6 +4,7 @@
  
 CConfig::CConfig(void)
 {
+    setDefault();
     LoadFromFile();
 }
 
@@ -21,6 +22,8 @@ void CConfig::SaveToFile()
     radar_config->SetAttribute("scale",scale);
     radar_config->SetAttribute("trueN",trueN);
     radar_config->SetAttribute("mapFilename",this->mapFilename.data());
+    radar_config->SetAttribute("socket_port_arpa",this->socket_port_arpa);
+    radar_config->SetAttribute("socket_port_radar",this->socket_port_radar);
     doc.SaveFile(CFG_FILE_NAME);
     /*QFile configFile(CFG_FILE);
     if(!configFile.open(QIODevice::WriteOnly))return;
@@ -56,6 +59,8 @@ void CConfig::setDefault()
     mapEnabled = false;
     cfarThresh = 15;
     codeType   = 0;
+    socket_port_arpa = 8800;
+    socket_port_radar =8900;
     this->mapFilename = "outputmap4layer.ism";
     SaveToFile();
 	//m_config.mapFilename.Empty();

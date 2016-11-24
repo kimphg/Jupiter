@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QTabWidget>
 #include <qevent.h>
-#include <dataprocessingthread.h>
+#include <c_radar_thread.h>
 #include <QPainter>
 class QCustomTabWidget: public QTabWidget
 {

@@ -24,7 +24,6 @@ SOURCES += main.cpp\
     mainwindow.cpp \
     vnmap.cpp \
     c_arpa_data.cpp \
-    dataprocessingthread.cpp \
     qcustombutton.cpp \
     qcustomframe.cpp \
     qcustomcombobox.cpp \
@@ -40,12 +39,12 @@ SOURCES += main.cpp\
     jgraphictarget.cpp \
     tinyxml/tinyxml2.cpp \
     c_config.cpp \
-    c_radar_data.cpp
+    c_radar_data.cpp \
+    c_radar_thread.cpp
 
 HEADERS  += mainwindow.h \
     vnmap.h \
     c_arpa_data.h \
-    dataprocessingthread.h \
     qcustombutton.h \
     qcustomframe.h \
     qcustomcombobox.h \
@@ -62,7 +61,8 @@ HEADERS  += mainwindow.h \
     jgraphictarget.h \
     tinyxml/tinyxml2.h \
     c_config.h \
-    c_radar_data.h
+    c_radar_data.h \
+    c_radar_thread.h
 
 FORMS    += mainwindow.ui
 #win32:CONFIG(release, debug|release): LIBS += -L$$PWD/shapelib/ -lshapelib

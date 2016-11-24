@@ -10,19 +10,19 @@
 #include <QUdpSocket>
 #include <QStringList>
 #define MAX_COMMAND_QUEUE_SIZE 100
-#define HAVE_REMOTE
+#define HAVE_REMOTE// for pcap
 #include "pcap.h"
 #ifndef CONST_NM
-#define CONST_NM 1.825f
+#define CONST_NM 1.852f
 
 #endif
 #define HR2D_UDP_PORT 5000
-struct DataBuff
+struct DataBuff// buffer for data frame
 {
     short len;
     unsigned char data[1500];
 };
-struct  RadarCommand
+struct  RadarCommand// radar control commmand
 {
     unsigned char bytes[8];
 };
@@ -31,16 +31,14 @@ class dataProcessingThread:public QThread
 {
     Q_OBJECT
 public:
-    bool    isDrawn;
-    bool    isRunning;
     unsigned char    connect_timeout;
-//    QMutex  mutex;
+    QMutex  mutex_data_change;
     unsigned short    playRate;
     DataBuff*   dataBuff;
     float   k_vet;
     void SetRadarPort( unsigned short portNumber);
     void SetARPAPort( unsigned short portNumber);
-    void ReadDataBuffer();
+
     ~dataProcessingThread();
     dataProcessingThread();
     QTimer UpdateTimer;
@@ -57,17 +55,16 @@ public:
     C_radar_data* radarData;
     C_ARPA_data* arpaData;
     void run();
-    bool getIsDrawn()
-    {
-       if(!isDrawn){isDrawn = true;return false;}
-       else return true;
-    }
+    bool getIsDrawn();
+
     bool isConnected()
     {
         return bool(connect_timeout);
     }
-private:
+    void setIsDrawn(bool value);
 
+private:
+    bool    isDrawn;
     RadarCommandQueue radarComQ;
     bool isRecording;
     bool isPlaying;
@@ -77,8 +74,9 @@ private:
     QUdpSocket      *radarSocket;
     QUdpSocket      *ARPADataSocket;
     void listenToRadar();
-public slots:
-    void UpdateRadar();
+private slots:
+    void ReadDataBuffer();
+    void PushCommandQueue();
     void processRadarData();
     void processARPAData();
     void playbackRadarData();

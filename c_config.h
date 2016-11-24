@@ -50,5 +50,7 @@ private:
     double trueN;
     double scale;
     short   dxView ,dyView;
+    short socket_port_radar;
+    short socket_port_arpa;
 };
 #endif

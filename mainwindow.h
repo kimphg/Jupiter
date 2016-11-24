@@ -16,7 +16,7 @@
 //#include <CpView.h>
 #include <CLocal.h>
 #include <c_config.h>
-#include <dataprocessingthread.h>
+#include <c_radar_thread.h>
 #include <QDesktopWidget>
 #include <c_radar_data.h>
 #include <QFileDialog>

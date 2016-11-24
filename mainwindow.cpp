@@ -1433,7 +1433,7 @@ void Mainwindow::UpdateRadarData()
 }
 void Mainwindow::readBuffer()
 {
-    processing->ReadDataBuffer();
+
 }
 void Mainwindow::InitTimer()
 {
@@ -1449,9 +1449,7 @@ void Mainwindow::InitTimer()
     syncTimer5p.start(300000);
     //syncTimer1s.moveToThread(t);
 
-    connect(&readBuffTimer,SIGNAL(timeout()),this,SLOT(readBuffer()));
-    readBuffTimer.start(20);
-    readBuffTimer.moveToThread(t2);
+
 
     connect(&scrUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadarData()));
     scrUpdateTimer.start(40);//ENVDEP
