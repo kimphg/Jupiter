@@ -219,10 +219,10 @@ void dataProcessingThread::run()
     /* Retrieve the device list on the local machine */
     if (pcap_findalldevs_ex((char*)PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
     {
-        isRunning = false;
+        //isRunning = false;
         printf( errbuf); return;
     }
-    isRunning = true;
+    //isRunning = true;
     int i = 0;
     /* Print the list */
     for(d=alldevs; d; d=d->next)

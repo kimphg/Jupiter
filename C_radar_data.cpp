@@ -10,7 +10,7 @@
 #define TERRAIN_MAX 40
 #define TERRAIN_INIT 20
 #define RADAR_COMMAND_FEEDBACK  6
-#define RADAR_DATA_HEADER_MAX   22//62
+#define RADAR_DATA_HEADER_MAX   62
 #define RADAR_DATA_SPECTRE      22
 #define RADAR_DATA_MAX_SIZE     2688
 #define RADAR_
@@ -848,8 +848,8 @@ void C_radar_data::ProcessData(unsigned short azi)
             if(bo_bang_0)
             {
                 if((data_mem.dopler[azi][r_pos]==0)
-                        ||(data_mem.dopler[azi][r_pos]==0)
-                        ||(data_mem.dopler[azi][r_pos]==0))
+                        ||(data_mem.dopler[azi][r_pos]==1)
+                        ||(data_mem.dopler[azi][r_pos]==15))
                 {
                     cutoff = true;
                     //signal_map.hot[azi][r_pos]=0;

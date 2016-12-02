@@ -1013,7 +1013,7 @@
      <string notr="true">background-color: rgb(30, 50, 70);color:rgb(30, 50, 70);font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -23898,7 +23898,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>10</x>
