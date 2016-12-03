@@ -42,6 +42,7 @@ public:
     ~dataProcessingThread();
     dataProcessingThread();
     QTimer UpdateTimer;
+    QTimer readBuffTimer;
     void PlaybackFile();
     void startRecord(QString fileName);
     void stopRecord();
@@ -50,7 +51,7 @@ public:
     void radTxOn();
     void radTxOff();
     void sendCommand(unsigned char* sendBuff,short len);
-    void startReplay(QString fileName);
+    void loadRecordDataFile(QString fileName);
     void togglePlayPause(bool play);
     C_radar_data* radarData;
     C_ARPA_data* arpaData;

@@ -804,7 +804,7 @@ void C_radar_data::ProcessData(unsigned short azi)
             data_mem.dopler[azi][r_pos] = dataBuff[i_md+r_pos/2];
         }
         //unzip the dopler data
-        if(r_pos&0x01)
+        if(!(r_pos&0x01))
         {
 
             data_mem.dopler[azi][r_pos] = 0x0f&data_mem.dopler[azi][r_pos];

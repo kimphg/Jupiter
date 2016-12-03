@@ -1917,7 +1917,7 @@ void Mainwindow::on_actionOpen_rec_file_triggered()
 {
     QString filename = QFileDialog::getOpenFileName(this,    tr("Open signal file"), NULL, tr("HR signal record files (*.r2d)"));
     if(!filename.size())return;
-    processing->startReplay(filename);
+    processing->loadRecordDataFile(filename);
 }
 
 

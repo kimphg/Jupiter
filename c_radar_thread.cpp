@@ -5,6 +5,7 @@ DataBuff dataB[MAX_IREC];
 short iRec=0,iRead=0;
 bool *pIsDrawn;
 bool *pIsPlaying;
+
 //QTimer readDataBuff;
 dataProcessingThread::~dataProcessingThread()
 {
@@ -64,6 +65,8 @@ dataProcessingThread::dataProcessingThread()
     }
     connect(&UpdateTimer, SIGNAL(timeout()), this, SLOT(PushCommandQueue()));
     UpdateTimer.start(200);
+    connect(&readBuffTimer, SIGNAL(timeout()), this, SLOT(ReadDataBuffer()));
+    readBuffTimer.start(10);
 }
 void dataProcessingThread::PushCommandQueue()
 {
@@ -129,7 +132,7 @@ void dataProcessingThread::SetARPAPort( unsigned short portNumber)
     ARPADataSocket->bind(portNumber, QUdpSocket::ShareAddress);
 }
 
-void dataProcessingThread::startReplay(QString fileName)//
+void dataProcessingThread::loadRecordDataFile(QString fileName)//
 {
     if(signRepFile.isOpen()) signRepFile.close();
     signRepFile.setFileName(fileName);
@@ -207,10 +210,10 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
 //    printf("\n");
 
 }
+QTimer *timer_read_buffer;
 void dataProcessingThread::run()
 {
-    QTimer timer_read_buffer;
-    connect(&timer_read_buffer, SIGNAL(timeout()), this, SLOT(ReadDataBuffer()));
+
     pcap_if_t *alldevs;
     pcap_if_t *d;
     pcap_t *adhandle;
