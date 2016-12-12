@@ -326,11 +326,11 @@ void dataProcessingThread::radTxOn()
 //    command.bytes[2] = 0x02;
 //    command.bytes[3] = 0x00;
 //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-//    //thich nghi
-//    command.bytes[0] = 0x1a;
-//    command.bytes[2] = 0x20;
-//    command.bytes[3] = 0x01;
-//    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //thich nghi
+    command.bytes[0] = 0x1a;
+    command.bytes[2] = 0x20;
+    command.bytes[3] = 0x01;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     //do trong
     command.bytes[0] = 0x14;
     command.bytes[2] = 0x00;
@@ -344,7 +344,7 @@ void dataProcessingThread::radTxOn()
     //dttt 256
     command.bytes[0] = 0x01;
     command.bytes[2] = 0x04;
-    command.bytes[3] = 0x03;
+    command.bytes[3] = 0x05;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     //set resolution 60m
     command.bytes[0] = 0x08;

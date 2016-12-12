@@ -40,7 +40,8 @@ SOURCES += main.cpp\
     tinyxml/tinyxml2.cpp \
     c_config.cpp \
     c_radar_data.cpp \
-    c_radar_thread.cpp
+    c_radar_thread.cpp \
+    cmap.cpp
 
 HEADERS  += mainwindow.h \
     vnmap.h \
@@ -62,7 +63,8 @@ HEADERS  += mainwindow.h \
     tinyxml/tinyxml2.h \
     c_config.h \
     c_radar_data.h \
-    c_radar_thread.h
+    c_radar_thread.h \
+    cmap.h
 
 FORMS    += mainwindow.ui
 #win32:CONFIG(release, debug|release): LIBS += -L$$PWD/shapelib/ -lshapelib
