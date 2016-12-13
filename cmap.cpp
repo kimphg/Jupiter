@@ -24,7 +24,7 @@ CMap::CMap(QObject *parent): QObject(parent)
     m_emptyTile.fill(Qt::lightGray);
     mMapWidth = 1024;
     mMapHeight = 1024;
-    mapImage = new QPixmap(mMapWidth,mMapHeight);
+    mapImage = 0;
 }
 
 CMap::~CMap()
@@ -41,6 +41,7 @@ double CMap::getScaleRatio()
 void CMap::Repaint()
 {
     invalidate();
+    UpdateImage();
 }
 
 
@@ -54,17 +55,20 @@ void CMap::setCenterPos(double lat, double lon)
 {
     mCenterLat = lat;
     mCenterLon = lon;
+    Repaint();
 }
 
 
 void CMap::setScaleRatio(int scale)
 {
     mScale = scale;
+
 }
 
 
 void CMap::setWidthHeight(int width, int height)
 {
+    if(mapImage)delete mapImage;
     mMapWidth = width;
     mMapHeight = height;
     mapImage = new QPixmap(mMapWidth,mMapHeight);
@@ -184,13 +188,29 @@ void CMap::render(QPainter *p, const QRect &rect)
 
 void CMap::UpdateImage()
 {
+    if(mapImage)
+    {
     QPainter p(mapImage);
     render(&p,mapImage->rect());
+    }
 }
 
-QPixmap *CMap::getImage()
+QPixmap CMap::getImage(double scale)
 {
-    return mapImage;
+    double curScale = this->getScaleKm();
+    double zoomRatio = scale/curScale;
+    if(zoomRatio<1)
+    {
+        this->setScaleRatio(getScaleRatio()-1);
+        return getImage(scale);
+    }
+    else if(zoomRatio>=2)
+    {
+        this->setScaleRatio(getScaleRatio()+1);
+        return getImage(scale);
+    }
+    Repaint();
+    return mapImage->scaled(mapImage->width()*zoomRatio,mapImage->height()*zoomRatio);
 }
 
 void CMap::pan(const QPoint &delta)

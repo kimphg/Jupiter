@@ -11,6 +11,7 @@
 //#include <queue>
 
 QPixmap                     *pMap=NULL;// painter cho ban do
+CMap *osmap ;
 dataProcessingThread        *processing;// thread xu ly du lieu radar
 QThread                     *t2,*t1;
 Q_vnmap                     vnmap;
@@ -26,8 +27,8 @@ short                       mousePointerX,mousePointerY,mouseX,mouseY;
 bool                        isDraging = false;
 bool                        isScaleChanged =true;
 float                       mScale;
-QGraphicsScene* scene;
-jViewPort* view;
+//QGraphicsScene* scene;
+//jViewPort* view;
 CConfig         config;
 QStringList     warningList;
 short selectedTargetIndex;
@@ -543,12 +544,25 @@ void Mainwindow::DrawMap()
 {
 
     if(!pMap) return;
-
     dxMap = 0;
     dyMap = 0;
+    //
     QPainter p(pMap);
+    if(1)
+    {
+
+        double dLat, dLong;
+        vnmap.ConvKmXYToWGS((double)dx/mScale*1.02,-(double)dy/mScale*1.02,&dLong,&dLat);
+        osmap->setCenterPos(dLat,dLong);
+        QPixmap pix = osmap->getImage(mScale);
+        p.drawPixmap((-pix.width()/2+pMap->width()/2),
+                     (-pix.height()/2+pMap->height()/2),pix.width(),pix.height(),pix
+                     );
+        //return;
+    }
+
     //pMap->fill(QColor(10,18,25,255));
-    pMap->fill(QColor(10,20,30,255));
+    //pMap->fill(QColor(10,20,30,255));
     //pMap->fill(Qt::transparent);
     if(ui->toolButton_map->isChecked())
     {
@@ -586,7 +600,8 @@ void Mainwindow::DrawMap()
                         int_point.setY((int)(y*mScale)+centerY);
                         poly<<int_point;
                     }
-                    p.setBrush(color[i]);
+                    //p.setBrush(color[i]);
+                    p.setBrush(Qt::NoBrush);
                     pen.setColor(color[i]);
                     p.setPen(pen);
                     p.drawPolygon(poly);
@@ -708,13 +723,13 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
 
 void Mainwindow::initGraphicView()
 {
-    scene = new QGraphicsScene(-200, -200, 400, 400);
-    view = new jViewPort(scene,this);
-    view->setGeometry(SCR_LEFT_MARGIN,0,SCR_H,SCR_H);
-    view->lower();
-    view->setRenderHint(QPainter::Antialiasing);
+    //scene = new QGraphicsScene(-200, -200, 400, 400);
+    //view = new jViewPort(scene,this);
+    //view->setGeometry(SCR_LEFT_MARGIN,0,SCR_H,SCR_H);
+    //view->lower();
+    //view->setRenderHint(QPainter::Antialiasing);
     //view->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
-    view->setBackgroundBrush(Qt::transparent);
+    //view->setBackgroundBrush(Qt::transparent);
 
 }
 
@@ -1172,6 +1187,14 @@ void Mainwindow::SaveBinFile()
 
 void Mainwindow::InitSetting()
 {
+    //load openstreetmap
+    osmap = new CMap();
+    osmap->setCenterPos(config.getLat(),config.getLon());
+    osmap->setScaleRatio(15);
+    osmap->setPath("D:/DOWN/MapData/ThunderForest");
+    osmap->setWidthHeight(height(),height());
+
+    //
     setMouseTracking(true);
     //initGraphicView();
     //init the guard zone
@@ -1231,9 +1254,7 @@ void Mainwindow::InitSetting()
         //vnmap.setUp(config.m_config.lat(), config.m_config.lon(), 200,config.m_config.mapFilename.data());
         if(pMap)delete pMap;
         pMap = new QPixmap(height(),height());
-
         DrawMap();
-
     }else
     {
         vnmap.ClearData();
@@ -2684,6 +2705,7 @@ void Mainwindow::SetGPS(float mlat,float mlong)
     ui->text_latInput_2->setText(QString::number(mlat));
     ui->text_longInput_2->setText(QString::number(mlong));
     vnmap.setUp(config.getLat(), config.getLon(), 300,config.getMapFilename().data());
+    osmap->setCenterPos(config.getLat(), config.getLon());
     DrawMap();
     update();
 }

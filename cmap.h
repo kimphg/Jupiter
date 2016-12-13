@@ -2,6 +2,7 @@
 #define CMAP_H
 
 #include <QtNetwork/QNetworkAccessManager>
+#include <QtGui>
 #include <QPixmap>
 #include <QUrl>
 
@@ -26,7 +27,7 @@ public:
     void pan(const QPoint &delta);
     void invalidate();
     void render(QPainter *p, const QRect &rect);
-    QPixmap* getImage();
+    QPixmap getImage(double scale);
     void UpdateImage();
     double getScaleKm();
     double pixelHeight(double km);

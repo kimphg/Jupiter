@@ -23,7 +23,8 @@
 #include <QImage>
 #include <QHostAddress>
 #include <jtarget.h>
-#include <jviewport.h>
+#include "cmap.h"
+//#include <jviewport.h>
 //#include "ctarget.h"
 //#include "radarcontroldialog.h"
 //#include "c_arpa_data.h"

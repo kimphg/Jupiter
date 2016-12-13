@@ -35,7 +35,6 @@ SOURCES += main.cpp\
     CPoints.cpp \
     CDefine.cpp \
     jtarget.cpp \
-    jviewport.cpp \
     jgraphictarget.cpp \
     tinyxml/tinyxml2.cpp \
     c_config.cpp \
@@ -58,7 +57,6 @@ HEADERS  += mainwindow.h \
     CPoints.h \
     CDefine.h \
     jtarget.h \
-    jviewport.h \
     jgraphictarget.h \
     tinyxml/tinyxml2.h \
     c_config.h \
