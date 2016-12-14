@@ -26,7 +26,7 @@ short                       scrCtX, scrCtY, dx =0,dy=0,dxMap=0,dyMap=0;
 short                       mousePointerX,mousePointerY,mouseX,mouseY;
 bool                        isDraging = false;
 bool                        isScaleChanged =true;
-float                       mScale;
+double                       mScale;
 //QGraphicsScene* scene;
 //jViewPort* view;
 CConfig         config;
@@ -548,21 +548,25 @@ void Mainwindow::DrawMap()
     dyMap = 0;
     //
     QPainter p(pMap);
+    pMap->fill(Qt::black);
     if(1)
     {
 
         double dLat, dLong;
-        vnmap.ConvKmXYToWGS((double)dx/mScale*1.02,-(double)dy/mScale*1.02,&dLong,&dLat);
+        vnmap.ConvKmXYToWGS((double(dx))/mScale,(double(-dy))/mScale,&dLong,&dLat);
         osmap->setCenterPos(dLat,dLong);
         QPixmap pix = osmap->getImage(mScale);
+        p.setOpacity(0.4);
         p.drawPixmap((-pix.width()/2+pMap->width()/2),
                      (-pix.height()/2+pMap->height()/2),pix.width(),pix.height(),pix
                      );
-        //return;
     }
-
+    else
+    {
+        pMap->fill(QColor(10,20,30,255));
+    }
     //pMap->fill(QColor(10,18,25,255));
-    //pMap->fill(QColor(10,20,30,255));
+    //
     //pMap->fill(Qt::transparent);
     if(ui->toolButton_map->isChecked())
     {
@@ -1191,12 +1195,12 @@ void Mainwindow::InitSetting()
     osmap = new CMap();
     osmap->setCenterPos(config.getLat(),config.getLon());
     osmap->setScaleRatio(15);
-    osmap->setPath("D:/DOWN/MapData/ThunderForest");
-    osmap->setWidthHeight(height(),height());
+    osmap->setPath(HR_MAP_PATH_1);
+    osmap->setWidthHeight(height()*1.5,height()*1.5);
 
     //
     setMouseTracking(true);
-    //initGraphicView();
+    //initGraphicView();21.433170, 106.624043
     //init the guard zone
     gz1.isActive = 0;
     gz2.isActive = 0;

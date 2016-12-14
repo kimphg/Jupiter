@@ -51,6 +51,7 @@ public:
     void LoadPlaces(const char* fileName);
     void LoadBinFile(const char* fileName);
     void ClearData();
+    void ConvKmToWGS_precise(double x, double y, double *m_Long, double *m_Lat);
 private:
     bool checkInside(Point_t  *point);
     void getElement(short nlayer,short npoly,short npoint,Point_t* point);

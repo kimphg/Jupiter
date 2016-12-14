@@ -199,18 +199,19 @@ QPixmap CMap::getImage(double scale)
 {
     double curScale = this->getScaleKm();
     double zoomRatio = scale/curScale;
-    if(zoomRatio<1)
+    if(zoomRatio<0.8)
     {
         this->setScaleRatio(getScaleRatio()-1);
         return getImage(scale);
     }
-    else if(zoomRatio>=2)
+    else if(zoomRatio>=1.6)
     {
         this->setScaleRatio(getScaleRatio()+1);
         return getImage(scale);
     }
+    printf("\nzoom ratio:%f - factor:%f ",zoomRatio,float(getScaleRatio()));
     Repaint();
-    return mapImage->scaled(mapImage->width()*zoomRatio,mapImage->height()*zoomRatio);
+    return mapImage->scaled(mapImage->width()*zoomRatio,mapImage->height()*zoomRatio,Qt::IgnoreAspectRatio,Qt::SmoothTransformation );
 }
 
 void CMap::pan(const QPoint &delta)

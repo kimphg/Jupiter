@@ -21,10 +21,13 @@ void CConfig::SaveToFile()
     radar_config->SetAttribute("mLong",mLon);
     radar_config->SetAttribute("scale",scale);
     radar_config->SetAttribute("trueN",trueN);
+
+    printf("\nthis->mapFilename.data():");
+    printf(this->mapFilename.data());
     radar_config->SetAttribute("mapFilename",this->mapFilename.data());
     radar_config->SetAttribute("socket_port_arpa",this->socket_port_arpa);
     radar_config->SetAttribute("socket_port_radar",this->socket_port_radar);
-    doc.SaveFile(CFG_FILE_NAME);
+    doc.SaveFile(HR_CONFIG_FILE);
     /*QFile configFile(CFG_FILE);
     if(!configFile.open(QIODevice::WriteOnly))return;
 
@@ -61,9 +64,10 @@ void CConfig::setDefault()
     codeType   = 0;
     socket_port_arpa = 8800;
     socket_port_radar =8900;
-    this->mapFilename = "outputmap4layer.ism";
+    mapFilename.clear();
+    mapFilename.append("outputmap4layer.ism");
     SaveToFile();
-	//m_config.mapFilename.Empty();
+
 	
 }
 
@@ -71,7 +75,7 @@ void CConfig::setDefault()
 bool CConfig::LoadFromFile()
 {
     tinyxml2::XMLDocument xmlDoc;
-    if(xmlDoc.LoadFile(CFG_FILE_NAME)==0)
+    if(xmlDoc.LoadFile(HR_CONFIG_FILE)==0)
     {
         //TiXmlHandle hDoc(&doc);
         tinyxml2::XMLElement  *pParm;
@@ -81,7 +85,11 @@ bool CConfig::LoadFromFile()
         pParm->QueryDoubleAttribute("scale",&scale);
         pParm->QueryDoubleAttribute("trueN",&trueN);
         const char *pName=pParm->Attribute("mapFilename");
-        if(pName)mapFilename.append(pName);
+        if(pName)
+        {
+            mapFilename.clear();
+            mapFilename.append(pName);
+        }
         return true;
     }
     else
