@@ -22,7 +22,6 @@ TARGET = Jupiter_3.0.1
 TEMPLATE = app
 SOURCES += main.cpp\
     mainwindow.cpp \
-    vnmap.cpp \
     c_arpa_data.cpp \
     qcustombutton.cpp \
     qcustomframe.cpp \
@@ -37,13 +36,12 @@ SOURCES += main.cpp\
     jtarget.cpp \
     jgraphictarget.cpp \
     tinyxml/tinyxml2.cpp \
+    Cmap/cmap.cpp\
     c_config.cpp \
     c_radar_data.cpp \
-    c_radar_thread.cpp \
-    cmap.cpp
+    c_radar_thread.cpp
 
 HEADERS  += mainwindow.h \
-    vnmap.h \
     c_arpa_data.h \
     qcustombutton.h \
     qcustomframe.h \
@@ -59,10 +57,10 @@ HEADERS  += mainwindow.h \
     jtarget.h \
     jgraphictarget.h \
     tinyxml/tinyxml2.h \
+    Cmap/cmap.h\
     c_config.h \
     c_radar_data.h \
-    c_radar_thread.h \
-    cmap.h
+    c_radar_thread.h
 
 FORMS    += mainwindow.ui
 #win32:CONFIG(release, debug|release): LIBS += -L$$PWD/shapelib/ -lshapelib

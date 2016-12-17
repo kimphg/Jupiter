@@ -36,8 +36,8 @@ public:
     double getLon() const;
     void setLon(double getLon);
 
-    std::string getMapFilename() const;
-    void setMapFilename(const char* filename);
+    //std::string getMapFilename() const;
+    //void setMapFilename(const char* filename);
 
     float getTrueN() const;
     void setTrueN(float value);
@@ -45,7 +45,7 @@ public:
 private:
     double mLat;
     double mLon;
-    std::string mapFilename;
+    //std::string mapFilename;
     char mapEnabled;
     char cfarThresh;
     char codeType;

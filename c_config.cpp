@@ -4,7 +4,7 @@
  
 CConfig::CConfig(void)
 {
-    setDefault();
+
     LoadFromFile();
 }
 
@@ -21,10 +21,9 @@ void CConfig::SaveToFile()
     radar_config->SetAttribute("mLong",mLon);
     radar_config->SetAttribute("scale",scale);
     radar_config->SetAttribute("trueN",trueN);
-
-    printf("\nthis->mapFilename.data():");
-    printf(this->mapFilename.data());
-    radar_config->SetAttribute("mapFilename",this->mapFilename.data());
+    //printf("\nthis->mapFilename.data():");
+    //printf(this->mapFilename.data());
+    //radar_config->SetAttribute("mapFilename",this->mapFilename.data());
     radar_config->SetAttribute("socket_port_arpa",this->socket_port_arpa);
     radar_config->SetAttribute("socket_port_radar",this->socket_port_radar);
     doc.SaveFile(HR_CONFIG_FILE);
@@ -64,11 +63,8 @@ void CConfig::setDefault()
     codeType   = 0;
     socket_port_arpa = 8800;
     socket_port_radar =8900;
-    mapFilename.clear();
-    mapFilename.append("outputmap4layer.ism");
     SaveToFile();
 
-	
 }
 
 
@@ -84,12 +80,7 @@ bool CConfig::LoadFromFile()
         pParm->QueryDoubleAttribute("mLong",&mLon);
         pParm->QueryDoubleAttribute("scale",&scale);
         pParm->QueryDoubleAttribute("trueN",&trueN);
-        const char *pName=pParm->Attribute("mapFilename");
-        if(pName)
-        {
-            mapFilename.clear();
-            mapFilename.append(pName);
-        }
+
         return true;
     }
     else
@@ -98,40 +89,7 @@ bool CConfig::LoadFromFile()
         setDefault();
         return false;
     }
-    /*
-    QFile file(CFG_FILE);
-    if(!file.open(QIODevice::ReadOnly))
-    {
-        setDefault();
-        return false;
-    }
-    QTextStream in(&file);
-    QString line = in.readLine();// map file
-    m_config.mapFilename = line.toStdString();
-    line = in.readLine();//coordinate lat
-    m_config.m_lat = line.toDouble();
-    line = in.readLine();//coordinate long
-    m_config.m_long = line.toDouble();
-    line = in.readLine();// last scale NIM
-    m_config.scale = line.toDouble();
-    line = in.readLine();// true north
-    m_config.trueN = line.toDouble();
-    line = in.readLine();// dx NIM
-    m_config.dxView = line.toDouble();
-    line = in.readLine();//dy NIM
-    m_config.dyView = line.toDouble();
-    line = in.readLine();// enable map
-    m_config.mapEnabled = line.toInt();
-    line = in.readLine();// CFAR thresh
-    m_config.cfarThresh = line.toInt();
-    if((m_config.cfarThresh>40)||(m_config.cfarThresh<0))
-    {
-        m_config.cfarThresh = 30;
-    }
-    line = in.readLine();// modulation code
-    m_config.codeType = line.toInt();
-    file.close();
-    return true;*/
+
 }
 
 double CConfig::getLat() const
@@ -156,17 +114,7 @@ void CConfig::setLon(double lon)
     SaveToFile();
 }
 
-std::string CConfig::getMapFilename() const
-{
-    return mapFilename;
-}
 
-void CConfig::setMapFilename(const char *filename)
-{
-    mapFilename.clear();
-    mapFilename.append(filename);
-    SaveToFile();
-}
 
 float CConfig::getTrueN() const
 {

@@ -14,7 +14,7 @@ QPixmap                     *pMap=NULL;// painter cho ban do
 CMap *osmap ;
 dataProcessingThread        *processing;// thread xu ly du lieu radar
 QThread                     *t2,*t1;
-Q_vnmap                     vnmap;
+//Q_vnmap                     vnmap;
 QTimer                      scrUpdateTimer,readBuffTimer ;
 QTimer                      syncTimer1s,syncTimer5p ;
 QTimer                      dataPlaybackTimer ;
@@ -130,11 +130,9 @@ void Mainwindow::drawAisTarget2(QPainter *p, short xAIS, short yAIS)
 
     for(int i=0; i<m_AISList.size(); i++)
     {
-
-
         double fx,fy;
 
-        vnmap.ConvWGSToKmXY(&fx,&fy,m_AISList.at(i).getLon(),m_AISList.at(i).getLat());
+        osmap->ConvWGSToKm(&fx,&fy,m_AISList.at(i).getLon(),m_AISList.at(i).getLat());
 
         short x = (fx*mScale)+scrCtX-dx;
         short y = (fy*mScale)+scrCtY-dy;
@@ -392,8 +390,7 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
 //                mlong = m_trackList.at(i).m_Long;
 //                mlong = mlong/bit23*180.0f;
                 double fx,fy;
-                vnmap.ConvWGSToKmXY(&fx,&fy,m_AISList.at(i).getLon(),m_AISList.at(i).getLat());
-
+                ConvWGSToKm(&fx,&fy,m_AISList.at(i).getLon(),m_AISList.at(i).getLat());
                 short x = (fx*mScale)+scrCtX-dx;
                 short y = (fy*mScale)+scrCtY-dy;
 
@@ -553,10 +550,10 @@ void Mainwindow::DrawMap()
     {
 
         double dLat, dLong;
-        vnmap.ConvKmXYToWGS((double(dx))/mScale,(double(-dy))/mScale,&dLong,&dLat);
+        ConvKmToWGS((double(dx))/mScale,(double(-dy))/mScale,&dLong,&dLat);
         osmap->setCenterPos(dLat,dLong);
         QPixmap pix = osmap->getImage(mScale);
-        p.setOpacity(0.4);
+        p.setOpacity(0.5);
         p.drawPixmap((-pix.width()/2+pMap->width()/2),
                      (-pix.height()/2+pMap->height()/2),pix.width(),pix.height(),pix
                      );
@@ -565,105 +562,9 @@ void Mainwindow::DrawMap()
     {
         pMap->fill(QColor(10,20,30,255));
     }
-    //pMap->fill(QColor(10,18,25,255));
-    //
-    //pMap->fill(Qt::transparent);
-    if(ui->toolButton_map->isChecked())
-    {
-        QPen pen(QColor(255,255,255,180));
-        QColor color[5];
-        color[0].setRgb(143,137,87,255);//land
-        color[1].setRgb( 34,52,60,255);//lake
-        color[2].setRgb(60,50,10,255);//building
-        color[3].setRgb( 34,52,60,255);//river
-        color[4].setRgb(70,70,70,150);//road
-        //color[0].setRgb(120,120,120,150);//land
-        //color[1].setRgb( 120,120,120,150);//lake
-        //color[2].setRgb(120,120,120,150);//building
-        //color[3].setRgb( 120,120,120,150);//river
-        //color[4].setRgb(0,100,120,150);//road
 
-        short centerX = pMap->width()/2-dx;
-        short centerY = pMap->height()/2-dy;
-        p.setRenderHint(QPainter::Antialiasing, true);
-        p.setPen(pen);
-        //-----draw provinces in polygons
-
-
-        for(uint i = 0; i < N_LAYER; i++) {
-            //printf("vnmap.layers[%d].size()%d\n",i,vnmap.layers[i].size());
-            if(i<3)
-            {
-                for(uint j = 0; j < vnmap.layers[i].size(); j++) {
-                    QPolygon poly;
-                    for(uint k = 0; k < vnmap.layers[i][j].size(); k++) { // Polygon
-                        QPoint int_point;
-                        double x,y;
-                        vnmap.ConvWGSToKmXY(&x,&y,vnmap.layers[i][j][k].m_Long,vnmap.layers[i][j][k].m_Lat);
-                        int_point.setX((int)(x*mScale)+centerX);
-                        int_point.setY((int)(y*mScale)+centerY);
-                        poly<<int_point;
-                    }
-                    //p.setBrush(color[i]);
-                    p.setBrush(Qt::NoBrush);
-                    pen.setColor(color[i]);
-                    p.setPen(pen);
-                    p.drawPolygon(poly);
-                }
-            }else
-            {
-                //pen.setColor(color[i]);
-                if(i==3)pen.setWidth(2);else pen.setWidth(1);
-                p.setPen(pen);
-                for(uint j = 0; j < vnmap.layers[i].size(); j++) {
-
-                    QPoint old_point;
-
-                    for(uint k = 0; k < vnmap.layers[i][j].size(); k++) { // Polygon
-                        QPoint int_point;
-                        double x,y;
-                        vnmap.ConvWGSToKmXY(&x,&y,vnmap.layers[i][j][k].m_Long,vnmap.layers[i][j][k].m_Lat);
-                        int_point.setX((int)(x*mScale)+centerX);
-                        int_point.setY((int)(y*mScale)+centerY);
-                        if(k)p.drawLine(old_point,int_point);
-                        old_point=int_point;
-                    }
-                    //p.setBrush(color[i]);
-
-
-                }
-            }
-
-        }
-    }
     //DrawGrid(&p,centerX,centerY);
-    //draw text
-    if(ui->toolButton_map_2->isChecked())
-    {
-        QPen pen;
-        pen.setColor(QColor(255,255,255));
-        pen.setWidth(2);
-        pen.setStyle(Qt::SolidLine);
-        short centerX = pMap->width()/2-dx;
-        short centerY = pMap->height()/2-dy;
-        p.setPen(pen);
-        QFont font ;
-        font.setPointSize(12);
-        p.setFont(font);
-        for(uint i = 0; i < vnmap.placeList.size(); i++) {
-                QPoint int_point;
-                double x,y;
-                vnmap.ConvWGSToKmXY(&x,&y,vnmap.placeList[i].m_Long,vnmap.placeList[i].m_Lat);
-                int_point.setX((int)(x*mScale)+centerX);
-                int_point.setY((int)(y*mScale)+centerY);
-                p.drawEllipse(int_point,2,2);
-                QString str = QString::fromStdWString(vnmap.placeList[i].text);
-                str.chop(2);
-                p.drawText(int_point.x()+5,int_point.y(),str);
-                //printf("toa do hien tai lat %f long %f\n",m_textList[i].m_Lat,m_textList[i].m_Long);
-        }
-    }
-    //view->setMap(pMap);
+
 }
 void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
 {
@@ -999,6 +900,24 @@ void Mainwindow::DrawRadarTargetByPainter(QPainter* p)//draw radar target from p
     }*/
 
 }
+void Mainwindow::ConvWGSToKm(double* x, double *y, double m_Long,double m_Lat)
+{
+    double mCenterLat = config.getLat();
+    double mCenterLon = config.getLon();
+    double refLat = (mCenterLat + (m_Lat))*0.00872664625997;//pi/360
+    *x	= (((m_Long) - mCenterLon) * 111.31949079327357)*cos(refLat);// 3.14159265358979324/180.0*6378.137);//deg*pi/180*rEarth
+    *y	= ((mCenterLat - (m_Lat)) * 111.132954);
+    //tinh toa do xy KM so voi diem center khi biet lat-lon
+}
+void Mainwindow::ConvKmToWGS(double x, double y, double *m_Long, double *m_Lat)
+{
+    double mCenterLat = config.getLat();
+    double mCenterLon = config.getLon();
+    *m_Lat  = mCenterLat +  (y)/(111.132954);
+    double refLat = (mCenterLat +(*m_Lat))*0.00872664625997;//3.14159265358979324/180.0/2;
+    *m_Long = (x)/(111.31949079327357*cos(refLat))+ mCenterLon;
+    //tinh toa do lat-lon khi biet xy km (truong hop coi trai dat hinh cau)
+}
 void Mainwindow::drawAisTarget(QPainter *p)
 {
     //draw radar  target:
@@ -1014,7 +933,7 @@ void Mainwindow::drawAisTarget(QPainter *p)
 //            mlat =  mlat/bit23* 180.0f ;
 //            float mlon = m_trackList.at(i).mLong_double;
 //            mlon = mlon/bit23* 180.0f ;
-                vnmap.ConvWGSToKmXY(&fx,&fy,m_AISList.at(i).getLon(),m_AISList.at(i).getLat());
+                ConvWGSToKm(&fx,&fy,m_AISList.at(i).getLon(),m_AISList.at(i).getLat());
 
                 short x = (fx*mScale)+scrCtX-dx;
                 short y = (fy*mScale)+scrCtY-dy;
@@ -1175,14 +1094,6 @@ void Mainwindow::paintEvent(QPaintEvent *event)
 //}
 
 
-bool Mainwindow::LoadISMapFile()
-{
-    if(config.getMapFilename().size())
-    {
-        vnmap.LoadBinFile((config.getMapFilename()).data());
-    }else return false;
-    return true;
-}
 void Mainwindow::SaveBinFile()
 {
     //vnmap.SaveBinFile();
@@ -1194,9 +1105,7 @@ void Mainwindow::InitSetting()
     //load openstreetmap
     osmap = new CMap();
     osmap->setCenterPos(config.getLat(),config.getLon());
-    osmap->setScaleRatio(15);
-    osmap->setPath(HR_MAP_PATH_1);
-    osmap->setWidthHeight(height()*1.5,height()*1.5);
+    osmap->setImgSize(height(),height());
 
     //
     setMouseTracking(true);
@@ -1252,19 +1161,13 @@ void Mainwindow::InitSetting()
     setCursor(QCursor(Qt::ArrowCursor));
     range = 5;
     UpdateScale();
-    if(true)
-    {
-        SetGPS(config.getLat(), config.getLon());
-        //vnmap.setUp(config.m_config.lat(), config.m_config.lon(), 200,config.m_config.mapFilename.data());
-        if(pMap)delete pMap;
-        pMap = new QPixmap(height(),height());
-        DrawMap();
-    }else
-    {
-        vnmap.ClearData();
-        if(pMap)delete  pMap;
-        pMap = NULL;
-    }
+
+    SetGPS(config.getLat(), config.getLon());
+    //vnmap.setUp(config.m_config.lat(), config.m_config.lon(), 200,config.m_config.mapFilename.data());
+    if(pMap)delete pMap;
+    pMap = new QPixmap(height(),height());
+    DrawMap();
+
 
     update();
 }
@@ -1680,7 +1583,7 @@ void Mainwindow::updateTargetInfo()
             {
                 //printf("\ntrackId:%d",trackId);
                 double mLat,mLon;
-                vnmap.ConvKmXYToWGS(trackListPt->at(trackId).estX*processing->radarData->scale_ppi/mScale,trackListPt->at(trackId).estY*processing->radarData->scale_ppi/mScale,&mLon,&mLat);
+                this->ConvKmToWGS(trackListPt->at(trackId).estX*processing->radarData->scale_ppi/mScale,trackListPt->at(trackId).estY*processing->radarData->scale_ppi/mScale,&mLon,&mLat);
                 ui->label_data_id->setText(QString::number(trackListPt->at(trackId).idCount));
                 float tmpazi = trackListPt->at(trackId).estA*DEG_RAD;
                 if(tmpazi<0)tmpazi+=360;
@@ -1701,7 +1604,7 @@ void Mainwindow::updateTargetInfo()
     C2_Track *selectedTrack = &m_AISList.at(selectedTargetIndex);
     float azi,rg;
     double fx,fy;
-    vnmap.ConvWGSToKmXY(&fx,&fy,selectedTrack->getLon(),selectedTrack->getLat());
+    ConvWGSToKm(&fx,&fy,selectedTrack->getLon(),selectedTrack->getLat());
     C_radar_data::kmxyToPolar(fx,fy,&azi,&rg);
     ui->label_data_id->setText(QString::fromUtf8((char*)(&selectedTrack->m_MMSI),9));
     ui->label_data_range->setText(QString::number(rg,'f',2));
@@ -2706,24 +2609,11 @@ void Mainwindow::SetGPS(float mlat,float mlong)
 {
     config.setLat(mlat);
     config.setLon(mlong);
-    ui->text_latInput_2->setText(QString::number(mlat));
-    ui->text_longInput_2->setText(QString::number(mlong));
-    vnmap.setUp(config.getLat(), config.getLon(), 300,config.getMapFilename().data());
+    ui->text_latInput_2->setText(QString::number(mlat,'g',10));
+    ui->text_longInput_2->setText(QString::number(mlong,'g',10));
     osmap->setCenterPos(config.getLat(), config.getLon());
     DrawMap();
     update();
-}
-void Mainwindow::on_toolButton_map_select_clicked()
-{
-    QString filename = QFileDialog::getOpenFileName(this,    QString::fromUtf8("Open Map"), NULL, tr("ISM file (*.ism)"));
-    if(!filename.size())return;
-    config.setMapFilename( filename.toStdString().data());
-    vnmap.ClearData();
-    if(pMap)delete pMap;
-    pMap = new QPixmap(height(),height());
-    vnmap.setUp(config.getLat(), config.getLon(), 300,config.getMapFilename().data());//100km  max range
-    DrawMap();
-    repaint();
 }
 
 //void Mainwindow::on_dial_valueChanged(int value)
@@ -3238,4 +3128,11 @@ void Mainwindow::on_toolButton_command_antenna_rot_clicked()
     ui->lineEdit_byte_4->setText("00");
     ui->lineEdit_byte_5->setText("00");
     ui->lineEdit_byte_6->setText("00");
+}
+
+void Mainwindow::on_comboBox_3_currentIndexChanged(int index)
+{
+    osmap->SetType(index);
+    DrawMap();
+    update();
 }

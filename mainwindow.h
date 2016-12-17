@@ -12,7 +12,7 @@
 #include <QMainWindow>
 #include <QtCore>
 #include <QtGui>
-#include <vnmap.h>
+//#include <vnmap.h>
 //#include <CpView.h>
 #include <CLocal.h>
 #include <c_config.h>
@@ -23,7 +23,7 @@
 #include <QImage>
 #include <QHostAddress>
 #include <jtarget.h>
-#include "cmap.h"
+#include "Cmap/cmap.h"
 //#include <jviewport.h>
 //#include "ctarget.h"
 //#include "radarcontroldialog.h"
@@ -92,8 +92,6 @@ private:
     QTimer          *drawTimer;
     QPoint          view_pos;
 
-
-    bool LoadISMapFile();
     void SaveBinFile();
     void InitNetwork();
     //void sendFrame(const char* hexdata,QHostAddress host,int port );
@@ -218,7 +216,7 @@ private slots:
 //    void on_toolButton_send_command_2_clicked();
 
 
-    void on_toolButton_map_select_clicked();
+//    void on_toolButton_map_select_clicked();
 
 //    void on_dial_valueChanged(int value);
 
@@ -306,10 +304,14 @@ private slots:
 
     void on_toolButton_command_antenna_rot_clicked();
 
+    void on_comboBox_3_currentIndexChanged(int index);
+
 private:
     void initActionsConnections();
     void initGraphicView();
     void updateTargetInfo();
+    void ConvWGSToKm(double *x, double *y, double m_Long, double m_Lat);
+    void ConvKmToWGS(double x, double y, double *m_Long, double *m_Lat);
 };
 
 #endif // MAINWINDOW_H

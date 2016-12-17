@@ -1,6 +1,8 @@
 #ifndef PKP_H
 #define PKP_H
-#define PI 3.14159265358979323846
+#ifndef PI
+   #define PI                       3.14159265358979323846
+#endif
 #define earthRadiusKm 6371.0
 #include <math.h>
 // This function converts decimal degrees to radians

@@ -22,7 +22,7 @@
 #define PI_NHAN2                    6.2831853072f
 #define PI_CHIA2                    1.5707963268f
 #ifndef PI
-   #define PI                       3.141592654f
+   #define PI                       3.14159265358979323846
 #endif
 #define MAX_TRACK_LEN               400
 #define MAX_TRACKS                  199
