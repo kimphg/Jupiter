@@ -100,6 +100,7 @@ void dataProcessingThread::playbackRadarData()
             if(!signRepFile.read((char*)&len,2))
             {
                 signRepFile.seek(0);
+                radarData->SelfRotationReset();
                 //togglePlayPause(false);
                 return;
             }
@@ -341,7 +342,7 @@ void dataProcessingThread::radTxOn()
     command.bytes[2] = 0x00;
     command.bytes[3] = 0x06;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    //dttt 256
+    //dttt 192
     command.bytes[0] = 0x01;
     command.bytes[2] = 0x04;
     command.bytes[3] = 0x05;
@@ -355,11 +356,11 @@ void dataProcessingThread::radTxOn()
 //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
 //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
 //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    //tat thich nghi
-    command.bytes[0] = 0x1a;
-    command.bytes[2] = 0x20;
-    command.bytes[3] = 0x00;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+//    //tat thich nghi
+//    command.bytes[0] = 0x1a;
+//    command.bytes[2] = 0x20;
+//    command.bytes[3] = 0x00;
+//    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
 
     //tx on 1
     command.bytes[0] = 0xaa;

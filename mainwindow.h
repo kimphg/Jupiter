@@ -104,7 +104,7 @@ private:
     void DrawMap();
     void ReloadSetting();
     void SendCommandControl();
-    void SetGPS(float mlat,float mlong);
+    void SetGPS(double mlat, double mlong);
 public slots:
 //    void UpdateSetting();
 //    void UpdateSignScale();
@@ -114,7 +114,7 @@ private:
     void setRadarState(radarSate radarState);
     bool ProcDataAIS(BYTE *szBuff, int nLeng );
 public:
-    void setScaleNM(unsigned short rangeNM);
+//    void setScaleNM(unsigned short rangeNM);
     void drawAisTarget2(QPainter *p, short xAIS, short yAIS);
 private slots:
     void readBuffer();
@@ -306,12 +306,18 @@ private slots:
 
     void on_comboBox_3_currentIndexChanged(int index);
 
+    void on_horizontalSlider_map_brightness_valueChanged(int value);
+
+
+    void on_toolButton_selfRotation_toggled(bool checked);
+
 private:
     void initActionsConnections();
     void initGraphicView();
     void updateTargetInfo();
     void ConvWGSToKm(double *x, double *y, double m_Long, double m_Lat);
     void ConvKmToWGS(double x, double y, double *m_Long, double *m_Lat);
+    void setScaleRange(double srange);
 };
 
 #endif // MAINWINDOW_H

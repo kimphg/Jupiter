@@ -42,6 +42,12 @@ public:
     float getTrueN() const;
     void setTrueN(float value);
 
+    double getMapOpacity() const;
+    void setMapOpacity(double value);
+
+    short getRangeView() const;
+    void setRangeView(int value);
+
 private:
     double mLat;
     double mLon;
@@ -51,7 +57,9 @@ private:
     char codeType;
     double trueN;
     double scale;
-    short   dxView ,dyView;
+    double mapOpacity;
+    int rangeView;
+    short dxView ,dyView;
     short socket_port_radar;
     short socket_port_arpa;
 };

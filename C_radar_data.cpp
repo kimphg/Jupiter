@@ -1,5 +1,6 @@
 #define PI 3.141592654f
 #include "c_radar_data.h"
+#include <QElapsedTimer>
 #include <cmath>
 //#include <QtDebug>
 
@@ -366,6 +367,7 @@ C_radar_data::C_radar_data()
     img_spectre->fill(0);
     img_zoom_ppi = new QImage(ZOOM_SIZE+1,ZOOM_SIZE+1,QImage::Format_ARGB32);
     img_ppi->fill(Qt::transparent);
+    isSelfRotation = false;
     isDisplayAlpha = false;
     isProcessing = true;
     imgMode = VALUE_ORANGE_BLUE;
@@ -1027,16 +1029,44 @@ void C_radar_data::ProcessData(unsigned short azi)
     }
     return ;
 }
+void C_radar_data::SelfRotationOn( double dazi)
+{
+    isSelfRotation = true;
+    SelfRotationReset();
+    selfRotationDazi = dazi;
+}
+void C_radar_data::SelfRotationReset()
+{
+    selfRotationAzi = 0;
+}
+void C_radar_data::SelfRotationOff()
+{
+    isSelfRotation = false;
+}
+
 
 void C_radar_data::ProcessDataFrame()
 {
+    int azi,lastazi;
+    if(isSelfRotation)
+    {
+        //qint64 dt = timer.elapsed();
+        selfRotationAzi+=selfRotationDazi;
+        if(selfRotationAzi>=MAX_AZIR)selfRotationAzi = 0;
+        azi = selfRotationAzi;
+    }
+    else
+    {
+        azi = (0xfff & (dataBuff[4] << 8 | dataBuff[5]))>>1;
 
-    short azi = (0xfff & (dataBuff[4] << 8 | dataBuff[5]))>>1;
-    short lastazi=azi-1;
+    }
+
+    lastazi=azi-1;
     if(lastazi<0)lastazi+=MAX_AZIR;
     if(azi==curAzir)return;
     else
         if(azi==lastazi)return;
+
     rotation_speed = dataBuff[1];
     overload = dataBuff[4]>>7;
     unsigned char n_clk_adc = (dataBuff[4]&(0xe0))>>5;
@@ -1081,6 +1111,7 @@ void C_radar_data::ProcessDataFrame()
     ProcessData(azi);
 }
 short drawnazi = 0;
+
 void C_radar_data::redrawImg()
 {
 
@@ -1099,17 +1130,17 @@ void C_radar_data::redrawImg()
             {
                 qint64 newtime = QDateTime::currentMSecsSinceEpoch();
                 qint64 dtime = newtime - cur_timeMSecs;
-                if(dtime<15000)
+                if(dtime<20000)
                 {
                     if(!rot_period_sec)
                     {
-                        rot_period_sec = (dtime/1000.0f);
+                        rot_period_sec = (dtime/1000.0);
                     }
                     else
                     {
-                        rot_period_sec += 0.3*((dtime/1000.0f)-rot_period_sec);
+                        rot_period_sec += ((dtime/1000.0)-rot_period_sec);
                     }
-                    rotation_per_min = 60.0f/rot_period_sec;
+                    rotation_per_min = 60.0/rot_period_sec;
                 }
                 cur_timeMSecs = newtime;
             }

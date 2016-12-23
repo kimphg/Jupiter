@@ -39,7 +39,7 @@ enum TargetType{
     RADAR,AIS,NOTARGET
 }selectedTargetType  = NOTARGET;
 int targetID = -1;
-short range = 1;
+//short config.getRangeView() = 1;
 float rangeStep = 1;
 //typedef struct {
 //    unsigned char        bytes[8];
@@ -128,7 +128,7 @@ void Mainwindow::drawAisTarget2(QPainter *p, short xAIS, short yAIS)
     penSelectTarger.setWidth(0);
 
 
-    for(int i=0; i<m_AISList.size(); i++)
+    for(uint i=0; i<m_AISList.size(); i++)
     {
         double fx,fy;
 
@@ -180,7 +180,7 @@ void Mainwindow::drawAisTarget2(QPainter *p, short xAIS, short yAIS)
 }
 void Mainwindow::mouseReleaseEvent(QMouseEvent *event)
 {
-
+    event = event;
 //    if(isAddingTarget)
 //    {
 //        float xRadar = (mouseX - scrCtX+dx)/signsize ;//coordinates in  radar xy system
@@ -221,6 +221,7 @@ void Mainwindow::mouseReleaseEvent(QMouseEvent *event)
 }
 void Mainwindow::wheelEvent(QWheelEvent *event)
 {
+    event = event;
     //if(event->delta()>0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()+1);
     //if(event->delta()<0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()-1);
 }
@@ -540,12 +541,15 @@ Mainwindow::~Mainwindow()
 void Mainwindow::DrawMap()
 {
 
+
     if(!pMap) return;
+    pMap->fill(Qt::transparent);
+
     dxMap = 0;
     dyMap = 0;
     //
     QPainter p(pMap);
-    pMap->fill(Qt::black);
+
     if(1)
     {
 
@@ -553,7 +557,7 @@ void Mainwindow::DrawMap()
         ConvKmToWGS((double(dx))/mScale,(double(-dy))/mScale,&dLong,&dLat);
         osmap->setCenterPos(dLat,dLong);
         QPixmap pix = osmap->getImage(mScale);
-        p.setOpacity(0.5);
+        p.setOpacity(config.getMapOpacity());
         p.drawPixmap((-pix.width()/2+pMap->width()/2),
                      (-pix.height()/2+pMap->height()/2),pix.width(),pix.height(),pix
                      );
@@ -703,7 +707,7 @@ void Mainwindow::DrawRadarTargetByPainter(QPainter* p)//draw radar target from p
                     //ve lich su qui dao
                     if(selectedTargetIndex==trackId)
                     {
-                        for(short j=0 ;j<trackListPt->at(trackId).object_list.size();j+=3)
+                        for(uint j=0 ;j<trackListPt->at(trackId).object_list.size();j+=3)
                         {
                             sx = trackListPt->at(trackId).object_list.at(j).x*scale_ppi + scrCtX - dx;
                             sy = -trackListPt->at(trackId).object_list.at(j).y*scale_ppi + scrCtY - dy;
@@ -1037,7 +1041,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     if(ui->tabWidget_2->currentIndex()==2)
     {
         QRect rect = ui->tabWidget_2->geometry();
-        if(range>2)// draw dash frame os zoom area in the ppi
+        if(config.getRangeView()>2)// draw dash frame os zoom area in the ppi
         {
             short zoom_size = ui->tabWidget_2->width()/processing->radarData->scale_zoom_ppi*processing->radarData->scale_ppi;
             p.setPen(QPen(QColor(255,255,255,200),0,Qt::DashLine));
@@ -1106,7 +1110,7 @@ void Mainwindow::InitSetting()
     osmap = new CMap();
     osmap->setCenterPos(config.getLat(),config.getLon());
     osmap->setImgSize(height(),height());
-
+    osmap->SetType(1);
     //
     setMouseTracking(true);
     //initGraphicView();21.433170, 106.624043
@@ -1114,6 +1118,8 @@ void Mainwindow::InitSetting()
     gz1.isActive = 0;
     gz2.isActive = 0;
     gz3.isActive = 0;
+    ui->groupBox_3->setCurrentIndex(0);
+    ui->tabWidget_2->setCurrentIndex(2);
     QRect rec = QApplication::desktop()->screenGeometry(0);
     setFixedSize(SCR_W,SCR_H);
     if((rec.height()==SCR_H)&&(rec.width()==SCR_W))
@@ -1157,9 +1163,7 @@ void Mainwindow::InitSetting()
     connect(ui->lineEdit_byte_5, SIGNAL(returnPressed()),ui->toolButton_send_command,SIGNAL(clicked()));
     connect(ui->lineEdit_byte_6, SIGNAL(returnPressed()),ui->toolButton_send_command,SIGNAL(clicked()));
     connect(ui->lineEdit_byte_7, SIGNAL(returnPressed()),ui->toolButton_send_command,SIGNAL(clicked()));
-    ui->tabWidget_2->setCurrentIndex(0);
     setCursor(QCursor(Qt::ArrowCursor));
-    range = 5;
     UpdateScale();
 
     SetGPS(config.getLat(), config.getLon());
@@ -1306,22 +1310,22 @@ void Mainwindow::DrawViewFrame(QPainter* p)
 
     //HDC dc = ui->tabWidget->getDC();
 }
-void Mainwindow::setScaleNM(unsigned short rangeNM)
-{
-    float oldScale = mScale;
-    mScale = (float)height()/((float)rangeNM*CONST_NM)*0.7f;
-    //printf("scale:%f- %d",scale,rangeNM);
-    isScaleChanged = true;// scale*SIGNAL_RANGE_KM/2048.0f;
+//void Mainwindow::setScaleNM(unsigned short rangeNM)
+//{
+//    float oldScale = mScale;
+//    mScale = (float)height()/((float)rangeNM*CONST_NM)*0.7f;
+//    //printf("scale:%f- %d",scale,rangeNM);
+//    isScaleChanged = true;// scale*SIGNAL_RANGE_KM/2048.0f;
 
-    dyMax = MAX_VIEW_RANGE_KM*mScale;
-    dxMax = dyMax;
-    dx =short(mScale/oldScale*dx);
-    dy =short(mScale/oldScale*dy);
-    DrawMap();
-    /*currMaxRange = (sqrtf(dx*dx+dy*dy)+scrCtY)/signsize;
-    if(currMaxRange>RADAR_MAX_RESOLUTION)currMaxRange = RADAR_MAX_RESOLUTION;*/
-//    isScreenUp2Date = false;
-}
+//    dyMax = MAX_VIEW_RANGE_KM*mScale;
+//    dxMax = dyMax;
+//    dx =short(mScale/oldScale*dx);
+//    dy =short(mScale/oldScale*dy);
+//    DrawMap();
+//    /*currMaxRange = (sqrtf(dx*dx+dy*dy)+scrCtY)/signsize;
+//    if(currMaxRange>RADAR_MAX_RESOLUTION)currMaxRange = RADAR_MAX_RESOLUTION;*/
+////    isScreenUp2Date = false;
+//}
 short waittimer =0;
 void Mainwindow::UpdateRadarData()
 {
@@ -1725,7 +1729,36 @@ void Mainwindow::sync1S()//period 1 second
     {
     case 4:
         ui->label_sn_type->setText("Ma DTTT");
-        ui->label_sn_param->setText(QString::number(32<<((processing->radarData->sn_stat)&0x07)));
+        //ui->label_sn_param->setText(QString::number(32<<());
+        if(((processing->radarData->sn_stat)&0x07)==0)
+        {
+            ui->label_sn_param->setText("32");
+        }
+        else if(((processing->radarData->sn_stat)&0x07)==1)
+        {
+            ui->label_sn_param->setText("48");
+        }
+        else if(((processing->radarData->sn_stat)&0x07)==2)
+        {
+            ui->label_sn_param->setText("64");
+        }
+        else if(((processing->radarData->sn_stat)&0x07)==3)
+        {
+            ui->label_sn_param->setText("96");
+        }
+        else if(((processing->radarData->sn_stat)&0x07)==4)
+        {
+            ui->label_sn_param->setText("128");
+        }
+        else if(((processing->radarData->sn_stat)&0x07)==5)
+        {
+            ui->label_sn_param->setText("192");
+
+        }
+        else
+        {
+            ui->label_sn_param->setText("256");
+        }
         break;
     case 0:
         ui->label_sn_type->setText("Xung don");
@@ -2052,84 +2085,56 @@ void MainWindow::on_toolButton_13_clicked()
     //if(event->delta()<0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()-1);
 }
 */
+void Mainwindow::setScaleRange(double srange)
+{
+    mScale = (height()/2-5)/(CONST_NM*srange );
+    rangeStep = srange/6.0f;
+    ui->label_range->setText(QString::number(srange)+" NM");
+    ui->toolButton_grid->setText(QString::fromUtf8("Vòng cự ly(")+QString::number(rangeStep)+"NM)");
+}
 void Mainwindow::UpdateScale()
 {
     float oldScale = mScale;
     //char byte2;
-    switch(range)
+    switch(config.getRangeView())
     {
     case 0:
-        mScale = (height()/2-5)/(CONST_NM*1.5f );
-        rangeStep = 1.5f/6.0f;
-        //byte2 = 0x00;
-        ui->label_range->setText("1.5 NM");
+        setScaleRange(1.5);
         break;
     case 1:
-        mScale = (height()/2-5)/(CONST_NM*3 );
-        rangeStep = 3/6.0f;
-        //byte2 = 0x00;
-        ui->label_range->setText("3 NM");
+        setScaleRange(3);
         break;
     case 2:
-        mScale = (height()/2-5)/(CONST_NM*6 );
-        rangeStep = 6/6.0f;
-        //byte2 = 0x00;
-        ui->label_range->setText("6 NM");
-
+        setScaleRange(6);
         break;
     case 3:
-        mScale = (height()/2-5)/(CONST_NM*12 );
-        rangeStep = 12/6.0f;
-        //byte2 = 0x00;
-        ui->label_range->setText("12 NM");
-
+        setScaleRange(12);
         break;
     case 4:
-        mScale = (height()/2-5)/(CONST_NM*24 );
-        rangeStep = 24/6.0f;
-        //byte2 = 0x01;
-        ui->label_range->setText("24 NM");
+        setScaleRange(24);
         break;
     case 5:
-        mScale = (height()/2-5)/(CONST_NM*36 );
-        rangeStep = 36/6.0f;
-        //byte2 = 0x02;
-        ui->label_range->setText("36 NM");
+        setScaleRange(36);
         break;
     case 6:
-        mScale = (height()/2-5)/(CONST_NM*48 );
-        rangeStep = 48/6.0f;
-        //byte2 = 0x03;
-        ui->label_range->setText("48 NM");
+        setScaleRange(48);
         break;
     case 7:
-        mScale = (height()/2-5)/(CONST_NM*72 );
-        rangeStep = 72/6.0f;
-        //byte2 = 0x04;
-        ui->label_range->setText("72 NM");
+        setScaleRange(72);
         break;
     case 8:
-        mScale = (height()/2-5)/(CONST_NM*96 );
-        rangeStep = 96/6.0f;
-        //byte2 = 0x05;
-        ui->label_range->setText("96 NM");
+        setScaleRange(96);
         break;
     case 9:
-        mScale = (height()/2-5)/(CONST_NM*120 );
-        rangeStep = 120/6.0f;
-        //byte2 = 0x06;
-        ui->label_range->setText("120 NM");
+        setScaleRange(120);
         break;
     default:
-        mScale = (height()/2-5)/(CONST_NM*48  );
-        ui->label_range->setText("48 NM");
+        setScaleRange(150);
         break;
     }
 
-    ui->toolButton_grid->setText(QString::fromUtf8("Vòng cự ly(")+QString::number(rangeStep)+"NM)");
-    isScaleChanged = true;
-//    isScreenUp2Date = false;
 
+    isScaleChanged = true;
     short sdx = mousePointerX - scrCtX + dx;
     short sdy = mousePointerY - scrCtY + dy;
     sdx =(sdx*mScale/oldScale);
@@ -2573,14 +2578,14 @@ void Mainwindow::on_toolButton_map_toggled(bool checked)
 
 void Mainwindow::on_toolButton_zoom_in_clicked()
 {
-    if(range>0)range--;
+    if(config.getRangeView()>0)config.setRangeView( config.getRangeView()-1);
     UpdateScale();
     DrawMap();
 }
 
 void Mainwindow::on_toolButton_zoom_out_clicked()
 {
-    if(range<9)range++;
+    if(config.getRangeView()<9)config.setRangeView( config.getRangeView()+1);
     UpdateScale();
     DrawMap();
 }
@@ -2605,7 +2610,7 @@ void Mainwindow::on_toolButton_zoom_out_clicked()
 
 //}
 
-void Mainwindow::SetGPS(float mlat,float mlong)
+void Mainwindow::SetGPS(double mlat,double mlong)
 {
     config.setLat(mlat);
     config.setLon(mlong);
@@ -2885,7 +2890,7 @@ void Mainwindow::on_toolButton_2x_zoom_clicked(bool checked)
 
 void Mainwindow::on_toolButton_auto_adapt_clicked()
 {
-    if(range<=2)
+    if(config.getRangeView()<=2)
     {
         sendToRadarHS("1aab200100000000");// bat thich nghi
         sendToRadarHS("14abff1100000000");// do trong
@@ -2903,7 +2908,7 @@ void Mainwindow::on_toolButton_auto_adapt_clicked()
         sendToRadarHS("aaab030500000000");//toc do quay
 
     }
-    else if(range ==3)
+    else if(config.getRangeView() ==3)
     {
         sendToRadarHS("1aab200100000000");// bat thich nghi
         sendToRadarHS("08ab010000000000");//do phan giai
@@ -2920,7 +2925,7 @@ void Mainwindow::on_toolButton_auto_adapt_clicked()
         sendToRadarHS("aaab030400000000");//toc do quay
         sendToRadarHS("aaab030400000000");//toc do quay
     }
-    else if(range==4)
+    else if(config.getRangeView()==4)
     {
         sendToRadarHS("1aab200100000000");// bat thich nghi
         sendToRadarHS("08ab020000000000");//do phan giai 30
@@ -2937,7 +2942,7 @@ void Mainwindow::on_toolButton_auto_adapt_clicked()
         sendToRadarHS("aaab030400000000");//toc do quay
         sendToRadarHS("aaab030400000000");//toc do quay
     }
-    else if(range==5)
+    else if(config.getRangeView()==5)
     {
         sendToRadarHS("1aab200100000000");// bat thich nghi
         sendToRadarHS("08ab020000000000");//do phan giai 60
@@ -2954,7 +2959,7 @@ void Mainwindow::on_toolButton_auto_adapt_clicked()
         sendToRadarHS("aaab030300000000");//toc do quay
         sendToRadarHS("aaab030300000000");//toc do quay
     }
-    else if(range==6)
+    else if(config.getRangeView()==6)
     {
         sendToRadarHS("1aab200100000000");// bat thich nghi
         sendToRadarHS("08ab030000000000");//do phan giai 90
@@ -2971,7 +2976,7 @@ void Mainwindow::on_toolButton_auto_adapt_clicked()
         sendToRadarHS("aaab030200000000");//toc do quay
         sendToRadarHS("aaab030200000000");//toc do quay
     }
-    else if(range==7)
+    else if(config.getRangeView()==7)
     {
         sendToRadarHS("1aab200100000000");// bat thich nghi
         sendToRadarHS("08ab040000000000");//do phan giai 120
@@ -2988,7 +2993,7 @@ void Mainwindow::on_toolButton_auto_adapt_clicked()
         sendToRadarHS("aaab030100000000");//toc do quay
         sendToRadarHS("aaab030100000000");//toc do quay
     }
-    else if(range ==8)
+    else if(config.getRangeView() ==8)
     {
         sendToRadarHS("1aab200100000000");// bat thich nghi
         sendToRadarHS("08ab050000000000");//do phan giai 150
@@ -3005,7 +3010,7 @@ void Mainwindow::on_toolButton_auto_adapt_clicked()
         sendToRadarHS("aaab030100000000");//toc do quay
         sendToRadarHS("aaab030100000000");//toc do quay
     }
-    else if(range==9)
+    else if(config.getRangeView()==9)
     {
         sendToRadarHS("1aab200100000000");// bat thich nghi
         sendToRadarHS("08ab060000000000");//do phan giai 180
@@ -3135,4 +3140,24 @@ void Mainwindow::on_comboBox_3_currentIndexChanged(int index)
     osmap->SetType(index);
     DrawMap();
     update();
+}
+
+void Mainwindow::on_horizontalSlider_map_brightness_valueChanged(int value)
+{
+    config.setMapOpacity(value/50.0);
+    DrawMap();
+}
+
+
+
+void Mainwindow::on_toolButton_selfRotation_toggled(bool checked)
+{
+    if(checked)
+    {
+        double rate = ui->lineEdit_selfRotationRate->text().toDouble();
+        rate = rate/MAX_AZIR;
+        processing->radarData->SelfRotationOn(rate);
+    }
+    else
+        processing->radarData->SelfRotationOff();
 }

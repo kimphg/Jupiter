@@ -48,6 +48,7 @@
 #define ZOOM_SIZE                   550
 #define DISPLAY_RES_ZOOM            5120
 #define DISPLAY_SCALE_ZOOM          4
+
 #include "jtarget.h"
 
 #include <vector>
@@ -214,7 +215,7 @@ public:
     unsigned short          sn_stat;
     bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled,filter2of3;
     bool                    isManualTune,rgs_auto,bo_bang_0,data_export;
-
+    bool                    isSelfRotation;
     float                   krain,kgain,ksea,brightness;
     float                   krain_auto,kgain_auto,ksea_auto;
     void setAutorgs( bool aut)
@@ -223,9 +224,9 @@ public:
         {
             rgs_auto = true;
             krain_auto = 0.5;
-            kgain_auto  = 3;
+            kgain_auto  = 2.5;
             ksea_auto = 0;
-
+            filter2of3 = true;
         }else
         {
             rgs_auto = false;
@@ -286,7 +287,12 @@ public:
     bool getDoubleFilter() const;
     void setDoubleFilter(bool value);
 
+    void SelfRotationOn(double dazi);
+    void SelfRotationOff();
+    void SelfRotationReset();
 private:
+    double      selfRotationDazi;
+    double      selfRotationAzi;
     float       k_rain_auto,k_gain_auto;
     bool        avtodetect;
     bool        doubleFilter;

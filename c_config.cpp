@@ -21,6 +21,8 @@ void CConfig::SaveToFile()
     radar_config->SetAttribute("mLong",mLon);
     radar_config->SetAttribute("scale",scale);
     radar_config->SetAttribute("trueN",trueN);
+    radar_config->SetAttribute("rangeView",rangeView);
+    radar_config->SetAttribute("mapOpacity",mapOpacity);
     //printf("\nthis->mapFilename.data():");
     //printf(this->mapFilename.data());
     //radar_config->SetAttribute("mapFilename",this->mapFilename.data());
@@ -52,6 +54,8 @@ void CConfig::setDefault()
 {
 	//m_config.comPort.Empty();
     //m_config.comRate    = 4800;
+    rangeView = 5;
+    mapOpacity = 0.4;
     mLat      = DEFAULT_LAT;//20.8;20.705434, 106.785371
     mLon      = DEFAULT_LONG;//106.87;
     scale      = SCALE_MIN;
@@ -80,7 +84,8 @@ bool CConfig::LoadFromFile()
         pParm->QueryDoubleAttribute("mLong",&mLon);
         pParm->QueryDoubleAttribute("scale",&scale);
         pParm->QueryDoubleAttribute("trueN",&trueN);
-
+        pParm->QueryDoubleAttribute("mapOpacity",&mapOpacity);
+        pParm->QueryIntAttribute("rangeView",&rangeView);
         return true;
     }
     else
@@ -124,5 +129,28 @@ float CConfig::getTrueN() const
 void CConfig::setTrueN(float value)
 {
     trueN = value;
+    SaveToFile();
+}
+
+double CConfig::getMapOpacity() const
+{
+    return mapOpacity;
+}
+
+void CConfig::setMapOpacity(double value)
+{
+    mapOpacity = value;
+    SaveToFile();
+}
+
+short CConfig::getRangeView() const
+{
+    return rangeView;
+
+}
+
+void CConfig::setRangeView(int value)
+{
+    rangeView = value;
     SaveToFile();
 }
