@@ -318,6 +318,7 @@ private:
     void ConvWGSToKm(double *x, double *y, double m_Long, double m_Lat);
     void ConvKmToWGS(double x, double y, double *m_Long, double *m_Lat);
     void setScaleRange(double srange);
+    void DrawZoomArea(QPainter *p);
 };
 
 #endif // MAINWINDOW_H

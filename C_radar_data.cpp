@@ -362,13 +362,12 @@ C_radar_data::C_radar_data()
     img_histogram=new QImage(257,101,QImage::Format_Mono);
     img_histogram->fill(0);
     img_ppi = new QImage(DISPLAY_RES*2+1,DISPLAY_RES*2+1,QImage::Format_ARGB32);
-    img_alpha = new QImage(RAD_M_PULSE_RES,256,QImage::Format_Mono);
+    img_RAmp = new QImage(RAD_M_PULSE_RES,256,QImage::Format_ARGB32);
     img_spectre = new QImage(16,256,QImage::Format_Mono);
     img_spectre->fill(0);
     img_zoom_ppi = new QImage(ZOOM_SIZE+1,ZOOM_SIZE+1,QImage::Format_ARGB32);
     img_ppi->fill(Qt::transparent);
     isSelfRotation = false;
-    isDisplayAlpha = false;
     isProcessing = true;
     imgMode = VALUE_ORANGE_BLUE;
     isManualTune = false;
@@ -531,7 +530,7 @@ void C_radar_data::drawBlackAzi(short azi_draw)
 }
 void C_radar_data::drawAzi(short azi)
 {
-    img_alpha->fill(0);
+
     //reset the display masks
     short prev_azi = azi + 200;
     if(prev_azi>=MAX_AZIR)prev_azi -= MAX_AZIR;
@@ -553,14 +552,7 @@ void C_radar_data::drawAzi(short azi)
 
         //xu ly nguong
 
-        //display alpha graph
-        if(isDisplayAlpha)
-        {
-            for(short i=255;i>255 - value;i--)
-            {
-                img_alpha->setPixel(r_pos,i,1);
-            }
-        }
+
         //zoom to view scale
         short display_pos = r_pos*scale_ppi;
         short display_pos_next = (r_pos+1)*scale_ppi;
@@ -1429,6 +1421,39 @@ void C_radar_data::deleteTrack(short trackNum)
         if(mTrackList[trackNum].suspect_list.size())mTrackList[trackNum].suspect_list.clear();
     }
 }
+
+void C_radar_data::drawRamp()
+{
+    img_RAmp->fill(Qt::black);
+    for (short r_pos = 0;r_pos<RAD_M_PULSE_RES;r_pos++)
+    {
+        unsigned char value = data_mem.level[curAzir][r_pos];
+        char dopler = data_mem.dopler[curAzir][r_pos];
+
+        uint color ;
+        if(dopler==0)
+        {
+            color = 0xffff00;
+        }else
+        {
+            char dDopler = dopler-1;
+            if(dDopler>7)dDopler = 15-dDopler;
+            color = 0x00ff00 | ((dDopler<<5));
+        }
+        color = color|(0xff000000);
+//        if(dopler>7)dopler = dopler-16;
+//        if(dopler<0)color= 0xff00ff00 -(dopler<<20)+(dopler<<12);
+//        else if(dopler>0)color= 0xff00ff00 -(dopler<<12)+(dopler<<4);
+//        else if (dopler==0)color= 0xffffff00 ;
+        for(short i=255;i>255 - value;i--)
+        {
+            img_RAmp->setPixel(r_pos,i,color);
+        }
+
+    }
+
+}
+
 bool C_radar_data::procObjectAvto(object_t* pObject)
 {
     bool newtrack = true;

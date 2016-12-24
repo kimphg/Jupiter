@@ -41,6 +41,20 @@ void dataProcessingThread::ReadDataBuffer()
         if(iRead>=MAX_IREC)iRead=0;
     }
 }
+void dataProcessingThread::setRotationSpeed(int index)
+{
+    unsigned char command[7];
+    command[0]=0xaa;
+    command[1]=0xab;
+    command[2]=0x03;
+    command[3]=index;
+    command[4]=0x00;
+    command[5]=0x00;
+    command[6]=0x00;
+    sendCommand(&command[0],7);
+    sendCommand(&command[0],7);
+    sendCommand(&command[0],7);
+}
 dataProcessingThread::dataProcessingThread()
 {
     dataBuff = &dataB[0];
@@ -311,17 +325,7 @@ void dataProcessingThread::radTxOn()
 {
     RadarCommand command;
     //rotation on
-    command.bytes[0] = 0xaa;
-    command.bytes[1] = 0xab;
-    command.bytes[2] = 0x03;
-    command.bytes[3] = 0x03;
-    command.bytes[4] = 0x00;
-    command.bytes[5] = 0x00;
-    command.bytes[6] = 0x00;
-    command.bytes[7] = 0x00;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    setRotationSpeed(3);
 //    //tx off
 //    command.bytes[0] = 0xaa;
 //    command.bytes[2] = 0x02;

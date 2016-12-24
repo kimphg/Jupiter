@@ -47,6 +47,7 @@ private:
     QUrl m_url;
     QString mPath;
     QPixmap *mapImage;//pkp
+    int scaleMin,scaleMax;
     int mMapWidth;
     int mMapHeight;
     int mScale;

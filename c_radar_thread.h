@@ -64,6 +64,7 @@ public:
     }
     void setIsDrawn(bool value);
 
+    void setRotationSpeed(int index);
 private:
     bool    isDrawn;
     RadarCommandQueue radarComQ;

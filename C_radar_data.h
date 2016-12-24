@@ -241,13 +241,14 @@ public:
     float                   temp;
     float                   trueN;
     DataOverLay             dataOver;
-    bool                    isDisplayAlpha;
     unsigned char           noise_level[8];
     unsigned char           tempType,rotation_speed;
     unsigned short          range_max;
-    QImage                  *img_ppi,*img_alpha,*img_zoom_ppi,*img_histogram,*img_spectre;
+    QImage                  *img_ppi,*img_RAmp,*img_zoom_ppi,*img_histogram,*img_spectre;
     imgDrawMode             imgMode;
     void deleteTrack(short trackNum);
+    void drawRamp();
+
     //______________________________________//
     void        GetDataHR(unsigned char *data, unsigned short dataLen);
     void        redrawImg();

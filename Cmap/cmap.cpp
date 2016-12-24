@@ -32,7 +32,7 @@ void CMap::SetType(int type)
     switch (type)
     {
     case 0:
-        this->setPath("C:/HR2D/MapData/OSM/" );
+        this->setPath("C:/HR2D/MapData/GM/" );
         break;
     case 1:
         this->setPath("C:/HR2D/MapData/ThunderForest/" );
@@ -67,7 +67,19 @@ void CMap::Repaint()
 void CMap::setPath(QString path)
 {
     mPath = path + "/%1/%2/%3";
+    scaleMin = 20;
+    scaleMax = 1;
+    for(int i=1;i<20;i++)
+    {
+        QString str = path+"/"+QString::number(i);
+        if(QDir(str).exists())
+        {
+            if(scaleMin>i)scaleMin = i;
+            if(scaleMax<i)scaleMax=i;
+        }
+    }
     m_tilePixmaps.clear();
+
 }
 
 
@@ -81,7 +93,7 @@ void CMap::setCenterPos(double lat, double lon)
 
 bool CMap::setScaleRatio(int scale)
 {
-    if(scale<=20&&scale>=1)
+    if(scale<=scaleMax&&scale>=scaleMin)
     {
         mScale = scale;
         return true;

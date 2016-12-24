@@ -19130,8 +19130,8 @@
     <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
-       <x>260</x>
-       <y>20</y>
+       <x>270</x>
+       <y>40</y>
        <width>141</width>
        <height>111</height>
       </rect>
@@ -19694,7 +19694,7 @@
       <x>1380</x>
       <y>10</y>
       <width>531</width>
-      <height>551</height>
+      <height>541</height>
      </rect>
     </property>
     <property name="font">
@@ -19703,7 +19703,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>5</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -24488,14 +24488,11 @@
        <rect>
         <x>20</x>
         <y>20</y>
-        <width>491</width>
-        <height>361</height>
+        <width>368</width>
+        <height>238</height>
        </rect>
       </property>
-      <layout class="QFormLayout" name="formLayout_5">
-       <property name="fieldGrowthPolicy">
-        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-       </property>
+      <layout class="QGridLayout" name="gridLayout_8">
        <item row="0" column="0">
         <widget class="QCustomButton" name="toolButton_create_zone">
          <property name="sizePolicy">
@@ -25883,7 +25880,7 @@
           <string notr="true">background-color: rgb(16, 32, 64);</string>
          </property>
          <property name="text">
-          <string>Hiển thị bản đồ:</string>
+          <string>Kiểu bản đồ:</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -27240,7 +27237,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Quay không đồng bộ:</string>
+          <string>Quay không đồng bộ</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -27687,6 +27684,9 @@
          <property name="inputMethodHints">
           <set>Qt::ImhNone</set>
          </property>
+         <property name="text">
+          <string>1078</string>
+         </property>
          <property name="maxLength">
           <number>20</number>
          </property>
@@ -27705,13 +27705,34 @@
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
-      <string>Histogram</string>
+      <string>Hist</string>
      </attribute>
     </widget>
     <widget class="QWidget" name="tab_6">
      <attribute name="title">
-      <string>Spectre</string>
+      <string>Dopler</string>
      </attribute>
+    </widget>
+    <widget class="QWidget" name="tab_7">
+     <attribute name="title">
+      <string>H. sóng biên</string>
+     </attribute>
+     <widget class="QSlider" name="horizontalSlider_ramp_pos">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>230</y>
+        <width>441</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="maximum">
+       <number>200</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QCustomGroupBox" name="groupBox_11">
@@ -28834,7 +28855,7 @@
         <number>3</number>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="GPS">
         <property name="geometry">
@@ -28929,7 +28950,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Cập nhật</string>
+            <string>Nhập</string>
            </property>
            <property name="checkable">
             <bool>false</bool>
@@ -28973,7 +28994,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Đặt hướng mũi</string>
+            <string>Đặt hướng </string>
            </property>
           </widget>
          </item>

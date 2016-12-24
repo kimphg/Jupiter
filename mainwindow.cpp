@@ -1038,44 +1038,78 @@ void Mainwindow::paintEvent(QPaintEvent *event)
         p.drawLine(x,selZone_y1,x,y);
     }
     DrawViewFrame(&p);
+    DrawZoomArea(&p);
+//    updateTargets();
+}
+void Mainwindow::DrawZoomArea(QPainter* p)
+{
+    QRect rect = ui->tabWidget_2->geometry();
+    rect.adjust(4,30,-5,-5);
     if(ui->tabWidget_2->currentIndex()==2)
     {
-        QRect rect = ui->tabWidget_2->geometry();
-        if(config.getRangeView()>2)// draw dash frame os zoom area in the ppi
+
+        if(config.getRangeView()>2)
         {
             short zoom_size = ui->tabWidget_2->width()/processing->radarData->scale_zoom_ppi*processing->radarData->scale_ppi;
-            p.setPen(QPen(QColor(255,255,255,200),0,Qt::DashLine));
-            p.drawRect(mousePointerX-zoom_size/2.0,mousePointerY-zoom_size/2.0,zoom_size,zoom_size);
+            p->setPen(QPen(QColor(255,255,255,200),0,Qt::DashLine));
+            p->drawRect(mousePointerX-zoom_size/2.0,mousePointerY-zoom_size/2.0,zoom_size,zoom_size);
         }
-        rect.adjust(4,30,-5,-5);
-        p.setPen(QPen(Qt::black));
-        p.setBrush(QBrush(Qt::black));
-        p.drawRect(rect);
-        p.drawImage(rect,*processing->radarData->img_zoom_ppi,processing->radarData->img_zoom_ppi->rect());
+
+        p->setPen(QPen(Qt::black));
+        p->setBrush(QBrush(Qt::black));
+        p->drawRect(rect);
+        p->drawImage(rect,*processing->radarData->img_zoom_ppi,processing->radarData->img_zoom_ppi->rect());
 
     }
     else if(ui->tabWidget_2->currentIndex()==3)
     {
         QRect rect = ui->tabWidget_2->geometry();
-        rect.adjust(4,30,-5,-5);
-        p.setPen(QPen(Qt::black));
-        p.setBrush(QBrush(Qt::black));
-        p.drawRect(rect);
-        p.drawImage(rect,*processing->radarData->img_histogram,
+
+        p->setPen(QPen(Qt::black));
+        p->setBrush(QBrush(Qt::black));
+        p->drawRect(rect);
+        p->drawImage(rect,*processing->radarData->img_histogram,
                     processing->radarData->img_histogram->rect());
 
     }
     else if(ui->tabWidget_2->currentIndex()==4)
     {
-        QRect rect = ui->tabWidget_2->geometry();
-        rect.adjust(4,30,-5,-5);
-        p.setPen(QPen(Qt::black));
-        p.setBrush(QBrush(Qt::black));
-        p.drawRect(rect);
-        p.drawImage(rect,*processing->radarData->img_spectre,
+
+
+        p->setPen(QPen(Qt::black));
+        p->setBrush(QBrush(Qt::black));
+        p->drawRect(rect);
+        p->drawImage(rect,*processing->radarData->img_spectre,
                     processing->radarData->img_spectre->rect());
     }
-//    updateTargets();
+    else if(ui->tabWidget_2->currentIndex()==5)
+    {
+        processing->radarData->drawRamp();
+        QRect rect1 = rect;
+        rect1.adjust(0,0,0,-rect.height()/2);
+//        pengrid.setWidth(10);
+//        p->setPen(pengrid);
+         p->drawImage(rect1,*processing->radarData->img_RAmp);
+         double rampos = ui->horizontalSlider_ramp_pos->value()/(double(ui->horizontalSlider_ramp_pos->maximum()));
+         QRect rect2 = rect;
+         rect2.adjust(0,rect.height()/2,0,0);
+         int zoomw = rect2.width()/2;
+         int ramposInt = (processing->radarData->img_RAmp->width()-zoomw)*rampos;
+         QRect srect(ramposInt,0,zoomw,processing->radarData->img_RAmp->height());
+         p->drawImage(rect2,*processing->radarData->img_RAmp,srect);
+        //p->drawRect(rect1,processing->radarData->img_RAmp->width()+5,processing->radarData->img_RAmp->height()+5);
+//        pengrid.setWidth(2);
+//        pengrid.setColor(QColor(128,128,0,120));
+//        p->setPen(pengrid);
+//        for(short i=60;i<processing->radarData->img_RAmp->height();i+=50)
+//        {
+//            p->drawLine(0,height()-i,processing->radarData->img_RAmp->width()+5,height()-i);
+//        }
+//        for(short i=110;i<processing->radarData->img_RAmp->width();i+=100)
+//        {
+//            p->drawLine(i,height()-266,i,height());
+//        }
+    }
 }
 //void MainWindow::keyPressEvent(QKeyEvent *event)
 //{
@@ -1289,24 +1323,7 @@ void Mainwindow::DrawViewFrame(QPainter* p)
                    QString::number(theta));
 
     }
-    if(displayAlpha){
 
-        pengrid.setWidth(10);
-        p->setPen(pengrid);
-         p->drawImage(10,height()-266,*processing->radarData->img_alpha);
-        p->drawRect(5,height()-266,processing->radarData->img_alpha->width()+5,processing->radarData->img_alpha->height()+5);
-        pengrid.setWidth(2);
-        pengrid.setColor(QColor(128,128,0,120));
-        p->setPen(pengrid);
-        for(short i=60;i<processing->radarData->img_alpha->height();i+=50)
-        {
-            p->drawLine(0,height()-i,processing->radarData->img_alpha->width()+5,height()-i);
-        }
-        for(short i=110;i<processing->radarData->img_alpha->width();i+=100)
-        {
-            p->drawLine(i,height()-266,i,height());
-        }
-    }
 
     //HDC dc = ui->tabWidget->getDC();
 }
@@ -2786,34 +2803,8 @@ void Mainwindow::on_toolButton_map_2_clicked()
 
 void Mainwindow::on_comboBox_2_currentIndexChanged(int index)
 {
-    switch (index)
-    {
-    case 0:
-        //sendToRadarHS("aaab030302000000");
-        break;
-    case 1:
-        sendToRadarHS("aaab030100000000");
-        Sleep(100);
-        sendToRadarHS("aaab030100000000");
-        Sleep(100);
-        sendToRadarHS("aaab030100000000");
-        Sleep(100);
-        break;
-    case 2:
-        sendToRadarHS("aaab030200000000");
-        Sleep(100);
-        sendToRadarHS("aaab030200000000");
-        Sleep(100);
-        sendToRadarHS("aaab030200000000");
-        Sleep(100);
-        break;
-    case 3:
-        break;
-    case 4 :
-        break;
-    default:
-        break;
-    }
+    return;
+
 }
 
 void Mainwindow::on_toolButton_measuring_clicked(bool checked)
