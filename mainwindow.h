@@ -311,6 +311,8 @@ private slots:
 
     void on_toolButton_selfRotation_toggled(bool checked);
 
+    void on_toolButton_scope_toggled(bool checked);
+
 private:
     void initActionsConnections();
     void initGraphicView();

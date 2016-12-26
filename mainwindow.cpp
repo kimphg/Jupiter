@@ -32,6 +32,7 @@ double                       mScale;
 CConfig         config;
 QStringList     warningList;
 short selectedTargetIndex;
+mouseMode mouse_mode = Normal;
 enum drawModes{
     SGN_DIRECT_DRAW,SGN_IMG_DRAW,NOTERR_DRAW
 }drawMode = SGN_IMG_DRAW;
@@ -302,11 +303,13 @@ void Mainwindow::detectZone()
 
     }
 }
+
 void Mainwindow::mousePressEvent(QMouseEvent *event)
 {
-    if(event->x()>scrCtX+scrCtY)return;
+
     mouseX = (event->x());
     mouseY = (event->y());
+    if((mouseX-scrCtX)*(mouseX-scrCtX)+((mouseY-scrCtY)*(mouseY-scrCtY))>(scrCtY*scrCtY))return;
     if(event->buttons() & Qt::LeftButton) {
         if(ui->toolButton_manual_track->isChecked())
         {
@@ -3151,4 +3154,9 @@ void Mainwindow::on_toolButton_selfRotation_toggled(bool checked)
     }
     else
         processing->radarData->SelfRotationOff();
+}
+
+void Mainwindow::on_toolButton_scope_toggled(bool checked)
+{
+
 }

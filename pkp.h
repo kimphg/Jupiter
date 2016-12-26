@@ -6,7 +6,10 @@
 #define earthRadiusKm 6371.0
 #include <math.h>
 // This function converts decimal degrees to radians
-
+enum mouseMode
+{
+    Normal =0,AddingTrack = 1,AutoSelect = 2,Scope  =3,Drag = 4
+};
 inline int char2int( char input)
 {
   if(input >= '0' && input <= '9')
