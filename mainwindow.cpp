@@ -3185,12 +3185,12 @@ void Mainwindow::setMouseMode(mouseMode mode,bool isOn)
     if(isOn)
     {
         mouse_mode = static_cast<mouseMode>(mouse_mode|mode) ;
-        printf("\ntrue:%d",mouse_mode|mode);
+        //printf("\ntrue:%d",mouse_mode|mode);
     }
     else
     {
         mouse_mode = static_cast<mouseMode>(mouse_mode-(mode&mouse_mode));
-        printf("\nfalse:%d",mouse_mode-(mode&mouse_mode));
+        //printf("\nfalse:%d",mouse_mode-(mode&mouse_mode));
     }
 
 }
