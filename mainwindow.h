@@ -12,8 +12,7 @@
 #include <QMainWindow>
 #include <QtCore>
 #include <QtGui>
-//#include <vnmap.h>
-//#include <CpView.h>
+#include "pkp.h"
 #include <CLocal.h>
 #include <c_config.h>
 #include <c_radar_thread.h>
@@ -317,6 +316,10 @@ private slots:
 
     void on_toolButton_measuring_toggled(bool checked);
 
+    void on_toolButton_VRM_toggled(bool checked);
+
+    void on_toolButton_ELB_toggled(bool checked);
+
 private:
     void initActionsConnections();
     void initGraphicView();
@@ -327,6 +330,7 @@ private:
     void DrawZoomArea(QPainter *p);
     bool isInsideViewZone(short x, short y);
     void UpdateMouseStat(QPainter *p);
+    void setMouseMode(mouseMode mode, bool isOn);
 };
 
 #endif // MAINWINDOW_H
