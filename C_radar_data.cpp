@@ -1341,7 +1341,7 @@ void C_radar_data::procTracks(unsigned short curA)
 
 
 }
-void C_radar_data::kmxyToPolar(float x,float y,float *azi,float *range)
+void C_radar_data::kmxyToPolarDeg(double x,double y,double *azi,double *range)
 {
     *azi = atanf(x/y);
     if(y<0)*azi+=PI;
@@ -1350,7 +1350,7 @@ void C_radar_data::kmxyToPolar(float x,float y,float *azi,float *range)
     *azi = *azi*DEG_RAD;
     *range = *range/CONST_NM;
 }
-void C_radar_data::addTrackManual(float x,float y)
+void C_radar_data::addTrackManual(double x,double y)
 {
     float azi = atanf(x/y);//tinh azi,range
     if(y<0)azi+=PI;
@@ -1441,10 +1441,54 @@ void C_radar_data::drawRamp()
             color = 0x00ff00 | ((dDopler<<5));
         }
         color = color|(0xff000000);
-//        if(dopler>7)dopler = dopler-16;
-//        if(dopler<0)color= 0xff00ff00 -(dopler<<20)+(dopler<<12);
-//        else if(dopler>0)color= 0xff00ff00 -(dopler<<12)+(dopler<<4);
-//        else if (dopler==0)color= 0xffffff00 ;
+
+        if(((r_pos%100)==0)||(((r_pos+1)%100)==0)||(((r_pos-1)%100)==0))
+        {
+            for(short i=0;i<128;i++)
+            {
+                img_RAmp->setPixel(r_pos,i,0xffffffff);
+            }
+        }
+        for(short i=255;i>255 - value;i--)
+        {
+            img_RAmp->setPixel(r_pos,i,color);
+        }
+    }
+
+}
+
+void C_radar_data::drawRamp(double azi)
+{
+    img_RAmp->fill(Qt::black);
+    //newobject.az   = ctA/MAX_AZIR*PI_NHAN2+trueN;
+    azi/=DEG_RAD;
+    azi-=trueN;
+    if(azi<0)azi+=PI_NHAN2;
+    int az = azi/PI_NHAN2*MAX_AZIR;
+    for (short r_pos = 0;r_pos<RAD_M_PULSE_RES;r_pos++)
+    {
+        unsigned char value = data_mem.level[az][r_pos];
+        char dopler = data_mem.dopler[az][r_pos];
+
+        uint color ;
+        if(dopler==0)
+        {
+            color = 0xffff00;
+        }else
+        {
+            char dDopler = dopler-1;
+            if(dDopler>7)dDopler = 15-dDopler;
+            color = 0x00ff00 | ((dDopler<<5));
+        }
+        color = color|(0xff000000);
+
+        if(((r_pos%100)==0)||(((r_pos+1)%100)==0)||(((r_pos-1)%100)==0))
+        {
+            for(short i=0;i<128;i++)
+            {
+                img_RAmp->setPixel(r_pos,i,0xffffffff);
+            }
+        }
         for(short i=255;i>255 - value;i--)
         {
             img_RAmp->setPixel(r_pos,i,color);
@@ -1453,7 +1497,6 @@ void C_radar_data::drawRamp()
     }
 
 }
-
 bool C_radar_data::procObjectAvto(object_t* pObject)
 {
     bool newtrack = true;

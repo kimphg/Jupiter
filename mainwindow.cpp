@@ -24,7 +24,7 @@ short                       dxMax,dyMax;
 C_ARPA_data                 arpa_data;
 short                       scrCtX, scrCtY, dx =0,dy=0,dxMap=0,dyMap=0;
 short                       mousePointerX,mousePointerY,mouseX,mouseY;
-bool                        isDraging = false;
+//bool                        isDraging = false;
 bool                        isScaleChanged =true;
 double                       mScale;
 //QGraphicsScene* scene;
@@ -32,7 +32,7 @@ double                       mScale;
 CConfig         config;
 QStringList     warningList;
 short selectedTargetIndex;
-mouseMode mouse_mode = Normal;
+mouseMode mouse_mode = MouseNormal;
 enum drawModes{
     SGN_DIRECT_DRAW,SGN_IMG_DRAW,NOTERR_DRAW
 }drawMode = SGN_IMG_DRAW;
@@ -194,7 +194,7 @@ void Mainwindow::mouseReleaseEvent(QMouseEvent *event)
 
     DrawMap();
 //    isScreenUp2Date = false;
-    isDraging = false;
+    //isDraging = false;
     /*currMaxRange = (sqrtf(dx*dx+dy*dy)+scrCtY)/signsize;
     if(currMaxRange>RADAR_MAX_RESOLUTION)currMaxRange = RADAR_MAX_RESOLUTION;
     if((dx*dx+dy*dy)*3>scrCtX*scrCtX)
@@ -227,8 +227,7 @@ void Mainwindow::wheelEvent(QWheelEvent *event)
     //if(event->delta()<0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()-1);
 }
 void Mainwindow::mouseMoveEvent(QMouseEvent *event) {
-    if(isDraging&&(event->buttons() & Qt::LeftButton)) {
-
+    if((mouse_mode==MouseDrag)&&(event->buttons() & Qt::LeftButton)) {
         short olddx = dx;
         short olddy = dy;
         dx+= mouseX-event->x();
@@ -263,7 +262,6 @@ void Mainwindow::keyPressEvent(QKeyEvent *event)
         float yRadar = -(y - scrCtY+dy);
         processing->radarData->addTrackManual(xRadar,yRadar);
         ui->toolButton_manual_track->setChecked(false);
-
 //        isScreenUp2Date = false;
     }
 }
@@ -303,22 +301,29 @@ void Mainwindow::detectZone()
 
     }
 }
-
+bool Mainwindow::isInsideViewZone(short x, short y)
+{
+    short dx = x-scrCtX;
+    short dy = y-scrCtY;
+    if((dx*dx+dy*dy)>(scrCtY*scrCtY))return false;
+    else return true;
+}
 void Mainwindow::mousePressEvent(QMouseEvent *event)
 {
 
     mouseX = (event->x());
     mouseY = (event->y());
-    if((mouseX-scrCtX)*(mouseX-scrCtX)+((mouseY-scrCtY)*(mouseY-scrCtY))>(scrCtY*scrCtY))return;
+
+    if(!isInsideViewZone(mouseX,mouseY))return;
     if(event->buttons() & Qt::LeftButton) {
-        if(ui->toolButton_manual_track->isChecked())
+        if(mouse_mode==MouseAddingTrack)//(ui->toolButton_manual_track->isChecked())
         {
             float xRadar = (mouseX - scrCtX+dx)/processing->radarData->scale_ppi ;//coordinates in  radar xy system
             float yRadar = -(mouseY - scrCtY+dy)/processing->radarData->scale_ppi;
             processing->radarData->addTrackManual(xRadar,yRadar);
             ui->toolButton_manual_track->setChecked(false);
         }
-        else if(ui->toolButton_auto_select->isChecked())
+        else if(mouse_mode==MouseAutoSelect)//(ui->toolButton_auto_select->isChecked())
         {
             if(isSelectingTarget)
             {
@@ -333,7 +338,15 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
                 isSelectingTarget = true;
             }
         }
+        else if(mouse_mode==MouseScope)
+        {
 
+            double azid,rg;
+            C_radar_data::kmxyToPolarDeg((mouseX - scrCtX+dx)/mScale,-(mouseY - scrCtY+dy)/mScale,&azid,&rg);
+            processing->radarData->drawRamp(azid);
+
+
+        }
         else if(ui->toolButton_create_zone->isChecked())
         {
             gz1.isActive = 1;
@@ -353,9 +366,9 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
             gz3.x1 = event->x();
             gz3.y1 = event->y();
         }
-        else
+        else if(mouse_mode==MouseNormal)
         {
-            isDraging = true;
+            mouse_mode=MouseDrag;//isDraging = true;
         }
     }
     if(event->buttons() & Qt::RightButton)
@@ -373,7 +386,6 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
             {
                 selectedTargetType = RADAR;
                 selectedTargetIndex = trackId;
-
             }
         }
 
@@ -974,6 +986,40 @@ void Mainwindow::drawAisTarget(QPainter *p)
 
     }
 }
+void Mainwindow::UpdateMouseStat(QPainter *p)
+{
+    double azi,rg;
+    short   x=this->mapFromGlobal(QCursor::pos()).x();
+    short   y=this->mapFromGlobal(QCursor::pos()).y();
+
+    if(ui->toolButton_measuring->isChecked())
+    {
+        C_radar_data::kmxyToPolarDeg((x - mouseX)/mScale,-(y - mouseY)/mScale,&azi,&rg);
+    }
+    else
+    {
+        C_radar_data::kmxyToPolarDeg((x - scrCtX+dx)/mScale,-(y - scrCtY+dy)/mScale,&azi,&rg);
+    }
+
+    ui->label_cursor_range->setText(QString::number(rg,'f',2)+"Nm");
+    ui->label_cursor_azi->setText(QString::number((short)azi)+QString::fromLocal8Bit("\260")+QString::number((azi - (short)azi)*60,'f',2)+"'");
+    ui->label_cursor_lat->setText(QString::number( (short)y2lat(-(y - scrCtY+dy)))+QString::fromLocal8Bit("\260")+
+                                  QString::number(((float)y2lat(-(y - scrCtY+dy))-(short)(y2lat(-(y - scrCtY+dy))))*60,'f',2)+"'N");
+    ui->label_cursor_long->setText(QString::number( (short)x2lon(x - scrCtX+dx))+QString::fromLocal8Bit("\260")+
+                                       QString::number(((float)x2lon(x - scrCtX+dx)-(short)(x2lon(x - scrCtX+dx)))*60,'f',2)+"'E");
+
+    if(isSelectingTarget)
+    {
+        QPen penmousePointer(QColor(0x50ffffff));
+        penmousePointer.setWidth(2);
+        penmousePointer.setStyle(Qt::DashDotLine);
+        p->setPen(penmousePointer);
+        p->drawLine(selZone_x1,selZone_y1,x,selZone_y1);
+        p->drawLine(selZone_x1,selZone_y1,selZone_x1,y);
+        p->drawLine(selZone_x1,y,x,y);
+        p->drawLine(x,selZone_y1,x,y);
+    }
+}
 void Mainwindow::paintEvent(QPaintEvent *event)
 {
     (void)event;
@@ -1003,43 +1049,8 @@ void Mainwindow::paintEvent(QPaintEvent *event)
 //    p.drawLine(mousePointerX,mousePointerY-10,mousePointerX,mousePointerY-15);
 //    p.drawLine(mousePointerX,mousePointerY+10,mousePointerX,mousePointerY+15);
     //draw mouse coordinates
-    float azi,rg;
-    short   x=this->mapFromGlobal(QCursor::pos()).x();
-    short   y=this->mapFromGlobal(QCursor::pos()).y();
-
-    if(ui->toolButton_measuring->isChecked())
-    {
-        C_radar_data::kmxyToPolar((x - mouseX)/mScale,-(y - mouseY)/mScale,&azi,&rg);
-    }
-    else
-    {
-        C_radar_data::kmxyToPolar((x - scrCtX+dx)/mScale,-(y - scrCtY+dy)/mScale,&azi,&rg);
-    }
-
-    //if(ui->toolButton_ais_show->isChecked())drawAisTarget2(&p,x,y);
+    UpdateMouseStat(&p);
     if(ui->toolButton_ais_show->isChecked())drawAisTarget(&p);
-//    p.drawText(mousePointerX+5,mousePointerY+5,100,20,0,QString::number(range,'f',2,4)+"|"+QString::number(azi,'f',2,4),0);
-
-    ui->label_cursor_range->setText(QString::number(rg,'f',2)+"Nm");
-    ui->label_cursor_azi->setText(QString::number((short)azi)+QString::fromLocal8Bit("\260")+QString::number((azi - (short)azi)*60,'f',2)+"'");
-    ui->label_cursor_lat->setText(QString::number( (short)y2lat(-(y - scrCtY+dy)))+QString::fromLocal8Bit("\260")+
-                                  QString::number(((float)y2lat(-(y - scrCtY+dy))-(short)(y2lat(-(y - scrCtY+dy))))*60,'f',2)+"'N");
-    ui->label_cursor_long->setText(QString::number( (short)x2lon(x - scrCtX+dx))+QString::fromLocal8Bit("\260")+
-                                       QString::number(((float)x2lon(x - scrCtX+dx)-(short)(x2lon(x - scrCtX+dx)))*60,'f',2)+"'E");
-
-    //draw zooom
-    //draw frame
-    if(isSelectingTarget)
-    {
-        QPen penmousePointer(QColor(0x50ffffff));
-        penmousePointer.setWidth(2);
-        penmousePointer.setStyle(Qt::DashDotLine);
-        p.setPen(penmousePointer);
-        p.drawLine(selZone_x1,selZone_y1,x,selZone_y1);
-        p.drawLine(selZone_x1,selZone_y1,selZone_x1,y);
-        p.drawLine(selZone_x1,y,x,y);
-        p.drawLine(x,selZone_y1,x,y);
-    }
     DrawViewFrame(&p);
     DrawZoomArea(&p);
 //    updateTargets();
@@ -1087,7 +1098,7 @@ void Mainwindow::DrawZoomArea(QPainter* p)
     }
     else if(ui->tabWidget_2->currentIndex()==5)
     {
-        processing->radarData->drawRamp();
+        if(ui->toolButton_scope->isChecked()==false)processing->radarData->drawRamp();
         QRect rect1 = rect;
         rect1.adjust(0,0,0,-rect.height()/2);
 //        pengrid.setWidth(10);
@@ -1626,10 +1637,10 @@ void Mainwindow::updateTargetInfo()
     else if(selectedTargetType == AIS){
 
     C2_Track *selectedTrack = &m_AISList.at(selectedTargetIndex);
-    float azi,rg;
+    double azi,rg;
     double fx,fy;
     ConvWGSToKm(&fx,&fy,selectedTrack->getLon(),selectedTrack->getLat());
-    C_radar_data::kmxyToPolar(fx,fy,&azi,&rg);
+    C_radar_data::kmxyToPolarDeg(fx,fy,&azi,&rg);
     ui->label_data_id->setText(QString::fromUtf8((char*)(&selectedTrack->m_MMSI),9));
     ui->label_data_range->setText(QString::number(rg,'f',2));
     ui->label_data_azi->setText(QString::number(azi,'f',2));
@@ -2851,15 +2862,16 @@ bool Mainwindow::ProcDataAIS(BYTE *szBuff, int nLeng )
 
 void Mainwindow::on_toolButton_auto_select_toggled(bool checked)
 {
-    isSelectingTarget = false;
+    //isSelectingTarget = false;
     if(!checked)
     {
         this->setCursor(Qt::ArrowCursor);
-
+        mouse_mode = MouseNormal;
     }
     else
     {
         this->setCursor(Qt::CrossCursor);
+        mouse_mode = MouseAutoSelect;
     }
 }
 
@@ -3158,5 +3170,17 @@ void Mainwindow::on_toolButton_selfRotation_toggled(bool checked)
 
 void Mainwindow::on_toolButton_scope_toggled(bool checked)
 {
+
+    mouse_mode = checked?MouseScope:MouseNormal;
+}
+
+void Mainwindow::on_toolButton_manual_track_toggled(bool checked)
+{
+    mouse_mode = checked?MouseAddingTrack:MouseNormal;
+}
+
+void Mainwindow::on_toolButton_measuring_toggled(bool checked)
+{
+    mouse_mode = checked?MouseMeasuring:MouseNormal;
 
 }

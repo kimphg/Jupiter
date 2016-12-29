@@ -8,7 +8,7 @@
 // This function converts decimal degrees to radians
 enum mouseMode
 {
-    Normal =0,AddingTrack = 1,AutoSelect = 2,Scope  =3,Drag = 4
+    MouseNormal =0,MouseAddingTrack = 1,MouseAutoSelect = 2,MouseScope  =3,MouseDrag = 4,MouseMeasuring = 5
 };
 inline int char2int( char input)
 {

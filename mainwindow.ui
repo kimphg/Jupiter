@@ -28842,7 +28842,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Đo khoảng cách</string>
+        <string>Đo cự ly</string>
        </property>
        <property name="checkable">
         <bool>true</bool>

@@ -260,9 +260,9 @@ public:
     void        drawBlackAzi(short azi_draw);
     void        DrawZoom(short azi_draw, short r_pos);
 //    void        blackLine(short x0, short y0, short x1, short y1);
-    void        addTrackManual(float x, float y);
+    void        addTrackManual(double x, double y);
     void        addTrack(object_t *mObject);
-    static    void        kmxyToPolar(float x,float y,float *azi,float *range);
+    static    void        kmxyToPolarDeg(double x,double y,double *azi,double *range);
     void        setTrueN(float trueN_deg){
 
         while(trueN_deg<0)trueN_deg+=360;
@@ -291,6 +291,7 @@ public:
     void SelfRotationOn(double dazi);
     void SelfRotationOff();
     void SelfRotationReset();
+    void drawRamp(double azi);
 private:
     double      selfRotationDazi;
     double      selfRotationAzi;

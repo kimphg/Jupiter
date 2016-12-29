@@ -313,6 +313,10 @@ private slots:
 
     void on_toolButton_scope_toggled(bool checked);
 
+    void on_toolButton_manual_track_toggled(bool checked);
+
+    void on_toolButton_measuring_toggled(bool checked);
+
 private:
     void initActionsConnections();
     void initGraphicView();
@@ -321,6 +325,8 @@ private:
     void ConvKmToWGS(double x, double y, double *m_Long, double *m_Lat);
     void setScaleRange(double srange);
     void DrawZoomArea(QPainter *p);
+    bool isInsideViewZone(short x, short y);
+    void UpdateMouseStat(QPainter *p);
 };
 
 #endif // MAINWINDOW_H
