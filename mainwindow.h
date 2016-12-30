@@ -203,7 +203,7 @@ private slots:
 
     void on_toolButton_send_command_clicked();
 
-    void on_toolButton_map_toggled(bool checked);
+    //void on_toolButton_map_toggled(bool checked);
 
     void on_toolButton_zoom_in_clicked();
 
@@ -223,9 +223,9 @@ private slots:
 
     void on_toolButton_gps_update_clicked();
 
-    void on_comboBox_code_type_currentIndexChanged(const QString &arg1);
+    //void on_comboBox_code_type_currentIndexChanged(const QString &arg1);
 
-    void on_comboBox_code_type_currentIndexChanged(int index);
+    //void on_comboBox_code_type_currentIndexChanged(int index);
 
 //    void on_toolButton_centerZoom_clicked();
 
@@ -263,7 +263,7 @@ private slots:
 
     void on_toolButton_measuring_clicked();
 
-    void on_toolButton_map_2_clicked();
+    //void on_toolButton_map_2_clicked();
 
     void on_comboBox_2_currentIndexChanged(int index);
 
@@ -275,7 +275,7 @@ private slots:
 
     void on_toolButton_ais_reset_clicked();
 
-    void on_toolButton_2x_zoom_clicked(bool checked);
+    //void on_toolButton_2x_zoom_clicked(bool checked);
 
     void on_toolButton_auto_adapt_clicked();
 

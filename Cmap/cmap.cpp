@@ -75,7 +75,7 @@ void CMap::setPath(QString path)
         if(QDir(str).exists())
         {
             if(scaleMin>i)scaleMin = i;
-            if(scaleMax<i)scaleMax=i;
+            if(scaleMax<i)scaleMax = i;
         }
     }
     m_tilePixmaps.clear();
@@ -93,12 +93,11 @@ void CMap::setCenterPos(double lat, double lon)
 
 bool CMap::setScaleRatio(int scale)
 {
-    if(scale<=scaleMax&&scale>=scaleMin)
-    {
-        mScale = scale;
-        return true;
-    }
-    else return false;
+    mScale = scale;
+    if(scale>scaleMax){scale = scaleMax;return false;}
+    if(scale>scaleMin){scale = scaleMin;return false;}
+
+    return true;
 
 }
 

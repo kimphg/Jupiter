@@ -2607,10 +2607,6 @@ void Mainwindow::on_toolButton_send_command_clicked()
     }
 }
 
-void Mainwindow::on_toolButton_map_toggled(bool checked)
-{
-    DrawMap();
-}
 
 void Mainwindow::on_toolButton_zoom_in_clicked()
 {
@@ -2680,16 +2676,8 @@ void Mainwindow::on_toolButton_gps_update_clicked()
 
 }
 
-void Mainwindow::on_comboBox_code_type_currentIndexChanged(const QString &arg1)
-{
 
-}
 
-void Mainwindow::on_comboBox_code_type_currentIndexChanged(int index)
-{
-//    config.codeType = index;
-//    setCodeType(config.codeType);
-}
 
 //void Mainwindow::on_toolButton_centerZoom_clicked()
 //{
@@ -2815,10 +2803,6 @@ void Mainwindow::on_toolButton_measuring_clicked()
     mouseY = scrCtY-dy;
 }
 
-void Mainwindow::on_toolButton_map_2_clicked()
-{
-    DrawMap();
-}
 
 void Mainwindow::on_comboBox_2_currentIndexChanged(int index)
 {
@@ -2885,17 +2869,17 @@ void Mainwindow::on_toolButton_ais_reset_clicked()
 
 
 
-void Mainwindow::on_toolButton_2x_zoom_clicked(bool checked)
-{
-    if(checked)
-    {
-        processing->radarData->setScaleZoom(8);
-    }
-    else
-    {
-        processing->radarData->setScaleZoom(4);
-    }
-}
+//void Mainwindow::on_toolButton_2x_zoom_clicked(bool checked)
+//{
+//    if(checked)
+//    {
+//        processing->radarData->setScaleZoom(8);
+//    }
+//    else
+//    {
+//        processing->radarData->setScaleZoom(4);
+//    }
+//}
 
 void Mainwindow::on_toolButton_auto_adapt_clicked()
 {
