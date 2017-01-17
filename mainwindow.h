@@ -257,7 +257,7 @@ private slots:
 
     void on_toolButton_filter2of3_clicked(bool checked);
 
-    void on_comboBox_radar_resolution_currentIndexChanged(int index);
+   // void on_comboBox_radar_resolution_currentIndexChanged(int index);
 
     void on_toolButton_create_zone_2_clicked(bool checked);
 

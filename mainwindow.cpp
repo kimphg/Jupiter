@@ -1163,7 +1163,7 @@ void Mainwindow::InitSetting()
     osmap = new CMap();
     osmap->setCenterPos(config.getLat(),config.getLon());
     osmap->setImgSize(height(),height());
-    osmap->SetType(1);
+    osmap->SetType(0);
     //
     setMouseTracking(true);
     //initGraphicView();21.433170, 106.624043
@@ -1207,7 +1207,7 @@ void Mainwindow::InitSetting()
     ui->horizontalSlider_gain->setValue(ui->horizontalSlider_gain->maximum());
     ui->horizontalSlider_rain->setValue(ui->horizontalSlider_rain->minimum());
     ui->horizontalSlider_sea->setValue(ui->horizontalSlider_sea->minimum());
-    ui->comboBox_radar_resolution->setCurrentIndex(0);
+    //ui->comboBox_radar_resolution->setCurrentIndex(0);
     connect(ui->textEdit_heading, SIGNAL(returnPressed()),ui->toolButton_set_heading,SIGNAL(clicked()));
     connect(ui->lineEdit_byte_1, SIGNAL(returnPressed()),ui->toolButton_send_command,SIGNAL(clicked()));
     connect(ui->lineEdit_byte_2, SIGNAL(returnPressed()),ui->toolButton_send_command,SIGNAL(clicked()));
@@ -1369,7 +1369,35 @@ void Mainwindow::UpdateRadarData()
     {
         if(processing->radarData->isClkAdcChanged)
         {
-            ui->comboBox_radar_resolution->setCurrentIndex(processing->radarData->clk_adc);
+            //ui->comboBox_radar_resolution->setCurrentIndex(processing->radarData->clk_adc);
+            switch(processing->radarData->clk_adc)
+            {
+            case 0:
+                ui->label_range_resolution->setText("15m");
+                break;
+            case 1:
+                ui->label_range_resolution->setText("30m");
+                break;
+            case 2:
+                ui->label_range_resolution->setText("60m");
+                break;
+            case 3:
+                ui->label_range_resolution->setText("90m");
+                break;
+            case 4:
+                ui->label_range_resolution->setText("120m");
+                break;
+            case 5:
+                ui->label_range_resolution->setText("150m");
+                break;
+            case 6:
+                ui->label_range_resolution->setText("180m");
+                break;
+            default:
+                ui->label_range_resolution->setText("NA");
+                break;
+
+            }
             processing->radarData->setScalePPI(mScale);
             this->UpdateScale();
 //            printf("\nsetScale:%d",processing->radarData->clk_adc);
@@ -2786,10 +2814,10 @@ void Mainwindow::on_toolButton_filter2of3_clicked(bool checked)
 
 
 
-void Mainwindow::on_comboBox_radar_resolution_currentIndexChanged(int index)
-{
+//void Mainwindow::on_comboBox_radar_resolution_currentIndexChanged(int index)
+//{
 
-}
+//}
 
 void Mainwindow::on_toolButton_create_zone_2_clicked(bool checked)
 {

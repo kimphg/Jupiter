@@ -45,7 +45,7 @@ private:
     QPixmap m_emptyTile;
     QHash<QPoint, QPixmap> m_tilePixmaps;
     QUrl m_url;
-    QString mPath;
+    QString mPath,mPathraw;
     QPixmap *mapImage;//pkp
     int scaleMin,scaleMax;
     int mMapWidth;

@@ -25,7 +25,7 @@ CMap::CMap(QObject *parent): mScale(10),QObject(parent)
     mMapWidth = 1024;
     mMapHeight = 1024;
     mapImage = 0;
-    //SetType(1);
+    SetType(0);
 }
 void CMap::SetType(int type)
 {
@@ -67,6 +67,7 @@ void CMap::Repaint()
 void CMap::setPath(QString path)
 {
     mPath = path + "/%1/%2/%3";
+    mPathraw = path + "/gs_%1_%2_%3";
     scaleMin = 20;
     scaleMax = 1;
     for(int i=1;i<20;i++)
@@ -94,8 +95,8 @@ void CMap::setCenterPos(double lat, double lon)
 bool CMap::setScaleRatio(int scale)
 {
     mScale = scale;
-    if(scale>scaleMax){scale = scaleMax;return false;}
-    if(scale>scaleMin){scale = scaleMin;return false;}
+    if(mScale>scaleMax){mScale = scaleMax;return false;}
+    if(mScale<scaleMin){mScale = scaleMin;return false;}
 
     return true;
 
@@ -288,9 +289,18 @@ void CMap::LoadMap()
     }
     //QString path = "C:/Users/LamPT/Desktop/mapData/%1/%2_%3_%4.png" ;
     QString imageMapPath = mPath.arg(mScale).arg(grab.x()).arg(grab.y());
-    QImage img(imageMapPath+".png");
-    if (img.isNull())
-        img = QImage(imageMapPath+".jpg");
+    if(QFile::exists(imageMapPath+".png"))imageMapPath =imageMapPath+".png";
+    else if(QFile::exists(imageMapPath+".jpg"))imageMapPath+=".jpg";
+    else
+    {
+        QString imageMapPathraw = mPathraw.arg(grab.x()).arg(grab.y()).arg(mScale)+".jpg";
+        imageMapPath+=".jpg";
+        if(QFile::exists(imageMapPathraw))
+            QFile::copy(imageMapPathraw,imageMapPath);
+    }
+    QImage img(imageMapPath);
+//    if (img.isNull())
+//        img = QImage(imageMapPath+".jpg");
     //QPoint tp = grab;
 
     m_tilePixmaps[grab] = QPixmap::fromImage(img);
