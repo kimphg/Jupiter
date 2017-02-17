@@ -53,6 +53,7 @@ public:
     void sendCommand(unsigned char* sendBuff,short len);
     void loadRecordDataFile(QString fileName);
     void togglePlayPause(bool play);
+
     C_radar_data* radarData;
     C_ARPA_data* arpaData;
     void run();
@@ -65,8 +66,12 @@ public:
     void setIsDrawn(bool value);
 
     void setRotationSpeed(int index);
+    bool getIsXuLyThuCap() const;
+    void setIsXuLyThuCap(bool value);
+
 private:
     bool    isDrawn;
+    bool isXuLyThuCap;
     RadarCommandQueue radarComQ;
     bool isRecording;
     bool isPlaying;

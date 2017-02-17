@@ -55,8 +55,19 @@ void dataProcessingThread::setRotationSpeed(int index)
     sendCommand(&command[0],7);
     sendCommand(&command[0],7);
 }
+
+bool dataProcessingThread::getIsXuLyThuCap() const
+{
+    return isXuLyThuCap;
+}
+
+void dataProcessingThread::setIsXuLyThuCap(bool value)
+{
+    isXuLyThuCap = value;
+}
 dataProcessingThread::dataProcessingThread()
 {
+    isXuLyThuCap = false;
     dataBuff = &dataB[0];
     iRec=0;iRead=0;
     connect_timeout = 0;
@@ -128,7 +139,6 @@ void dataProcessingThread::playbackRadarData()
                 signRecFile.write(buff.data(),len);
             }
             if(playRate<10){togglePlayPause(false);return;}
-
         }
         return;
     }

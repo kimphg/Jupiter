@@ -11,6 +11,7 @@
 //#include <queue>
 
 QPixmap                     *pMap=NULL;// painter cho ban do
+QPixmap                     *pViewFrame=NULL;// painter cho ban do
 CMap *osmap ;
 dataProcessingThread        *processing;// thread xu ly du lieu radar
 QThread                     *t2,*t1;
@@ -1030,9 +1031,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
 {
     (void)event;
     QPainter p(this);
-
     p.setRenderHint(QPainter::Antialiasing, true);
-
     if(pMap)
     {
         p.drawPixmap(scrCtX-scrCtY,0,height(),height(),
@@ -1041,9 +1040,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     }
     //draw signal
     DrawSignal(&p);
-
     DrawRadarTargetByPainter(&p);
-
     //if(ui->toolButton_ais_show->isChecked())drawAisTarget(&p);
     //draw cursor
 //    QPen penmousePointer(QColor(0x50ffffff));
@@ -1197,7 +1194,7 @@ void Mainwindow::InitSetting()
 
     dxMax = SCR_H/4-10;
     dyMax = SCR_H/4-10;
-    mousePointerX = scrCtX = SCR_H/2 + SCR_LEFT_MARGIN;//+ ui->toolBar_Main->width()+20;//ENVDEP
+    mousePointerX = scrCtX = SCR_H/2 + SCR_LEFT_MARGIN;//ENVDEP
     mousePointerY = scrCtY = SCR_H/2;
     UpdateScale();
     ui->textEdit_heading->setText(QString::number(config.getTrueN()));
@@ -1224,6 +1221,7 @@ void Mainwindow::InitSetting()
     //vnmap.setUp(config.m_config.lat(), config.m_config.lon(), 200,config.m_config.mapFilename.data());
     if(pMap)delete pMap;
     pMap = new QPixmap(height(),height());
+    pViewFrame = new QPixmap(width(),height());
     DrawMap();
 
 
@@ -1245,7 +1243,7 @@ void Mainwindow::DrawViewFrame(QPainter* p)
     int py = scrCtY-dy-cos(azi)*2000;
     p->setPen(QPen(Qt::white,2));
     p->drawLine(scrCtX-dx,scrCtY-dy,px,py);
-    //draw grid
+    //ve luoi cu ly phuong vi
     if(ui->toolButton_grid->isChecked())
     {
 
@@ -1258,98 +1256,104 @@ void Mainwindow::DrawViewFrame(QPainter* p)
             DrawGrid(p,scrCtX-dx,scrCtY-dy);
         }
     }
-    short d = height()-50;
-    QPen penBackground(QColor(40,60,100,255));
-    short linewidth = 0.6*height();
-    penBackground.setWidth(linewidth/10);
-    p->setPen(penBackground);
-    for (short i=linewidth/12;i<linewidth;i+=linewidth/6)
+    if(mouse_mode&MouseDrag)
     {
-        p->drawEllipse(-i/2+(scrCtX-scrCtY)+25,-i/2+25,d+i,d+i);
-    }
-    penBackground.setWidth(0);
-    p->setPen(penBackground);
-    p->setBrush(QColor(40,60,100,255));
-    p->drawRect(scrCtX+scrCtY,0,width()-scrCtX-scrCtY,height());
-    p->drawRect(0,0,scrCtX-scrCtY,height());
-    p->setBrush(Qt::NoBrush);
-
-    QPen pengrid(QColor(255,255,50,255));
-    pengrid.setWidth(4);
-    p->setPen(pengrid);
-    p->drawEllipse(scrCtX-scrCtY+25,25,d,d);
-    pengrid.setWidth(2);
-    p->setPen(pengrid);
-    QFont font = p->font() ;
-    font.setPointSize(8);
-    p->setFont(font);
-    //short theta;
-    for(short theta=0;theta<360;theta+=10){
-        QPoint point0,point1,point2;
-        float tanA = tanf(theta/57.295779513f);
-        float sinA = sinf(theta/57.295779513f);
-        float cosA = cosf(theta/57.295779513f);
-        float a = (1+1.0f/tanA/tanA);//4*(dy/tanA-dx)*(dy/tanA-dx) -4*(1+1/tanA)*(dx*dx+dy*dy-width()*width()/4);
-        float b= 2.0f*(dy/tanA - dx);
-        float c= dx*dx+dy*dy-d*d/4.0f;
-        float delta = b*b-4.0f*a*c;
-        if(delta<30.0f)continue;
-        delta = sqrtf(delta);
-
-        if(theta==0)
-                {
-                    point2.setX(scrCtX  - dx);
-                    point2.setY(scrCtY - sqrt((d*d/4.0f- dx*dx)));
-                    point1.setX(point2.x());
-                    point1.setY(point2.y()-5.0);
-                    point0.setX(point2.x());
-                    point0.setY(point2.y()-18);
-                }
-        else if (theta<180)
+        pViewFrame->fill(Qt::transparent);
+        QPainter pt(pViewFrame);
+        pt.setRenderHint(QPainter::Antialiasing);
+        //draw view frame
+        short d = height()-50;
+        QPen penBackground(QColor(40,60,100,255));
+        short linewidth = 0.6*height();
+        penBackground.setWidth(linewidth/10);
+        pt.setPen(penBackground);
+        for (short i=linewidth/12;i<linewidth;i+=linewidth/6)
         {
-            short rx = (-b + delta)/2.0f/a;
-            short ry = -rx/tanA;
-            if(abs(rx)<100&&abs(ry)<100)continue;
-            point2.setX(scrCtX + rx -dx);
-            point2.setY(scrCtY + ry-dy);
-            point1.setX(point2.x()+5.0*sinA);
-            point1.setY(point2.y()-5.0*cosA);
-            point0.setX(point2.x()+18.0*sinA);
-            point0.setY(point2.y()-18.0*cosA);
+            pt.drawEllipse(-i/2+(scrCtX-scrCtY)+25,-i/2+25,d+i,d+i);
         }
-        else if(theta==180)
-                {
+        penBackground.setWidth(0);
+        pt.setPen(penBackground);
+        pt.setBrush(QColor(40,60,100,255));
+        pt.drawRect(scrCtX+scrCtY,0,width()-scrCtX-scrCtY,height());
+        pt.drawRect(0,0,scrCtX-scrCtY,height());
+        pt.setBrush(Qt::NoBrush);
 
-                    point2.setX(scrCtX  - dx);
-                    point2.setY(scrCtY + sqrt((d*d/4.0- dx*dx)));
-                    point1.setX(point2.x());
-                    point1.setY(point2.y()+5.0);
-                    point0.setX(point2.x());
-                    point0.setY(point2.y()+18.0);
-                }
-        else
-        {
-            short rx;
-            short ry;
-            rx =  (-b - delta)/2.0f/a;
-            ry = -rx/tanA;
-            if(abs(rx)<100&&abs(ry)<100)continue;
-            point2.setX(scrCtX + rx - dx);
-            point2.setY(scrCtY + ry - dy);
-            point1.setX(point2.x()+5.0*sinA);
-            point1.setY(point2.y()-5.0*cosA);
-            point0.setX(point2.x()+18.0*sinA);
-            point0.setY(point2.y()-18.0*cosA);
+        QPen pengrid(QColor(255,255,50,255));
+        pengrid.setWidth(4);
+        pt.setPen(pengrid);
+        pt.drawEllipse(scrCtX-scrCtY+25,25,d,d);
+        pengrid.setWidth(2);
+        pt.setPen(pengrid);
+        QFont font = pt.font() ;
+        font.setPointSize(10);
+        pt.setFont(font);
+        //short theta;
+        for(short theta=0;theta<360;theta+=10){
+            QPoint point0,point1,point2;
+            double tanA = tan(theta/57.295779513);
+            double sinA = sin(theta/57.295779513);
+            double cosA = cos(theta/57.295779513);
+            double a = (1+1.0/tanA/tanA);//4*(dy/tanA-dx)*(dy/tanA-dx) -4*(1+1/tanA)*(dx*dx+dy*dy-width()*width()/4);
+            double b= 2.0*(dy/tanA - dx);
+            double c= dx*dx+dy*dy-d*d/4.0;
+            double delta = b*b-4.0*a*c;
+            if(delta<30.0)continue;
+            delta = sqrt(delta);
+
+            if(theta==0)
+                    {
+                        point2.setX(scrCtX  - dx);
+                        point2.setY(scrCtY - sqrt((d*d/4.0- dx*dx)));
+                        point1.setX(point2.x());
+                        point1.setY(point2.y()-5.0);
+                        point0.setX(point2.x());
+                        point0.setY(point2.y()-18.0);
+                    }
+            else if (theta<180)
+            {
+                short rx = (-b + delta)/2.0/a;
+                short ry = -rx/tanA;
+                if(abs(rx)<100&&abs(ry)<100)continue;
+                point2.setX(scrCtX + rx -dx);
+                point2.setY(scrCtY + ry-dy);
+                point1.setX(point2.x()+5.0*sinA);
+                point1.setY(point2.y()-5.0*cosA);
+                point0.setX(point2.x()+18.0*sinA);
+                point0.setY(point2.y()-18.0*cosA);
+            }
+            else if(theta==180)
+                    {
+
+                        point2.setX(scrCtX  - dx);
+                        point2.setY(scrCtY + sqrt((d*d/4.0- dx*dx)));
+                        point1.setX(point2.x());
+                        point1.setY(point2.y()+5.0);
+                        point0.setX(point2.x());
+                        point0.setY(point2.y()+18.0);
+                    }
+            else
+            {
+                short rx;
+                short ry;
+                rx =  (-b - delta)/2.0/a;
+                ry = -rx/tanA;
+                if(abs(rx)<100&&abs(ry)<100)continue;
+                point2.setX(scrCtX + rx - dx);
+                point2.setY(scrCtY + ry - dy);
+                point1.setX(point2.x()+5.0*sinA);
+                point1.setY(point2.y()-5.0*cosA);
+                point0.setX(point2.x()+18.0*sinA);
+                point0.setY(point2.y()-18.0*cosA);
+            }
+
+            pt.drawLine(point1,point2);
+            pt.drawText(point0.x()-25,point0.y()-10,50,20,
+                       Qt::AlignHCenter|Qt::AlignVCenter,
+                       QString::number(theta));
         }
-
-        p->drawLine(point1,point2);
-        /*if(theta%10==0)*/p->drawText(point0.x()-25,point0.y()-10,50,20,
-                   Qt::AlignHCenter|Qt::AlignVCenter,
-                   QString::number(theta));
 
     }
-
-
+    p->drawPixmap(0,0,*pViewFrame);
     //HDC dc = ui->tabWidget->getDC();
 }
 //void Mainwindow::setScaleNM(unsigned short rangeNM)
@@ -1366,7 +1370,7 @@ void Mainwindow::DrawViewFrame(QPainter* p)
 //    DrawMap();
 //    /*currMaxRange = (sqrtf(dx*dx+dy*dy)+scrCtY)/signsize;
 //    if(currMaxRange>RADAR_MAX_RESOLUTION)currMaxRange = RADAR_MAX_RESOLUTION;*/
-////    isScreenUp2Date = false;
+//    isScreenUp2Date = false;
 //}
 short waittimer =0;
 void Mainwindow::UpdateRadarData()
@@ -1450,8 +1454,6 @@ void Mainwindow::InitTimer()
     connect(&syncTimer5p, SIGNAL(timeout()), this, SLOT(sync5p()));
     syncTimer5p.start(300000);
     //syncTimer1s.moveToThread(t);
-
-
 
     connect(&scrUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadarData()));
     scrUpdateTimer.start(40);//ENVDEP
@@ -2478,10 +2480,10 @@ void Mainwindow::on_toolButton_replay_fast_toggled(bool checked)
 {
     if(checked)
     {
-        processing->playRate = 300;
+        processing->playRate = 200;
     }else
     {
-        processing->playRate = 80;
+        processing->playRate = 50;
     }
 }
 
