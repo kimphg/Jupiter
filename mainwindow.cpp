@@ -473,6 +473,7 @@ void Mainwindow::DrawSignal(QPainter *p)
     QRectF signRect(DISPLAY_RES-(scrCtX-dx),DISPLAY_RES-(scrCtY-dy),width(),height());
     QRectF screen(0,0,width(),height());
     p->drawImage(screen,*processing->radarData->img_ppi,signRect,Qt::AutoColor);
+
 }
 
 //void MainWindow::createMenus()
@@ -1238,8 +1239,13 @@ void Mainwindow::ReloadSetting()
 
 void Mainwindow::DrawViewFrame(QPainter* p)
 {
+    //ve tia quet'
+    double azi = processing->radarData->getCurAziRad();
+    int px = scrCtX-dx+sin(azi)*2000;
+    int py = scrCtY-dy-cos(azi)*2000;
+    p->setPen(QPen(Qt::white,2));
+    p->drawLine(scrCtX-dx,scrCtY-dy,px,py);
     //draw grid
-
     if(ui->toolButton_grid->isChecked())
     {
 

@@ -78,7 +78,7 @@ dataProcessingThread::dataProcessingThread()
         }
     }
     connect(&UpdateTimer, SIGNAL(timeout()), this, SLOT(PushCommandQueue()));
-    UpdateTimer.start(200);
+    UpdateTimer.start(300);
     connect(&readBuffTimer, SIGNAL(timeout()), this, SLOT(ReadDataBuffer()));
     readBuffTimer.start(10);
 }
@@ -325,6 +325,7 @@ void dataProcessingThread::radTxOn()
 {
     RadarCommand command;
     //rotation on
+    command.bytes[1] = 0xab;
     setRotationSpeed(3);
 //    //tx off
 //    command.bytes[0] = 0xaa;
@@ -349,7 +350,7 @@ void dataProcessingThread::radTxOn()
     //dttt 192
     command.bytes[0] = 0x01;
     command.bytes[2] = 0x04;
-    command.bytes[3] = 0x05;
+    command.bytes[3] = 0x04;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     //set resolution 60m
     command.bytes[0] = 0x08;
@@ -378,6 +379,15 @@ void dataProcessingThread::radTxOn()
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //tx on tien khuech
+    command.bytes[0] = 0x11;
+    command.bytes[2] = 0xff;
+    command.bytes[3] = 0x0f;
+    command.bytes[4] = 0xff;
+    command.bytes[5] = 0x05;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+
+
 //    if(1){
 //        QFile logFile;
 //        QDateTime now = QDateTime::currentDateTime();

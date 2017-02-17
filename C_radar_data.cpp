@@ -411,6 +411,11 @@ C_radar_data::~C_radar_data()
     //        delete[] pScr_map;
     //    }
 }
+
+double C_radar_data::getCurAziRad() const
+{
+    return ((double)curAzir/(double)MAX_AZIR*PI*2);
+}
 void C_radar_data::setProcessing(bool onOff)
 {
     if(onOff)
@@ -736,7 +741,7 @@ void C_radar_data::setDoubleFilter(bool value)
 void C_radar_data::ProcessData(unsigned short azi)
 {
     //read spectre
-    memcpy((char*)&spectre,(char*)&dataBuff[RADAR_DATA_SPECTRE],16);
+    memcpy((char*)&spectre,(char*)&dataBuff[RADAR_DATA_HEADER_MAX],16);
     img_spectre->fill(0);
     //draw spectre
     short thresh[RAD_M_PULSE_RES];
@@ -1085,7 +1090,6 @@ void C_radar_data::ProcessDataFrame()
 
         //printf("Data lost:%d at azi = %d\n",lastazi-curAzir,curAzir);
         lastazi-=1;
-
         if(lastazi<0)lastazi+=MAX_AZIR;
         if(lastazi!=curAzir)
         {
