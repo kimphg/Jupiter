@@ -64,6 +64,7 @@ bool dataProcessingThread::getIsXuLyThuCap() const
 void dataProcessingThread::setIsXuLyThuCap(bool value)
 {
     isXuLyThuCap = value;
+    radarData->setIsVtorih(isXuLyThuCap);
 }
 dataProcessingThread::dataProcessingThread()
 {

@@ -12,10 +12,10 @@
 #data file type defined as .r2d, data starts from 22nd byte of each frame
 #run for both 1024 and 1536 data type
 #radar resolution can be changed by the user
-@CONFIG += debug_and_release@
+@CONFIG  += debug_and_release@
 QT       += core gui
 QT       += network
-QT      += serialport
+QT       += serialport
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 QMAKE_CXXFLAGS_WARN_OFF -= -Wunused-parameter
 TARGET = Jupiter_3.0.1

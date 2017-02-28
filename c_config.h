@@ -4,9 +4,9 @@
 
 #define SCALE_MAX 80
 #define SCALE_MIN 5
-#define HR_APP_PATH       "D:/HR2D/"
-#define HR_DATA_REC_PATH  "D:/HR2D/RecordData/"
-#define HR_CONFIG_FILE    "D:/HR2D/radar_config.xml"
+#define HR_APP_PATH       "C:/HR2D/"
+#define HR_DATA_REC_PATH  "C:/HR2D/RecordData/"
+#define HR_CONFIG_FILE    "C:/HR2D/radar_config.xml"
 #define DEFAULT_LAT		20.707f
 #define DEFAULT_LONG	106.78f
 #define LAT_MIN			5

@@ -634,8 +634,8 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
                 p->drawLine(point1,point2);
                 point2.setX(centerX+dx*1.02-9);
                 point2.setY(centerY+dy*1.02+5);
-                if(theta<270)p->drawText(point2,QString::number(theta+90));
-                else p->drawText(point2,QString::number(theta-270));
+//                if(theta<270)p->drawText(point2,QString::number(theta+90));
+//                else p->drawText(point2,QString::number(theta-270));
 
         }
 
@@ -1222,9 +1222,8 @@ void Mainwindow::InitSetting()
     if(pMap)delete pMap;
     pMap = new QPixmap(height(),height());
     pViewFrame = new QPixmap(width(),height());
+    setMouseMode(MouseDrag,true);
     DrawMap();
-
-
     update();
 }
 void Mainwindow::ReloadSetting()
@@ -1234,14 +1233,13 @@ void Mainwindow::ReloadSetting()
 
 }
 
-
 void Mainwindow::DrawViewFrame(QPainter* p)
 {
     //ve tia quet'
     double azi = processing->radarData->getCurAziRad();
     int px = scrCtX-dx+sin(azi)*2000;
     int py = scrCtY-dy-cos(azi)*2000;
-    p->setPen(QPen(Qt::white,2));
+    p->setPen(QPen(Qt::yellow,2));
     p->drawLine(scrCtX-dx,scrCtY-dy,px,py);
     //ve luoi cu ly phuong vi
     if(ui->toolButton_grid->isChecked())

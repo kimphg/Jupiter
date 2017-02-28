@@ -371,6 +371,7 @@ C_radar_data::C_radar_data()
     isProcessing = true;
     imgMode = VALUE_ORANGE_BLUE;
     isManualTune = false;
+    isVtorih = false;
     rgs_auto = false;
     doubleFilter = false;
     rotation_per_min = 0;
@@ -415,6 +416,16 @@ C_radar_data::~C_radar_data()
 double C_radar_data::getCurAziRad() const
 {
     return ((double)curAzir/(double)MAX_AZIR*PI*2);
+}
+
+bool C_radar_data::getIsVtorih() const
+{
+    return isVtorih;
+}
+
+void C_radar_data::setIsVtorih(bool value)
+{
+    isVtorih = value;
 }
 void C_radar_data::setProcessing(bool onOff)
 {

@@ -294,10 +294,14 @@ public:
     void drawRamp(double azi);
     double getCurAziRad() const;
 
+    bool getIsVtorih() const;
+    void setIsVtorih(bool value);
+
 private:
     double      selfRotationDazi;
     double      selfRotationAzi;
     float       k_rain_auto,k_gain_auto;
+    bool        isVtorih;
     bool        avtodetect;
     bool        doubleFilter;
     uint        getColor(unsigned char pvalue, unsigned char dopler, unsigned char sled);
