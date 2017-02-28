@@ -1936,7 +1936,12 @@ void Mainwindow::on_actionRecording_toggled(bool arg1)
     if(arg1)
     {
         QDateTime now = QDateTime::currentDateTime();
-        processing->startRecord(now.toString("dd.MM-hh.mm.ss")+HR_FILE_EXTENSION);
+        QString filename = now.toString("dd.MM_hh.mm.ss")+
+                "_"+ui->label_range_resolution->text()+
+                "_"+ui->label_sn_type->text()+
+                "_"+ui->label_sn_param->text();
+        ui->label_record_file_name->setText(filename);
+        processing->startRecord(filename+HR_FILE_EXTENSION);
     }
     else
     {        
@@ -1949,6 +1954,7 @@ void Mainwindow::on_actionOpen_rec_file_triggered()
     QString filename = QFileDialog::getOpenFileName(this,    tr("Open signal file"), NULL, tr("HR signal record files (*.r2d)"));
     if(!filename.size())return;
     processing->loadRecordDataFile(filename);
+    ui->label_record_file_name->setText(filename);
 }
 
 
@@ -3225,4 +3231,9 @@ void Mainwindow::on_toolButton_VRM_toggled(bool checked)
 void Mainwindow::on_toolButton_ELB_toggled(bool checked)
 {
     setMouseMode(MouseELB,checked);
+}
+
+void Mainwindow::on_toolButton_record_clicked()
+{
+
 }

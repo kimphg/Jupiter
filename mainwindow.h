@@ -320,6 +320,8 @@ private slots:
 
     void on_toolButton_ELB_toggled(bool checked);
 
+    void on_toolButton_record_clicked();
+
 private:
     void initActionsConnections();
     void initGraphicView();
