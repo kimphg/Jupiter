@@ -4,7 +4,7 @@
 //HR2D signal processing class and Kalman tracking algorithm   //
 //First release: November 2015                              //
 //Project:https://github.com/kimphg/Jupiter                 //
-//Last update: September 2016                                  //
+//Last update: March 2017                                   //
 //Author: Phung Kim Phuong                                  //
 //----------------------------------------------------------//
 #define ARMA_USE_LAPACK
@@ -216,17 +216,16 @@ public:
     bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled,filter2of3;
     bool                    isManualTune,rgs_auto,bo_bang_0,data_export;
     bool                    isSelfRotation;
-    float                   krain,kgain,ksea,brightness;
-    float                   krain_auto,kgain_auto,ksea_auto;
+    double                   krain,kgain,ksea,brightness;
+    double                   krain_auto,kgain_auto,ksea_auto;
     void setAutorgs( bool aut)
     {
         if(aut)
         {
             rgs_auto = true;
-            krain_auto = 0.5;
-            kgain_auto  = 2.5;
+            krain_auto = 0.3;
+            kgain_auto  = 2.25;
             ksea_auto = 0;
-            filter2of3 = true;
         }else
         {
             rgs_auto = false;
@@ -310,7 +309,7 @@ private:
     unsigned char command_feedback[8];
     void        polarToXY(float *x, float *y, float azi, float range);
     bool        isProcessing;
-
+    bool        isSharpEye;
     float       noiseAverage,rainLevel,noiseVar;
     void        getNoiseLevel();
     void        procPix(short proc_azi,short range);

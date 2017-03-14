@@ -371,7 +371,7 @@ C_radar_data::C_radar_data()
     isProcessing = true;
     imgMode = VALUE_ORANGE_BLUE;
     isManualTune = false;
-    isVtorih = false;
+    isVtorih = true;
     rgs_auto = false;
     doubleFilter = false;
     rotation_per_min = 0;
@@ -395,6 +395,7 @@ C_radar_data::C_radar_data()
     init_time = 3;
     dataOver = max_s_m_200;
     curAzir = 0;
+    isSharpEye = true;
     raw_map_init();
     raw_map_init_zoom();
     setTrueN(0);
@@ -415,7 +416,7 @@ C_radar_data::~C_radar_data()
 
 double C_radar_data::getCurAziRad() const
 {
-    return ((double)curAzir/(double)MAX_AZIR*PI*2);
+    return ( (double)(trueN+curAzir/(double)MAX_AZIR*PI*2));
 }
 
 bool C_radar_data::getIsVtorih() const
@@ -764,6 +765,7 @@ void C_radar_data::ProcessData(unsigned short azi)
             img_spectre->setPixel(i,j,1);
         }
     }
+    // sharpyeye dopler procession
 
     short i_m  = headerLen;
     short i_s  = i_m + range_max;
@@ -825,7 +827,39 @@ void C_radar_data::ProcessData(unsigned short azi)
             data_mem.dopler[azi][r_pos] = data_mem.dopler[azi][r_pos]>>4;
         }
     }
+    if(isSharpEye)
+    {
+        for(short r_pos=5;r_pos<range_max;r_pos++)
+        {
 
+                int a = (int)data_mem.level[azi][r_pos];
+                //if(!a) break;
+                //printf("Innitial:%d\n",a);
+                if(data_mem.dopler[azi][r_pos]==data_mem.dopler[azi][r_pos-1])
+                {
+                   a = a*1.5;
+
+                }
+                if(data_mem.dopler[azi][r_pos]==data_mem.dopler[azi][r_pos-2])
+                {
+                   a = a*1.2;
+                }
+//                if(data_mem.dopler[azi][r_pos]==data_mem.dopler[azi][r_pos-3])
+//                {
+//                   a = a*1.1;
+//                }
+                if(a>255)a=255;
+                //printf("Result a:%d\n",a);
+                data_mem.level[azi][r_pos] = (unsigned char)a;
+    //                data_mem.level[azi][r_pos] +
+    //                int k = 0;
+    //                for(int i=-4;i<=5;i++)
+    //                {
+    //                    if(data_mem.dopler[azi][r_pos+i]==data_mem.dopler[azi][r_pos+i+1])k++;
+    //                }
+
+        }
+    }
     // apply the  threshholding algorithm manualy
     memset(&thresh[0],0,RAD_M_PULSE_RES*2);
 
@@ -931,6 +965,7 @@ void C_radar_data::ProcessData(unsigned short azi)
         //
     }
     //auto threshold
+    if(init_time)return;
     short lastazi=azi-1;
     if(lastazi<0)lastazi+=MAX_AZIR;
     memset(&thresh[0],0,RAD_M_PULSE_RES*2);
@@ -947,6 +982,7 @@ void C_radar_data::ProcessData(unsigned short azi)
         }
     }
     rainLevel = noiseAverage ;
+
     for(short r_pos=0;r_pos<range_max;r_pos++)
     {
         // RGS threshold
@@ -978,8 +1014,8 @@ void C_radar_data::ProcessData(unsigned short azi)
             if(!cutoff)
             {
                 if((data_mem.hot[azi][r_pos+1])<2
-                  &&data_mem.hot[azi][r_pos-1]<2
-                  &&data_mem.hot[azi][r_pos]<2)
+                    &&data_mem.hot[azi][r_pos-1]<2
+                    &&data_mem.hot[azi][r_pos]<2)
                 {
                     cutoff = true;
                 }
@@ -988,11 +1024,11 @@ void C_radar_data::ProcessData(unsigned short azi)
         if(cutoff)
         {
             if(isManualTune&&rgs_auto)data_mem.level_disp[azi][r_pos]= 0;
-            data_mem.sled[azi][r_pos]-= (data_mem.sled[azi][r_pos])/100.0f;
+            data_mem.sled[azi][r_pos] -= (data_mem.sled[azi][r_pos])/20.0f;
         }
         else
         {
-            data_mem.sled[azi][r_pos] += (255 - data_mem.sled[azi][r_pos])/10.0f;
+            data_mem.sled[azi][r_pos] =255;
         }
         if(r_pos>RANGE_MIN)
         {

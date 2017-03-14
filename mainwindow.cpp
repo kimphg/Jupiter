@@ -1941,7 +1941,7 @@ void Mainwindow::on_actionRecording_toggled(bool arg1)
                 "_"+ui->label_sn_type->text()+
                 "_"+ui->label_sn_param->text();
         ui->label_record_file_name->setText(filename);
-        processing->startRecord(filename+HR_FILE_EXTENSION);
+        processing->startRecord("C:/HR2D/rec_"+filename+HR_FILE_EXTENSION);
     }
     else
     {        
