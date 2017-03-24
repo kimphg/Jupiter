@@ -322,6 +322,8 @@ private slots:
 
     void on_toolButton_record_clicked();
 
+    void on_toolButton_sharp_eye_toggled(bool checked);
+
 private:
     void initActionsConnections();
     void initGraphicView();

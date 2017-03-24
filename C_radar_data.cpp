@@ -395,7 +395,7 @@ C_radar_data::C_radar_data()
     init_time = 3;
     dataOver = max_s_m_200;
     curAzir = 0;
-    isSharpEye = true;
+    isSharpEye = false;
     raw_map_init();
     raw_map_init_zoom();
     setTrueN(0);
@@ -701,7 +701,7 @@ void  C_radar_data::getNoiseLevel()
     short histogram_max_pos;
     if(noiseVar==0)noiseVar = sumvar/float(n);else
     {
-        noiseVar+=(sumvar/float(n)-noiseVar)/3.0f;
+        noiseVar+=(sumvar/float(n)-noiseVar)/2.0f;
     }
     for(short i = 0;i<256;i++)
     {
@@ -715,7 +715,7 @@ void  C_radar_data::getNoiseLevel()
 
     if(noiseAverage)
     {
-        noiseAverage += (histogram_max_pos-noiseAverage)/3.0f;
+        noiseAverage += (histogram_max_pos-noiseAverage)/2.0f;
     }
     else
     {
@@ -1166,6 +1166,7 @@ void C_radar_data::redrawImg()
         drawAzi(drawnazi);
         if(!((unsigned char)(drawnazi<<3))){
             procTracks(drawnazi);
+            getNoiseLevel();
         }
         if(drawnazi==0)
         {
@@ -1191,7 +1192,7 @@ void C_radar_data::redrawImg()
             {
                 cur_timeMSecs = QDateTime::currentMSecsSinceEpoch();
             }
-            getNoiseLevel();
+
             if(init_time)init_time--;
         }
     }
@@ -1739,6 +1740,16 @@ void C_radar_data::polarToXY(float *x, float *y, float azi, float range)
 
     *x = ((sinf(azi)))*range;
     *y = ((cosf(azi)))*range;
+}
+
+bool C_radar_data::getIsSharpEye() const
+{
+    return isSharpEye;
+}
+
+void C_radar_data::setIsSharpEye(bool value)
+{
+    isSharpEye = value;
 }
 short zoomXmax,zoomYmax,zoomXmin,zoomYmin;
 short zoomCenterX=DISPLAY_RES,zoomCenterY=DISPLAY_RES;

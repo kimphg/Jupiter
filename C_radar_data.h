@@ -224,7 +224,7 @@ public:
         {
             rgs_auto = true;
             krain_auto = 0.3;
-            kgain_auto  = 2.25;
+            kgain_auto  = 2.5;
             ksea_auto = 0;
         }else
         {
@@ -262,11 +262,11 @@ public:
     void        addTrackManual(double x, double y);
     void        addTrack(object_t *mObject);
     static    void        kmxyToPolarDeg(double x,double y,double *azi,double *range);
-    void        setTrueN(float trueN_deg){
+    void        setTrueN(double trueN_deg){
 
         while(trueN_deg<0)trueN_deg+=360;
         while(trueN_deg>=360)trueN_deg-=360;
-        trueN =(trueN_deg/360.0f*PI_NHAN2);
+        trueN =(trueN_deg/360.0*PI_NHAN2);
         raw_map_init();
         resetTrack();
     }
@@ -295,6 +295,9 @@ public:
 
     bool getIsVtorih() const;
     void setIsVtorih(bool value);
+
+    bool getIsSharpEye() const;
+    void setIsSharpEye(bool value);
 
 private:
     double      selfRotationDazi;

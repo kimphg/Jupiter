@@ -3237,3 +3237,8 @@ void Mainwindow::on_toolButton_record_clicked()
 {
 
 }
+
+void Mainwindow::on_toolButton_sharp_eye_toggled(bool checked)
+{
+    processing->radarData->setIsSharpEye(checked);
+}

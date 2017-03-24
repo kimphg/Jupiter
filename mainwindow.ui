@@ -27739,9 +27739,9 @@
     <property name="geometry">
      <rect>
       <x>720</x>
-      <y>970</y>
+      <y>940</y>
       <width>231</width>
-      <height>101</height>
+      <height>131</height>
      </rect>
     </property>
     <property name="title">
@@ -28193,7 +28193,7 @@
        </item>
       </widget>
      </item>
-     <item row="2" column="0">
+     <item row="3" column="0">
       <widget class="QSlider" name="horizontalSlider_brightness">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -28636,6 +28636,22 @@
        </property>
        <property name="tickPosition">
         <enum>QSlider::NoTicks</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QCustomButton" name="toolButton_sharp_eye">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>KD dopler</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
