@@ -44,7 +44,7 @@ typedef struct  {
     short xzoom[MAX_AZIR_DRAW][DISPLAY_RES_ZOOM];
     short yzoom[MAX_AZIR_DRAW][DISPLAY_RES_ZOOM];
 } signal_map_t;
-float sn_scale;
+double sn_scale;
 short curIdCount = 1;
 qint64 cur_timeMSecs = 0;//QDateTime::currentMSecsSinceEpoch();
 signal_map_t data_mem;
@@ -547,28 +547,38 @@ void C_radar_data::drawBlackAzi(short azi_draw)
 }
 void C_radar_data::drawAzi(short azi)
 {
+    if(rotDir==Right)
+    {
+        //reset the display masks
+        short prev_azi = azi + 200;
+        if(prev_azi>=MAX_AZIR)prev_azi -= MAX_AZIR;
+        drawBlackAzi(prev_azi*3);
+        drawBlackAzi(prev_azi*3+1);
+        drawBlackAzi(prev_azi*3+2);
+        //reset the drawing ray
+        memset(&data_mem.display_ray[0][0],0,DISPLAY_RES*3);
+        //memset(&signal_map.display_zoom[0][0],0,DISPLAY_RES_ZOOM*3);
+        //set data to the drawing ray
 
-    //reset the display masks
-    short prev_azi = azi + 200;
-    if(prev_azi>=MAX_AZIR)prev_azi -= MAX_AZIR;
-    drawBlackAzi(prev_azi*3);
-    drawBlackAzi(prev_azi*3+1);
-    drawBlackAzi(prev_azi*3+2);
-    //reset the drawing ray
-    memset(&data_mem.display_ray[0][0],0,DISPLAY_RES*3);
-    //memset(&signal_map.display_zoom[0][0],0,DISPLAY_RES_ZOOM*3);
-    //set data to the drawing ray
+    }
+    else
+    {
+        //reset the display masks
+        short prev_azi = azi - 200;
+        if(prev_azi<0)prev_azi += MAX_AZIR;
+        drawBlackAzi(prev_azi*3);
+        drawBlackAzi(prev_azi*3+1);
+        drawBlackAzi(prev_azi*3+2);
+        //reset the drawing ray
+        memset(&data_mem.display_ray[0][0],0,DISPLAY_RES*3);
 
-
+    }
     unsigned short  lastDisplayPos =0;
     for (short r_pos = 0;r_pos<range_max-1;r_pos++)
     {
 
         unsigned short value = data_mem.level_disp[azi][r_pos];
         unsigned short dopler = data_mem.dopler[azi][r_pos];
-
-        //xu ly nguong
-
 
         //zoom to view scale
         short display_pos = r_pos*scale_ppi;
@@ -1035,7 +1045,7 @@ void C_radar_data::ProcessData(unsigned short azi)
             data_mem.detect[azi][r_pos] = !cutoff;
             if(data_mem.detect[azi][r_pos]&&(!init_time))
             {
-                procPix(azi,r_pos);
+                //procPix(azi,r_pos);
                 if(data_mem.terrain[azi][r_pos]<TERRAIN_MAX)data_mem.terrain[azi][r_pos]++;
             }
             else
@@ -1076,6 +1086,7 @@ void C_radar_data::ProcessData(unsigned short azi)
 void C_radar_data::SelfRotationOn( double dazi)
 {
     isSelfRotation = true;
+    printf("\nself rotation");
     SelfRotationReset();
     selfRotationDazi = dazi;
 }
@@ -1091,26 +1102,32 @@ void C_radar_data::SelfRotationOff()
 
 void C_radar_data::ProcessDataFrame()
 {
-    int azi,lastazi;
+    int newAzi;
     if(isSelfRotation)
     {
         //qint64 dt = timer.elapsed();
-        selfRotationAzi+=selfRotationDazi;
+        selfRotationAzi-=selfRotationDazi;
         if(selfRotationAzi>=MAX_AZIR)selfRotationAzi = 0;
-        azi = selfRotationAzi;
+        if(selfRotationAzi<0)selfRotationAzi += MAX_AZIR;
+        newAzi = selfRotationAzi;
     }
     else
     {
-        azi = (0xfff & (dataBuff[4] << 8 | dataBuff[5]))>>1;
+        newAzi = (0xfff & (dataBuff[4] << 8 | dataBuff[5]));
+        //printf("\nAzi:%d",newAzi);
+        newAzi =newAzi>>1;
 
     }
+    int leftAzi = curAzir-1;if(leftAzi<0)leftAzi+=MAX_AZIR;
+    int rightAzi = curAzir +1; if(rightAzi>=MAX_AZIR)rightAzi-=MAX_AZIR;
 
-    lastazi=azi-1;
-    if(lastazi<0)lastazi+=MAX_AZIR;
-    if(azi==curAzir)return;
-    else
-        if(azi==lastazi)return;
-
+    if(newAzi == leftAzi )
+    {
+        rotDir  = Left;
+    }
+    else if(newAzi == rightAzi) {
+        rotDir = Right;
+    }
     rotation_speed = dataBuff[1];
     overload = dataBuff[4]>>7;
     unsigned char n_clk_adc = (dataBuff[4]&(0xe0))>>5;
@@ -1120,7 +1137,7 @@ void C_radar_data::ProcessDataFrame()
 
         clk_adc = n_clk_adc;
         isClkAdcChanged = true;
-        resetData();
+        //resetData();
 
     }
     temp = dataBuff[3]/4.0f;//
@@ -1132,37 +1149,39 @@ void C_radar_data::ProcessDataFrame()
     memcpy(noise_level,&dataBuff[RADAR_COMMAND_FEEDBACK+8],8);
 
 
-    if((lastazi!=curAzir))
-    {
+//    if((lastazi!=curAzir))
+//    {
 
-        //printf("Data lost:%d at azi = %d\n",lastazi-curAzir,curAzir);
-        lastazi-=1;
-        if(lastazi<0)lastazi+=MAX_AZIR;
-        if(lastazi!=curAzir)
-        {
-            ProcessData(lastazi);
-            printf("Data lost:%d at azi = %d\n",lastazi,curAzir);
-        }
-        else
-        {
-            lastazi+=1;
-            if(lastazi>=MAX_AZIR)lastazi-=MAX_AZIR;
-            ProcessData(lastazi);
-        }
-    }
-    curAzir = azi;
-    ProcessData(azi);
+//        //printf("Data lost:%d at azi = %d\n",lastazi-curAzir,curAzir);
+//        lastazi-=1;
+//        if(lastazi<0)lastazi+=MAX_AZIR;
+//        if(lastazi!=curAzir)
+//        {
+//            ProcessData(lastazi);
+//            printf("Data lost:%d at azi = %d\n",lastazi,curAzir);
+//        }
+//        else
+//        {
+//            lastazi+=1;
+//            if(lastazi>=MAX_AZIR)lastazi-=MAX_AZIR;
+//            ProcessData(lastazi);
+//        }
+//    }
+    curAzir = newAzi;
+    ProcessData(newAzi);
+    drawAzi(newAzi);
 }
 short drawnazi = 0;
 
 void C_radar_data::redrawImg()
 {
-
-    while(drawnazi!=curAzir)
+    return;
+    //TODO:use it later
+    while(0)//drawnazi!=curAzir)
     {
         drawnazi++;
 
-        if(drawnazi>=MAX_AZIR)drawnazi=0;
+           if(drawnazi>=MAX_AZIR)drawnazi=0;
         drawAzi(drawnazi);
         if(!((unsigned char)(drawnazi<<3))){
             procTracks(drawnazi);
@@ -1813,7 +1832,7 @@ void C_radar_data::raw_map_init_zoom()
 }
 void C_radar_data::resetData()
 {
-    short dataLen = RAD_M_PULSE_RES*MAX_AZIR;
+    int dataLen = RAD_M_PULSE_RES*MAX_AZIR;
     memset(data_mem.level,      0,dataLen);
     memset(data_mem.dopler,     0,dataLen);
     memset(data_mem.detect,     0,dataLen);
@@ -1852,6 +1871,7 @@ void C_radar_data::setScalePPI(float scale)
         break;
     case 5:
         sn_scale = SIGNAL_SCALE_5;//printf("2");
+        break;
     case 6:
         sn_scale = SIGNAL_SCALE_6;//printf("2");
         break;

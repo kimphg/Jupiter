@@ -475,8 +475,8 @@
    <widget class="QCustomGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>1710</x>
-      <y>90</y>
+      <x>1510</x>
+      <y>950</y>
       <width>201</width>
       <height>121</height>
      </rect>
@@ -981,7 +981,7 @@
       <x>10</x>
       <y>560</y>
       <width>271</width>
-      <height>311</height>
+      <height>331</height>
      </rect>
     </property>
     <property name="font">
@@ -3815,9 +3815,9 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>880</y>
+      <y>900</y>
       <width>271</width>
-      <height>191</height>
+      <height>171</height>
      </rect>
     </property>
     <property name="title">
@@ -13000,10 +13000,10 @@
    <widget class="QCustomGroupBox" name="groupBox_7">
     <property name="geometry">
      <rect>
-      <x>290</x>
-      <y>560</y>
+      <x>1490</x>
+      <y>10</y>
       <width>421</width>
-      <height>261</height>
+      <height>271</height>
      </rect>
     </property>
     <property name="font">
@@ -20954,8 +20954,8 @@
    <widget class="QCustomGroupBox" name="groupBox_10">
     <property name="geometry">
      <rect>
-      <x>550</x>
-      <y>250</y>
+      <x>290</x>
+      <y>560</y>
       <width>161</width>
       <height>121</height>
      </rect>
@@ -21451,7 +21451,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -25674,7 +25674,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>410</y>
+        <y>380</y>
         <width>235</width>
         <height>104</height>
        </rect>
@@ -27670,6 +27670,134 @@
        </item>
       </layout>
      </widget>
+     <widget class="QCustomGroupBox" name="groupBox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>200</y>
+        <width>221</width>
+        <height>181</height>
+       </rect>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="title">
+       <string notr="true" comment="asd "/>
+      </property>
+      <layout class="QFormLayout" name="formLayout_8">
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_6">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Kinh độ:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QLineEdit" name="text_longInput_2">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_8">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Vĩ độ:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLineEdit" name="text_latInput_2">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="textEdit_heading">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0" colspan="2">
+        <widget class="QCustomButton" name="toolButton_gps_update">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Đặt tọa độ tâm đài</string>
+         </property>
+         <property name="checkable">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" colspan="2">
+        <widget class="QCustomButton" name="toolButton_set_heading">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Đặt hướng bắc</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_5">
      <attribute name="title">
@@ -27738,10 +27866,10 @@
    <widget class="QCustomGroupBox" name="groupBox_11">
     <property name="geometry">
      <rect>
-      <x>720</x>
-      <y>940</y>
-      <width>231</width>
-      <height>131</height>
+      <x>1720</x>
+      <y>740</y>
+      <width>191</width>
+      <height>111</height>
      </rect>
     </property>
     <property name="title">
@@ -28660,8 +28788,8 @@
    <widget class="QCustomGroupBox" name="groupBox_12">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>820</y>
+      <x>1760</x>
+      <y>380</y>
       <width>151</width>
       <height>251</height>
      </rect>
@@ -28780,10 +28908,10 @@
    <widget class="QCustomGroupBox" name="groupBox_14">
     <property name="geometry">
      <rect>
-      <x>550</x>
-      <y>380</y>
+      <x>290</x>
+      <y>680</y>
       <width>161</width>
-      <height>171</height>
+      <height>141</height>
      </rect>
     </property>
     <property name="title">
@@ -28855,139 +28983,11 @@
      </item>
     </layout>
    </widget>
-   <widget class="QCustomGroupBox" name="groupBox">
-    <property name="geometry">
-     <rect>
-      <x>550</x>
-      <y>10</y>
-      <width>221</width>
-      <height>231</height>
-     </rect>
-    </property>
-    <property name="autoFillBackground">
-     <bool>false</bool>
-    </property>
-    <property name="title">
-     <string notr="true" comment="asd "/>
-    </property>
-    <layout class="QFormLayout" name="formLayout_8">
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_6">
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Kinh độ:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QLineEdit" name="text_longInput_2">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="autoFillBackground">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="0">
-      <widget class="QLabel" name="label_8">
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Vĩ độ:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="1">
-      <widget class="QLineEdit" name="text_latInput_2">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="autoFillBackground">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="textEdit_heading">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0" colspan="2">
-      <widget class="QCustomButton" name="toolButton_gps_update">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Đặt tọa độ tâm đài</string>
-       </property>
-       <property name="checkable">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0" colspan="2">
-      <widget class="QCustomButton" name="toolButton_set_heading">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Đặt hướng bắc</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
    <widget class="QCustomGroupBox" name="groupBox_16">
     <property name="geometry">
      <rect>
-      <x>780</x>
-      <y>10</y>
+      <x>560</x>
+      <y>20</y>
       <width>161</width>
       <height>141</height>
      </rect>
@@ -29067,8 +29067,8 @@
    <widget class="QCustomGroupBox" name="groupBox_17">
     <property name="geometry">
      <rect>
-      <x>1661</x>
-      <y>10</y>
+      <x>1660</x>
+      <y>310</y>
       <width>251</width>
       <height>70</height>
      </rect>
@@ -30862,8 +30862,8 @@
    <widget class="QCustomGroupBox" name="groupBox_15">
     <property name="geometry">
      <rect>
-      <x>1560</x>
-      <y>990</y>
+      <x>1760</x>
+      <y>650</y>
       <width>151</width>
       <height>81</height>
      </rect>

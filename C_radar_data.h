@@ -26,6 +26,7 @@
 #endif
 #define MAX_TRACK_LEN               400
 #define MAX_TRACKS                  199
+#define ENCODER_RES                 5000
 #define MAX_AZIR                    2048
 #define MAX_AZIR_DRAW               6144
 #define RAD_M_PULSE_RES             1536
@@ -198,12 +199,14 @@ enum imgDrawMode
     DOPLER_3_COLOR = 2,
 };
 enum DataOverLay { m_only, s_m_200, s_m_150 , max_s_m_200, max_s_m_150};
+enum RotationDir { Right , Left};
 class C_radar_data {
 public:
 
     C_radar_data();
     ~C_radar_data();
     float k_vet;// !!!!
+    RotationDir             rotDir;
     float                   rotation_per_min ;
     trackList               mTrackList;
     plotList                plot_list;

@@ -43,6 +43,7 @@ enum TargetType{
 int targetID = -1;
 //short config.getRangeView() = 1;
 float rangeStep = 1;
+double curAziRad = 3;
 //typedef struct {
 //    unsigned char        bytes[8];
 //}
@@ -128,7 +129,6 @@ void Mainwindow::drawAisTarget2(QPainter *p, short xAIS, short yAIS)
     //hightlight target
     QPen penSelectTarger (QColor(0,166,173));
     penSelectTarger.setWidth(0);
-
 
     for(uint i=0; i<m_AISList.size(); i++)
     {
@@ -1237,8 +1237,8 @@ void Mainwindow::DrawViewFrame(QPainter* p)
 {
     //ve tia quet'
     double azi = processing->radarData->getCurAziRad();
-    int px = scrCtX-dx+sin(azi)*2000;
-    int py = scrCtY-dy-cos(azi)*2000;
+    int px = scrCtX-dx+sin(azi)*1000;
+    int py = scrCtY-dy-cos(azi)*1000    ;
     p->setPen(QPen(Qt::yellow,2));
     p->drawLine(scrCtX-dx,scrCtY-dy,px,py);
     //ve luoi cu ly phuong vi
@@ -1411,7 +1411,7 @@ void Mainwindow::UpdateRadarData()
 //            printf("\nsetScale:%d",processing->radarData->clk_adc);
             processing->radarData->isClkAdcChanged = false;
         }
-        processing->radarData->redrawImg();
+        //processing->radarData->redrawImg();
 
     }
     update();
@@ -1454,7 +1454,7 @@ void Mainwindow::InitTimer()
     //syncTimer1s.moveToThread(t);
 
     connect(&scrUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadarData()));
-    scrUpdateTimer.start(40);//ENVDEP
+    scrUpdateTimer.start(20);//ENVDEP
     scrUpdateTimer.moveToThread(t2);
 
     connect(this,SIGNAL(destroyed()),processing,SLOT(deleteLater()));
@@ -1488,6 +1488,14 @@ void Mainwindow::processARPA()
         QByteArray datagram;
         datagram.resize(m_udpSocket->pendingDatagramSize());
         m_udpSocket->readDatagram(datagram.data(), datagram.size());
+        if(datagram.size()==5)
+        {
+            if(*((unsigned char*)datagram.data())==0xff)
+            {
+                curAziRad = (*((unsigned char*)datagram.data()+1)*256
+                        + (*((unsigned char*)datagram.data()+2)))/2500.0*3.14159265;
+            }
+        }
         //printf(datagram.data());
 		QString str(datagram.data());
         QStringList list = str.split(",");

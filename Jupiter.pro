@@ -18,7 +18,7 @@ QT       += network
 QT       += serialport
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 QMAKE_CXXFLAGS_WARN_OFF -= -Wunused-parameter
-TARGET = Jupiter_3.0.1
+TARGET = Jupiter_4.0
 TEMPLATE = app
 SOURCES += main.cpp\
     mainwindow.cpp \
