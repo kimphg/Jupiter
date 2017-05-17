@@ -145,12 +145,12 @@ inline void bin2hex(unsigned char byte, char* str)
 
 }
 inline double deg2rad(double deg) {
-  return (deg * PI / 180);
+  return (deg /57.295779513);
 }
 
 //  This function converts radians to decimal degrees
 inline double rad2deg(double rad) {
-  return (rad * 180 / PI);
+  return (rad * 57.295779513);
 }
 
 //double latLon2RgAz(double lat1d, double lon1d, double lat2d, double lon2d) {

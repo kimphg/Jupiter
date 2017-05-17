@@ -1237,9 +1237,12 @@ void Mainwindow::DrawViewFrame(QPainter* p)
 {
     //ve tia quet'
     double azi = processing->radarData->getCurAziRad();
-    int px = scrCtX-dx+sin(azi)*1000;
-    int py = scrCtY-dy-cos(azi)*1000    ;
+    QRect rect(scrCtX-500,scrCtY-500,1000,1000);
     p->setPen(QPen(Qt::yellow,2));
+    p->drawArc(rect,16*rad2deg(azi)-15,30);
+//    int px = scrCtX-dx+sin(azi)*1000;
+//    int py = scrCtY-dy-cos(azi)*1000    ;
+
     p->drawLine(scrCtX-dx,scrCtY-dy,px,py);
     //ve luoi cu ly phuong vi
     if(ui->toolButton_grid->isChecked())

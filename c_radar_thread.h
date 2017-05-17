@@ -32,7 +32,7 @@ class dataProcessingThread:public QThread
     Q_OBJECT
 public:
     unsigned char    connect_timeout;
-    QMutex  mutex_data_change;
+    //QMutex  mutex_data_change;
     unsigned short    playRate;
     DataBuff*   dataBuff;
     float   k_vet;
