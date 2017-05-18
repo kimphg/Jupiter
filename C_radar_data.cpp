@@ -395,6 +395,8 @@ C_radar_data::C_radar_data()
     init_time = 3;
     dataOver = max_s_m_200;
     curAzir = 0;
+    arcMaxAzi = 0;
+    arcMinAzi = 0;
     isSharpEye = false;
     raw_map_init();
     raw_map_init_zoom();
@@ -414,11 +416,24 @@ C_radar_data::~C_radar_data()
     //    }
 }
 
+double C_radar_data::getArcMaxAziRad() const
+{
+    double result = (trueN+(double)arcMaxAzi/(double)MAX_AZIR*PI_NHAN2);
+    if(result>PI_NHAN2)result-=PI_NHAN2;
+    return ( result);
+}
+double C_radar_data::getArcMinAziRad() const
+{
+    double result = (trueN+(double)arcMinAzi/(double)MAX_AZIR*PI_NHAN2);
+    if(result>PI_NHAN2)result-=PI_NHAN2;
+    return (result );
+}
 double C_radar_data::getCurAziRad() const
 {
-    return ( (double)(trueN+curAzir/(double)MAX_AZIR*PI*2));
+    double result = (trueN+(double)curAzir/(double)MAX_AZIR*PI_NHAN2);
+    if(result>PI_NHAN2)result-=PI_NHAN2;
+    return ( result);
 }
-
 bool C_radar_data::getIsVtorih() const
 {
     return isVtorih;
@@ -1092,7 +1107,8 @@ void C_radar_data::SelfRotationOn( double dazi)
 }
 void C_radar_data::SelfRotationReset()
 {
-    selfRotationAzi = 0;
+    //selfRotationAzi = 0;
+    selfRotationAzi = curAzir;
 }
 void C_radar_data::SelfRotationOff()
 {
@@ -1123,11 +1139,20 @@ void C_radar_data::ProcessDataFrame()
 
     if(newAzi == leftAzi )
     {
-        rotDir  = Left;
+        if(rotDir==Right)
+        {
+            rotDir  = Left;
+            arcMaxAzi = curAzir;
+        }
     }
     else if(newAzi == rightAzi) {
-        rotDir = Right;
+        if(rotDir==Left)
+        {
+            rotDir = Right;
+            arcMinAzi = curAzir;
+        }
     }
+
     rotation_speed = dataBuff[1];
     overload = dataBuff[4]>>7;
     unsigned char n_clk_adc = (dataBuff[4]&(0xe0))>>5;

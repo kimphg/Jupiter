@@ -258,13 +258,22 @@ void Mainwindow::keyPressEvent(QKeyEvent *event)
     this->setFocus();
     if(event->key() == Qt::Key_Space)
     {
-        short   x=this->mapFromGlobal(QCursor::pos()).x();
-        short   y=this->mapFromGlobal(QCursor::pos()).y();
-        float xRadar = (x - scrCtX+dx) ;//coordinates in  radar xy system
-        float yRadar = -(y - scrCtY+dy);
-        processing->radarData->addTrackManual(xRadar,yRadar);
-        ui->toolButton_manual_track->setChecked(false);
+//        short   x=this->mapFromGlobal(QCursor::pos()).x();
+//        short   y=this->mapFromGlobal(QCursor::pos()).y();
+//        float xRadar = (x - scrCtX+dx) ;//coordinates in  radar xy system
+//        float yRadar = -(y - scrCtY+dy);
+//        processing->radarData->addTrackManual(xRadar,yRadar);
+//        ui->toolButton_manual_track->setChecked(false);
 //        isScreenUp2Date = false;
+        short   mx=this->mapFromGlobal(QCursor::pos()).x();
+        short   my=this->mapFromGlobal(QCursor::pos()).y();
+        double mlat = y2lat(-(my - scrCtY+dy));
+        double mlon = x2lon(mx - scrCtX+dx);
+        config.setLat(mlat);
+        config.setLon(mlon);
+        DrawMap();
+        this->repaint();
+
     }
 }
 short selZone_x1, selZone_x2, selZone_y1, selZone_y2;
@@ -348,7 +357,6 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
         else if(ui->toolButton_create_zone->isChecked())
         {
             gz1.isActive = 1;
-
             gz1.x1 = event->x();
             gz1.y1 = event->y();
         }
@@ -1232,18 +1240,95 @@ void Mainwindow::ReloadSetting()
 
 
 }
+bool Mainwindow::CalcAziContour(double theta, QPoint *point0,QPoint *point1,QPoint *point2,int d)
+{
+    double tanA = tan(theta/57.295779513);
+    double sinA = sin(theta/57.295779513);
+    double cosA = cos(theta/57.295779513);
 
+    if(theta==0)
+            {
+                point2->setX(scrCtX  - dx);
+                point2->setY(scrCtY - sqrt((d*d/4.0- dx*dx)));
+                point1->setX(point2->x());
+                point1->setY(point2->y()-5.0);
+                point0->setX(point2->x());
+                point0->setY(point2->y()-18.0);
+            }
+    else if(theta==180)
+            {
+
+                point2->setX(scrCtX  - dx);
+                point2->setY(scrCtY + sqrt((d*d/4.0- dx*dx)));
+                point1->setX(point2->x());
+                point1->setY(point2->y()+5.0);
+                point0->setX(point2->x());
+                point0->setY(point2->y()+18.0);
+            }
+    else if (theta<180)
+    {
+        double a = (1.0+1.0/tanA/tanA);//4*(dy/tanA-dx)*(dy/tanA-dx) -4*(1+1/tanA)*(dx*dx+dy*dy-width()*width()/4);
+        double b= 2.0*(dy/tanA - dx);
+        double c= dx*dx+dy*dy-d*d/4.0;
+        double delta = b*b-4.0*a*c;
+        if(delta<30.0)return false;
+        delta = sqrt(delta);
+        double rx = (-b + delta)/2.0/a;
+        double ry = -rx/tanA;
+        if(abs(rx)<100&&abs(ry)<100)return false;
+        point2->setX(scrCtX + rx -dx);
+        point2->setY(scrCtY + ry-dy);
+        point1->setX(point2->x()+5.0*sinA);
+        point1->setY(point2->y()-5.0*cosA);
+        point0->setX(point2->x()+18.0*sinA);
+        point0->setY(point2->y()-18.0*cosA);
+    }
+    else
+    {
+        double a = (1+1.0/tanA/tanA);//4*(dy/tanA-dx)*(dy/tanA-dx) -4*(1+1/tanA)*(dx*dx+dy*dy-width()*width()/4);
+        double b= 2.0*(dy/tanA - dx);
+        double c= dx*dx+dy*dy-d*d/4.0;
+        double delta = b*b-4.0*a*c;
+        if(delta<30.0)return false;
+        delta = sqrt(delta);
+        double rx;
+        double ry;
+        rx =  (-b - delta)/2.0/a;
+        ry = -rx/tanA;
+        if(abs(rx)<100&&abs(ry)<100)return false;
+        point2->setX(scrCtX + rx - dx);
+        point2->setY(scrCtY + ry - dy);
+        point1->setX(point2->x()+5.0*sinA);
+        point1->setY(point2->y()-5.0*cosA);
+        point0->setX(point2->x()+18.0*sinA);
+        point0->setY(point2->y()-18.0*cosA);
+    }
+    return true;
+
+}
 void Mainwindow::DrawViewFrame(QPainter* p)
 {
-    //ve tia quet'
-    double azi = processing->radarData->getCurAziRad();
-    QRect rect(scrCtX-500,scrCtY-500,1000,1000);
-    p->setPen(QPen(Qt::yellow,2));
-    p->drawArc(rect,16*rad2deg(azi)-15,30);
-//    int px = scrCtX-dx+sin(azi)*1000;
-//    int py = scrCtY-dy-cos(azi)*1000    ;
 
-    p->drawLine(scrCtX-dx,scrCtY-dy,px,py);
+    //ve phuong vi ang ten
+    QPoint point0,point1,point2;
+
+    double azi = rad2deg(processing->radarData->getCurAziRad());
+    double minazi = rad2deg(processing->radarData->getArcMinAziRad());
+    double maxazi = rad2deg(processing->radarData->getArcMaxAziRad());
+    if(maxazi<minazi)minazi-=360.0;
+    double dazi = maxazi-minazi;
+    QRect rect(scrCtX-dx-50,scrCtY-dy-50,100,100);
+    p->setPen(QPen(Qt::white,2));
+    p->drawArc(rect,16*((-minazi+90)-5),dazi*16);
+
+    if(CalcAziContour(azi,&point0,&point1,&point2,height()-70))
+    {
+        p->setPen(QPen(Qt::white,8));
+            p->drawLine(point2,point0);
+//            p->drawText(point2.x()-25,point0.y()-10,50,20,
+//                        Qt::AlignHCenter|Qt::AlignVCenter,
+//                        QString::number(azi,'f',2));
+    }
     //ve luoi cu ly phuong vi
     if(ui->toolButton_grid->isChecked())
     {
@@ -1288,69 +1373,18 @@ void Mainwindow::DrawViewFrame(QPainter* p)
         QFont font = pt.font() ;
         font.setPointSize(10);
         pt.setFont(font);
+
         //short theta;
         for(short theta=0;theta<360;theta+=10){
-            QPoint point0,point1,point2;
-            double tanA = tan(theta/57.295779513);
-            double sinA = sin(theta/57.295779513);
-            double cosA = cos(theta/57.295779513);
-            double a = (1+1.0/tanA/tanA);//4*(dy/tanA-dx)*(dy/tanA-dx) -4*(1+1/tanA)*(dx*dx+dy*dy-width()*width()/4);
-            double b= 2.0*(dy/tanA - dx);
-            double c= dx*dx+dy*dy-d*d/4.0;
-            double delta = b*b-4.0*a*c;
-            if(delta<30.0)continue;
-            delta = sqrt(delta);
 
-            if(theta==0)
-                    {
-                        point2.setX(scrCtX  - dx);
-                        point2.setY(scrCtY - sqrt((d*d/4.0- dx*dx)));
-                        point1.setX(point2.x());
-                        point1.setY(point2.y()-5.0);
-                        point0.setX(point2.x());
-                        point0.setY(point2.y()-18.0);
-                    }
-            else if (theta<180)
+            if(CalcAziContour(theta,&point0,&point1,&point2,d))
             {
-                short rx = (-b + delta)/2.0/a;
-                short ry = -rx/tanA;
-                if(abs(rx)<100&&abs(ry)<100)continue;
-                point2.setX(scrCtX + rx -dx);
-                point2.setY(scrCtY + ry-dy);
-                point1.setX(point2.x()+5.0*sinA);
-                point1.setY(point2.y()-5.0*cosA);
-                point0.setX(point2.x()+18.0*sinA);
-                point0.setY(point2.y()-18.0*cosA);
-            }
-            else if(theta==180)
-                    {
-
-                        point2.setX(scrCtX  - dx);
-                        point2.setY(scrCtY + sqrt((d*d/4.0- dx*dx)));
-                        point1.setX(point2.x());
-                        point1.setY(point2.y()+5.0);
-                        point0.setX(point2.x());
-                        point0.setY(point2.y()+18.0);
-                    }
-            else
-            {
-                short rx;
-                short ry;
-                rx =  (-b - delta)/2.0/a;
-                ry = -rx/tanA;
-                if(abs(rx)<100&&abs(ry)<100)continue;
-                point2.setX(scrCtX + rx - dx);
-                point2.setY(scrCtY + ry - dy);
-                point1.setX(point2.x()+5.0*sinA);
-                point1.setY(point2.y()-5.0*cosA);
-                point0.setX(point2.x()+18.0*sinA);
-                point0.setY(point2.y()-18.0*cosA);
+                    pt.drawLine(point1,point2);
+                    pt.drawText(point0.x()-25,point0.y()-10,50,20,
+                                Qt::AlignHCenter|Qt::AlignVCenter,
+                                QString::number(theta));
             }
 
-            pt.drawLine(point1,point2);
-            pt.drawText(point0.x()-25,point0.y()-10,50,20,
-                       Qt::AlignHCenter|Qt::AlignVCenter,
-                       QString::number(theta));
         }
 
     }

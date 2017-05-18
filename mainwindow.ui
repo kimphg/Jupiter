@@ -13000,10 +13000,10 @@
    <widget class="QCustomGroupBox" name="groupBox_7">
     <property name="geometry">
      <rect>
-      <x>1490</x>
+      <x>1530</x>
       <y>10</y>
-      <width>421</width>
-      <height>271</height>
+      <width>381</width>
+      <height>261</height>
      </rect>
     </property>
     <property name="font">
@@ -13022,7 +13022,7 @@
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>231</width>
+       <width>211</width>
        <height>245</height>
       </rect>
      </property>
@@ -19146,7 +19146,7 @@
     <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
-       <x>250</x>
+       <x>230</x>
        <y>140</y>
        <width>141</width>
        <height>111</height>
@@ -19221,7 +19221,7 @@
     <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
-       <x>250</x>
+       <x>230</x>
        <y>20</y>
        <width>141</width>
        <height>61</height>

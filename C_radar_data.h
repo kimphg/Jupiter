@@ -59,6 +59,10 @@
 #include <Eigen/Dense>
 
 
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
 //#include <QDebug> //REMLATER
 //#ifdef _WIN32
 //#include <armadillo>
@@ -213,7 +217,7 @@ public:
     unsigned char           spectre[16];
     unsigned char           overload, init_time, clk_adc;
     float                   scale_ppi,scale_zoom_ppi;
-    short                   curAzir;
+    short                   curAzir,arcMinAzi,arcMaxAzi,arcWidth;
     void                    updateZoomRect(float ctx, float cty);
     unsigned short          sn_stat;
     bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled,filter2of3;
@@ -302,6 +306,8 @@ public:
     bool getIsSharpEye() const;
     void setIsSharpEye(bool value);
 
+    double getArcMaxAziRad() const;
+    double getArcMinAziRad() const;
 private:
     double      selfRotationDazi;
     double      selfRotationAzi;

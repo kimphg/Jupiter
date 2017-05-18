@@ -335,6 +335,7 @@ private:
     bool isInsideViewZone(short x, short y);
     void UpdateMouseStat(QPainter *p);
     void setMouseMode(mouseMode mode, bool isOn);
+    bool CalcAziContour(double theta, QPoint *point0, QPoint *point1, QPoint *point2, int d);
 };
 
 #endif // MAINWINDOW_H
