@@ -59,9 +59,6 @@
 #include <Eigen/Dense>
 
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
 
 //#include <QDebug> //REMLATER
 //#ifdef _WIN32
@@ -244,6 +241,7 @@ public:
         init_time = 3;
         avtodetect = arg;
     }
+    void                    clearPPI();
     float                   temp;
     float                   trueN;
     DataOverLay             dataOver;
@@ -331,6 +329,7 @@ private:
     bool procObjectManual(object_t* pObject);
     //void status_start();
     //FILE *pFile;
+
 };
 
 //extern C_radar_data radarData;

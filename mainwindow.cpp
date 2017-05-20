@@ -256,7 +256,7 @@ void Mainwindow::mouseMoveEvent(QMouseEvent *event) {
 void Mainwindow::keyPressEvent(QKeyEvent *event)
 {
     this->setFocus();
-    if(event->key() == Qt::Key_Space)
+    if(event->key() == Qt::Key_F1)
     {
 //        short   x=this->mapFromGlobal(QCursor::pos()).x();
 //        short   y=this->mapFromGlobal(QCursor::pos()).y();
@@ -274,6 +274,10 @@ void Mainwindow::keyPressEvent(QKeyEvent *event)
         DrawMap();
         this->repaint();
 
+    }
+    else if(event->key() == Qt::Key_F2)
+    {
+        processing->radarData->clearPPI();
     }
 }
 short selZone_x1, selZone_x2, selZone_y1, selZone_y2;

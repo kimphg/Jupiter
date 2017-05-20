@@ -398,6 +398,7 @@ C_radar_data::C_radar_data()
     arcMaxAzi = 0;
     arcMinAzi = 0;
     isSharpEye = false;
+    rotDir=Right;
     raw_map_init();
     raw_map_init_zoom();
     setTrueN(0);
@@ -473,7 +474,6 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
     unsigned char value = data_mem.display_ray[r_pos][0];
     unsigned char dopler    = data_mem.display_ray[r_pos][1];
     unsigned char sled     = data_mem.display_ray[r_pos][2];
-
     short px = data_mem.x[azi_draw][r_pos];
     short py = data_mem.y[azi_draw][r_pos];
     if(px<=0||py<=0)return;
@@ -497,13 +497,13 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
                 else k=1;
                 break;
             case 2:
-                if(data_mem.display_mask[px+x][py+y])k=0.5f;
+                if(data_mem.display_mask[px+x][py+y])k=0.5;
                 else k=1;
-
+                break;
             default:
                 if(data_mem.display_mask[px+x][py+y])continue;
 
-                k=0.7f;
+                k=0.2;
                 break;
             }
             unsigned char pvalue = value*k;
@@ -562,14 +562,16 @@ void C_radar_data::drawBlackAzi(short azi_draw)
 }
 void C_radar_data::drawAzi(short azi)
 {
-    if(rotDir==Right)
+
+
+    if(rotDir==Left)
     {
         //reset the display masks
-        short prev_azi = azi + 200;
-        if(prev_azi>=MAX_AZIR)prev_azi -= MAX_AZIR;
-        drawBlackAzi(prev_azi*3);
-        drawBlackAzi(prev_azi*3+1);
+        short prev_azi = azi - 20;
+        if(prev_azi<0)prev_azi += MAX_AZIR;
         drawBlackAzi(prev_azi*3+2);
+        drawBlackAzi(prev_azi*3+1);
+        drawBlackAzi(prev_azi*3);
         //reset the drawing ray
         memset(&data_mem.display_ray[0][0],0,DISPLAY_RES*3);
         //memset(&signal_map.display_zoom[0][0],0,DISPLAY_RES_ZOOM*3);
@@ -579,8 +581,8 @@ void C_radar_data::drawAzi(short azi)
     else
     {
         //reset the display masks
-        short prev_azi = azi - 200;
-        if(prev_azi<0)prev_azi += MAX_AZIR;
+        short prev_azi = azi + 20;
+        if(prev_azi>=MAX_AZIR)prev_azi -= MAX_AZIR;
         drawBlackAzi(prev_azi*3);
         drawBlackAzi(prev_azi*3+1);
         drawBlackAzi(prev_azi*3+2);
@@ -588,10 +590,11 @@ void C_radar_data::drawAzi(short azi)
         memset(&data_mem.display_ray[0][0],0,DISPLAY_RES*3);
 
     }
+
+
     unsigned short  lastDisplayPos =0;
     for (short r_pos = 0;r_pos<range_max-1;r_pos++)
     {
-
         unsigned short value = data_mem.level_disp[azi][r_pos];
         unsigned short dopler = data_mem.dopler[azi][r_pos];
 
@@ -664,9 +667,6 @@ void C_radar_data::drawAzi(short azi)
             drawSgn(azi*3,display_pos);
             drawSgn(azi*3+1,display_pos);
             drawSgn(azi*3+2,display_pos);
-            //            drawSgn(azi*2,display_pos);
-            //            drawSgn(azi*2+1,display_pos);
-
         }
 
 
@@ -680,19 +680,7 @@ void C_radar_data::drawAzi(short azi)
             drawSgn(azi*3,display_pos);
             drawSgn(azi*3+1,display_pos);
             drawSgn(azi*3+2,display_pos);
-            //                        drawSgn(azi*2,display_pos);
-            //                        drawSgn(azi*2+1,display_pos);
-            //            if(isDisplayAlpha)
-            //            {
 
-            //                {   //memset(img_alpha->bits()+r_pos*img_alpha->width()/8-value/8,1,value);
-            //                    for(short i=255;i>255-signal_map.display[display_pos][0];i--)
-            //                    {
-            //                        img_alpha->setPixel(display_pos,i,1);
-            //                    }
-
-            //                }
-            //            }
         }
 
     }
@@ -1060,7 +1048,7 @@ void C_radar_data::ProcessData(unsigned short azi)
             data_mem.detect[azi][r_pos] = !cutoff;
             if(data_mem.detect[azi][r_pos]&&(!init_time))
             {
-                //procPix(azi,r_pos);
+                procPix(azi,r_pos);
                 if(data_mem.terrain[azi][r_pos]<TERRAIN_MAX)data_mem.terrain[azi][r_pos]++;
             }
             else
@@ -1139,20 +1127,27 @@ void C_radar_data::ProcessDataFrame()
 
     if(newAzi == leftAzi )
     {
+        //printf("left \n");
         if(rotDir==Right)
         {
             rotDir  = Left;
             arcMaxAzi = curAzir;
+
         }
     }
     else if(newAzi == rightAzi) {
+        //printf(" right\n");
         if(rotDir==Left)
         {
             rotDir = Right;
             arcMinAzi = curAzir;
+
         }
     }
+    else
+    {
 
+    }
     rotation_speed = dataBuff[1];
     overload = dataBuff[4]>>7;
     unsigned char n_clk_adc = (dataBuff[4]&(0xe0))>>5;
@@ -1162,7 +1157,7 @@ void C_radar_data::ProcessDataFrame()
 
         clk_adc = n_clk_adc;
         isClkAdcChanged = true;
-        //resetData();
+        resetData();
 
     }
     temp = dataBuff[3]/4.0f;//
@@ -1195,51 +1190,47 @@ void C_radar_data::ProcessDataFrame()
     curAzir = newAzi;
     ProcessData(newAzi);
     drawAzi(newAzi);
+    if(!((unsigned char)(curAzir<<3))){
+        procTracks(curAzir);
+        getNoiseLevel();
+    }
+    if(curAzir==0)
+    {
+        if(cur_timeMSecs)
+        {
+            qint64 newtime = QDateTime::currentMSecsSinceEpoch();
+            qint64 dtime = newtime - cur_timeMSecs;
+            if(dtime<20000)
+            {
+                if(!rot_period_sec)
+                {
+                    rot_period_sec = (dtime/1000.0);
+                }
+                else
+                {
+                    rot_period_sec += ((dtime/1000.0)-rot_period_sec);
+                }
+                rotation_per_min = 60.0/rot_period_sec;
+            }
+            cur_timeMSecs = newtime;
+        }
+        else
+        {
+            cur_timeMSecs = QDateTime::currentMSecsSinceEpoch();
+        }
+
+        if(init_time)init_time--;
+    }
 }
 short drawnazi = 0;
-
+void C_radar_data::clearPPI()
+{
+    img_ppi->fill(0);
+}
 void C_radar_data::redrawImg()
 {
     return;
-    //TODO:use it later
-    while(0)//drawnazi!=curAzir)
-    {
-        drawnazi++;
 
-           if(drawnazi>=MAX_AZIR)drawnazi=0;
-        drawAzi(drawnazi);
-        if(!((unsigned char)(drawnazi<<3))){
-            procTracks(drawnazi);
-            getNoiseLevel();
-        }
-        if(drawnazi==0)
-        {
-            if(cur_timeMSecs)
-            {
-                qint64 newtime = QDateTime::currentMSecsSinceEpoch();
-                qint64 dtime = newtime - cur_timeMSecs;
-                if(dtime<20000)
-                {
-                    if(!rot_period_sec)
-                    {
-                        rot_period_sec = (dtime/1000.0);
-                    }
-                    else
-                    {
-                        rot_period_sec += ((dtime/1000.0)-rot_period_sec);
-                    }
-                    rotation_per_min = 60.0/rot_period_sec;
-                }
-                cur_timeMSecs = newtime;
-            }
-            else
-            {
-                cur_timeMSecs = QDateTime::currentMSecsSinceEpoch();
-            }
-
-            if(init_time)init_time--;
-        }
-    }
 }
 void C_radar_data::GetDataHR(unsigned char* data,unsigned short dataLen)
 {
