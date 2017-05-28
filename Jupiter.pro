@@ -39,7 +39,8 @@ SOURCES += main.cpp\
     Cmap/cmap.cpp\
     c_config.cpp \
     c_radar_data.cpp \
-    c_radar_thread.cpp
+    c_radar_thread.cpp \
+    dialogdocumentation.cpp
 
 HEADERS  += mainwindow.h \
     c_arpa_data.h \
@@ -60,9 +61,11 @@ HEADERS  += mainwindow.h \
     Cmap/cmap.h\
     c_config.h \
     c_radar_data.h \
-    c_radar_thread.h
+    c_radar_thread.h \
+    dialogdocumentation.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    dialogdocumentation.ui
 #win32:CONFIG(release, debug|release): LIBS += -L$$PWD/shapelib/ -lshapelib
 #else:unix: LIBS += -L$$PWD\shapelib\ -lshapelib
 #INCLUDEPATH += $$PWD/shapelib

@@ -57,7 +57,7 @@
 #include <QDateTime>
 #include <QFile>
 #include <Eigen/Dense>
-
+#include <queue>
 
 
 //#include <QDebug> //REMLATER
@@ -222,20 +222,8 @@ public:
     bool                    isSelfRotation;
     double                   krain,kgain,ksea,brightness;
     double                   krain_auto,kgain_auto,ksea_auto;
-    void setAutorgs( bool aut)
-    {
-        if(aut)
-        {
-            rgs_auto = true;
-            krain_auto = 0.3;
-            kgain_auto  = 2.5;
-            ksea_auto = 0;
-        }else
-        {
-            rgs_auto = false;
-        }
+    void setAutorgs( bool aut);
 
-    }
     void setAvtoDetect(bool arg)
     {
         init_time = 3;
@@ -250,12 +238,12 @@ public:
     unsigned short          range_max;
     QImage                  *img_ppi,*img_RAmp,*img_zoom_ppi,*img_histogram,*img_spectre;
     imgDrawMode             imgMode;
-    void deleteTrack(short trackNum);
+    void deleteTrack(ushort trackNum);
     void drawRamp();
 
     //______________________________________//
-    void        GetDataHR(unsigned char *data, unsigned short dataLen);
-    void        redrawImg();
+    void        assembleDataFrame(unsigned char *data, unsigned short dataLen);
+    void        UpdateData();
     void        ProcessDataFrame();
     void        ProcessData(unsigned short azi);
     void        raw_map_init();
@@ -330,6 +318,7 @@ private:
     //void status_start();
     //FILE *pFile;
 
+    void decodeData(int azi);
 };
 
 //extern C_radar_data radarData;

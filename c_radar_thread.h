@@ -87,6 +87,8 @@ private slots:
     void processRadarData();
     void processARPAData();
     void playbackRadarData();
+public slots:
+    void StopProcessing();
 };
 
 #endif // DATAPROCESSINGTHREAD_H

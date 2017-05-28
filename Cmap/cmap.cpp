@@ -298,8 +298,8 @@ void CMap::LoadMap()
             QFile::copy(imageMapPathraw,imageMapPath);
     }
     QImage img(imageMapPath);
-//    if (img.isNull())
-//        img = QImage(imageMapPath+".jpg");
+    if (img.isNull())printf("\nmap file not found");
+        //img = QImage(imageMapPath+".jpg");
     //QPoint tp = grab;
 
     m_tilePixmaps[grab] = QPixmap::fromImage(img);

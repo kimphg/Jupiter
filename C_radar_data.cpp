@@ -20,8 +20,11 @@ short headerLen = RADAR_DATA_HEADER_MAX;
 unsigned char curFrameId;
 unsigned char dataBuff[RADAR_DATA_HEADER_MAX + RADAR_DATA_MAX_SIZE];
 QFile *exp_file = NULL;
+
+typedef std::queue<int> aziQueue;
+aziQueue aziToProcess;// TODO:lap hang cho xu ly
 typedef struct  {
-    //processing data
+    //processing dataaziQueue
     unsigned char level [MAX_AZIR][RAD_M_PULSE_RES];
     unsigned char level_disp [MAX_AZIR][RAD_M_PULSE_RES];
     bool          detect[MAX_AZIR][RAD_M_PULSE_RES];
@@ -485,7 +488,7 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
     {
         for(short y = -pSize;y <= pSize;y++)
         {
-            float k ;
+            double k ;
             switch(short(x*x+y*y))
             {
 
@@ -762,14 +765,12 @@ void C_radar_data::setDoubleFilter(bool value)
 {
     doubleFilter = value;
 }
-
-void C_radar_data::ProcessData(unsigned short azi)
+void C_radar_data::decodeData(int azi)
 {
     //read spectre
     memcpy((char*)&spectre,(char*)&dataBuff[RADAR_DATA_HEADER_MAX],16);
     img_spectre->fill(0);
     //draw spectre
-    short thresh[RAD_M_PULSE_RES];
 
     for(short i=0;i<16;i++)
     {
@@ -840,6 +841,10 @@ void C_radar_data::ProcessData(unsigned short azi)
             data_mem.dopler[azi][r_pos] = data_mem.dopler[azi][r_pos]>>4;
         }
     }
+}
+void C_radar_data::ProcessData(unsigned short azi)
+{
+    short thresh[RAD_M_PULSE_RES];
     if(isSharpEye)
     {
         for(short r_pos=5;r_pos<range_max;r_pos++)
@@ -1048,7 +1053,7 @@ void C_radar_data::ProcessData(unsigned short azi)
             data_mem.detect[azi][r_pos] = !cutoff;
             if(data_mem.detect[azi][r_pos]&&(!init_time))
             {
-                procPix(azi,r_pos);
+                //procPix(azi,r_pos);
                 if(data_mem.terrain[azi][r_pos]<TERRAIN_MAX)data_mem.terrain[azi][r_pos]++;
             }
             else
@@ -1109,7 +1114,6 @@ void C_radar_data::ProcessDataFrame()
     int newAzi;
     if(isSelfRotation)
     {
-        //qint64 dt = timer.elapsed();
         selfRotationAzi-=selfRotationDazi;
         if(selfRotationAzi>=MAX_AZIR)selfRotationAzi = 0;
         if(selfRotationAzi<0)selfRotationAzi += MAX_AZIR;
@@ -1117,17 +1121,12 @@ void C_radar_data::ProcessDataFrame()
     }
     else
     {
-        newAzi = (0xfff & (dataBuff[4] << 8 | dataBuff[5]));
-        //printf("\nAzi:%d",newAzi);
-        newAzi =newAzi>>1;
-
+        newAzi = (0xfff & (dataBuff[4] << 8 | dataBuff[5]))>>1;
     }
     int leftAzi = curAzir-1;if(leftAzi<0)leftAzi+=MAX_AZIR;
     int rightAzi = curAzir +1; if(rightAzi>=MAX_AZIR)rightAzi-=MAX_AZIR;
-
     if(newAzi == leftAzi )
     {
-        //printf("left \n");
         if(rotDir==Right)
         {
             rotDir  = Left;
@@ -1136,17 +1135,20 @@ void C_radar_data::ProcessDataFrame()
         }
     }
     else if(newAzi == rightAzi) {
-        //printf(" right\n");
         if(rotDir==Left)
         {
             rotDir = Right;
             arcMinAzi = curAzir;
-
         }
+    }
+    else if(newAzi ==curAzir)
+    {
+        //printf("\ncurAzir:%d",curAzir);
+        return;
     }
     else
     {
-
+        clearPPI();
     }
     rotation_speed = dataBuff[1];
     overload = dataBuff[4]>>7;
@@ -1167,29 +1169,9 @@ void C_radar_data::ProcessDataFrame()
     memcpy(command_feedback,&dataBuff[RADAR_COMMAND_FEEDBACK],8);
 
     memcpy(noise_level,&dataBuff[RADAR_COMMAND_FEEDBACK+8],8);
-
-
-//    if((lastazi!=curAzir))
-//    {
-
-//        //printf("Data lost:%d at azi = %d\n",lastazi-curAzir,curAzir);
-//        lastazi-=1;
-//        if(lastazi<0)lastazi+=MAX_AZIR;
-//        if(lastazi!=curAzir)
-//        {
-//            ProcessData(lastazi);
-//            printf("Data lost:%d at azi = %d\n",lastazi,curAzir);
-//        }
-//        else
-//        {
-//            lastazi+=1;
-//            if(lastazi>=MAX_AZIR)lastazi-=MAX_AZIR;
-//            ProcessData(lastazi);
-//        }
-//    }
     curAzir = newAzi;
-    ProcessData(newAzi);
-    drawAzi(newAzi);
+    aziToProcess.push(curAzir);
+    decodeData(curAzir);
     if(!((unsigned char)(curAzir<<3))){
         procTracks(curAzir);
         getNoiseLevel();
@@ -1227,12 +1209,18 @@ void C_radar_data::clearPPI()
 {
     img_ppi->fill(0);
 }
-void C_radar_data::redrawImg()
+void C_radar_data::UpdateData()
 {
-    return;
+    while(aziToProcess.size())
+    {
+        ProcessData(aziToProcess.front());
+        drawAzi(aziToProcess.front());
+        //if(aziToDraw.size<200)aziToDraw.push(curAzir);
+        aziToProcess.pop();
+    }
 
 }
-void C_radar_data::GetDataHR(unsigned char* data,unsigned short dataLen)
+void C_radar_data::assembleDataFrame(unsigned char* data,unsigned short dataLen)
 {
 
     if((dataLen<headerLen)){printf("Too short data.1\n");return;}
@@ -1453,7 +1441,7 @@ void C_radar_data::addTrackManual(double x,double y)
     //
     bool newtrack=true;
     short trackId = -1;
-    short max_length = 0;
+    ushort max_length = 0;
     for(unsigned short i=0;i<mTrackList.size();i++)
     {
         if(mTrackList.at(i).state>5)
@@ -1499,7 +1487,7 @@ void C_radar_data::addTrack(object_t* mObject)
         mTrackList.push_back(newTrack);
     }
 }
-void C_radar_data::deleteTrack(short trackNum)
+void C_radar_data::deleteTrack(ushort trackNum)
 {
     if(mTrackList.size()>trackNum)
     {
@@ -1797,6 +1785,21 @@ void C_radar_data::updateZoomRect(float ctx, float cty)
     zoomXmin = ctx-ZOOM_SIZE/2;
     zoomYmin = cty-ZOOM_SIZE/2;
     raw_map_init_zoom();
+
+}
+
+void C_radar_data::setAutorgs(bool aut)
+{
+    if(aut)
+    {
+        rgs_auto = true;
+        krain_auto = 0.3;
+        kgain_auto  = 2.5;
+        ksea_auto = 0;
+    }else
+    {
+        rgs_auto = false;
+    }
 
 }
 void C_radar_data::raw_map_init()

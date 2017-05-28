@@ -13003,7 +13003,7 @@
       <x>1530</x>
       <y>10</y>
       <width>381</width>
-      <height>261</height>
+      <height>241</height>
      </rect>
     </property>
     <property name="font">
@@ -13023,7 +13023,7 @@
        <x>10</x>
        <y>20</y>
        <width>211</width>
-       <height>245</height>
+       <height>201</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout_2">
@@ -19147,7 +19147,7 @@
      <property name="geometry">
       <rect>
        <x>230</x>
-       <y>140</y>
+       <y>100</y>
        <width>141</width>
        <height>111</height>
       </rect>
@@ -26226,6 +26226,19 @@
        </item>
       </layout>
      </widget>
+     <widget class="QCustomButton" name="toolButton_help">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>280</y>
+        <width>151</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Help</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_4">
      <attribute name="title">
@@ -27867,9 +27880,9 @@
     <property name="geometry">
      <rect>
       <x>1720</x>
-      <y>740</y>
+      <y>720</y>
       <width>191</width>
-      <height>111</height>
+      <height>121</height>
      </rect>
     </property>
     <property name="title">
@@ -28789,9 +28802,9 @@
     <property name="geometry">
      <rect>
       <x>1760</x>
-      <y>380</y>
+      <y>350</y>
       <width>151</width>
-      <height>251</height>
+      <height>261</height>
      </rect>
     </property>
     <property name="title">
@@ -29067,10 +29080,10 @@
    <widget class="QCustomGroupBox" name="groupBox_17">
     <property name="geometry">
      <rect>
-      <x>1660</x>
-      <y>310</y>
-      <width>251</width>
-      <height>70</height>
+      <x>1650</x>
+      <y>259</y>
+      <width>261</width>
+      <height>81</height>
      </rect>
     </property>
     <property name="title">
@@ -30863,7 +30876,7 @@
     <property name="geometry">
      <rect>
       <x>1760</x>
-      <y>650</y>
+      <y>620</y>
       <width>151</width>
       <height>81</height>
      </rect>

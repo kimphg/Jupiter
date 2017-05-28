@@ -27,7 +27,9 @@ short                       scrCtX, scrCtY, dx =0,dy=0,dxMap=0,dyMap=0;
 short                       mousePointerX,mousePointerY,mouseX,mouseY;
 //bool                        isDraging = false;
 bool                        isScaleChanged =true;
-double                       mScale;
+double                      mScale;
+double                      centerAzi=0;
+bool serialOnline = false;
 //QGraphicsScene* scene;
 //jViewPort* view;
 CConfig         config;
@@ -1333,6 +1335,14 @@ void Mainwindow::DrawViewFrame(QPainter* p)
 //                        Qt::AlignHCenter|Qt::AlignVCenter,
 //                        QString::number(azi,'f',2));
     }
+    if(serialOnline)if(CalcAziContour(centerAzi,&point0,&point1,&point2,height()-80))
+    {
+        p->setPen(QPen(Qt::yellow,8));
+            p->drawLine(point2,point0);
+//            p->drawText(point2.x()-25,point0.y()-10,50,20,
+//                        Qt::AlignHCenter|Qt::AlignVCenter,
+//                        QString::number(azi,'f',2));
+    }
     //ve luoi cu ly phuong vi
     if(ui->toolButton_grid->isChecked())
     {
@@ -1412,6 +1422,37 @@ void Mainwindow::DrawViewFrame(QPainter* p)
 //    isScreenUp2Date = false;
 //}
 short waittimer =0;
+void Mainwindow::DisplayClkAdc(int clk)
+{
+    switch(clk)
+    {
+    case 0:
+        ui->label_range_resolution->setText("15m");
+        break;
+    case 1:
+        ui->label_range_resolution->setText("30m");
+        break;
+    case 2:
+        ui->label_range_resolution->setText("60m");
+        break;
+    case 3:
+        ui->label_range_resolution->setText("90m");
+        break;
+    case 4:
+        ui->label_range_resolution->setText("120m");
+        break;
+    case 5:
+        ui->label_range_resolution->setText("150m");
+        break;
+    case 6:
+        ui->label_range_resolution->setText("180m");
+        break;
+    default:
+        ui->label_range_resolution->setText("NA");
+        break;
+
+    }
+}
 void Mainwindow::UpdateRadarData()
 {
     if(!processing->getIsDrawn())
@@ -1419,51 +1460,19 @@ void Mainwindow::UpdateRadarData()
         if(processing->radarData->isClkAdcChanged)
         {
             //ui->comboBox_radar_resolution->setCurrentIndex(processing->radarData->clk_adc);
-            switch(processing->radarData->clk_adc)
-            {
-            case 0:
-                ui->label_range_resolution->setText("15m");
-                break;
-            case 1:
-                ui->label_range_resolution->setText("30m");
-                break;
-            case 2:
-                ui->label_range_resolution->setText("60m");
-                break;
-            case 3:
-                ui->label_range_resolution->setText("90m");
-                break;
-            case 4:
-                ui->label_range_resolution->setText("120m");
-                break;
-            case 5:
-                ui->label_range_resolution->setText("150m");
-                break;
-            case 6:
-                ui->label_range_resolution->setText("180m");
-                break;
-            default:
-                ui->label_range_resolution->setText("NA");
-                break;
-
-            }
+            DisplayClkAdc(processing->radarData->clk_adc);
             processing->radarData->setScalePPI(mScale);
             this->UpdateScale();
 //            printf("\nsetScale:%d",processing->radarData->clk_adc);
             processing->radarData->isClkAdcChanged = false;
         }
-        //processing->radarData->redrawImg();
-
+        processing->radarData->UpdateData();
     }
     update();
     if(processing->isConnected())
         setRadarState(CONNECTED);
     else
         setRadarState(DISCONNECTED);
-
-
-
-
     /*QStandardItemModel* model = new QStandardItemModel(trackListPt->size(), 5);
     for (int row = 0; row < trackListPt->size(); ++row)
     {
@@ -1497,13 +1506,53 @@ void Mainwindow::InitTimer()
     connect(&scrUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadarData()));
     scrUpdateTimer.start(20);//ENVDEP
     scrUpdateTimer.moveToThread(t2);
-
     connect(this,SIGNAL(destroyed()),processing,SLOT(deleteLater()));
     connect(&dataPlaybackTimer,SIGNAL(timeout()),processing,SLOT(playbackRadarData()));
-
     connect(t2,SIGNAL(finished()),t2,SLOT(deleteLater()));
     processing->start(QThread::TimeCriticalPriority);
-    t2->start(QThread::IdlePriority);
+    t2->start(QThread::HighPriority);
+    serialPort1.setBaudRate(QSerialPort::Baud115200);
+    serialPort1.setPortName("COM6");
+    serialPort1.open(QIODevice::ReadWrite);
+    connect(&serialPort1, SIGNAL(readyRead()), this, SLOT(SerialDataRead()));
+
+}
+void Mainwindow::SerialDataRead()
+{
+
+    QByteArray responseData = serialPort1.readAll();
+//    while (serialPort1.waitForReadyRead(1))
+//        responseData += serialPort1.readAll();
+    serialOnline = true;
+    //printf("\nlen:%d",responseData.length());
+    unsigned char* data = (unsigned char*)responseData.data();
+    if(responseData.length()>=3)
+    {
+        for(int i = 0;i<=responseData.length()-3;i++)
+        {
+//            if(responseData.at(i)==0xff)
+//            {
+
+        if(*(data+i)==255)
+        {
+                unsigned short mazi = ((*(data+i+1)))*256 + (*(data+i+2));
+                mazi=mazi>>1;
+                centerAzi = mazi*360.0/512.0*3.0;
+                while(centerAzi>360)centerAzi-=360;
+                //printf("\nbyte cao:%d",((*(data+i+1))));
+                //printf("\nbyte thap:%d",((*(data+i+2))));
+                //double newcenterAzi = mazi*360.0/1024.0;
+                //centerAzi+=(newcenterAzi-centerAzi)/2.0;break;
+                //printf("\nazi:%d",mazi);
+                //flushall();
+                break;
+        }
+                //break;
+//            }
+        }
+
+
+    }
 }
 void Mainwindow::InitNetwork()
 {
@@ -1519,7 +1568,6 @@ void Mainwindow::InitNetwork()
 
     connect(m_udpSocket, SIGNAL(readyRead()),
             this, SLOT(processARPA()));
-
 }
 void Mainwindow::processARPA()
 {
@@ -2694,6 +2742,11 @@ void Mainwindow::on_toolButton_send_command_clicked()
         sendToRadar((unsigned char*)&bytes[0]);
         //udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
     }
+    else
+    {
+
+        ui->lineEdit_password->setFocus();
+    }
 }
 
 
@@ -2919,7 +2972,7 @@ bool Mainwindow::ProcDataAIS(BYTE *szBuff, int nLeng )
 
      if(!m_CLocal.GetTrackAIS(m_CLocal.m_Buff, m_CLocal.m_Leng, &nTkNew,nRec))
          return 0;
-     for(short i = 0;i<m_AISList.size();i++)
+     for(ushort i = 0;i<m_AISList.size();i++)
      {
          if(m_AISList.at(i).CheckMMSI(nTkNew.m_MMSI))
          {
@@ -3290,4 +3343,14 @@ void Mainwindow::on_toolButton_record_clicked()
 void Mainwindow::on_toolButton_sharp_eye_toggled(bool checked)
 {
     processing->radarData->setIsSharpEye(checked);
+}
+
+void Mainwindow::on_toolButton_help_clicked()
+{
+    if(ui->lineEdit_password->text()=="ccndt3108")
+    {
+        DialogDocumentation *dlg=new DialogDocumentation();
+        dlg->showNormal();
+        printf("\nNew windows");
+    }
 }

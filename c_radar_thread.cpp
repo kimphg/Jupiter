@@ -31,7 +31,7 @@ void dataProcessingThread::ReadDataBuffer()
             radarData->resetData();
             break;
         }
-        radarData->GetDataHR(&pData->data[0],pData->len);
+        radarData->assembleDataFrame(&pData->data[0],pData->len);
         if(isRecording)
         {
             signRecFile.write((char*)&pData->len,2);
@@ -98,13 +98,6 @@ void dataProcessingThread::PushCommandQueue()
 {
     if(radarComQ.size())
     {
-
-        // check if the radar has already recieved the command
-//        if(radarData->checkFeedback(&radarComQ.front().bytes[0]))
-//        {
-//            radarComQ.pop();
-//        }
-//        if(radarComQ.size())
         radarSocket->writeDatagram((char*)&radarComQ.front().bytes[0],
                                     8,
                                     QHostAddress("192.168.0.44"),2572
@@ -133,7 +126,7 @@ void dataProcessingThread::playbackRadarData()
             QByteArray buff;
             buff.resize(len);
             signRepFile.read(buff.data(),len);
-            radarData->GetDataHR((unsigned char*)buff.data(),buff.size());
+            radarData->assembleDataFrame((unsigned char*)buff.data(),buff.size());
             if(isRecording)
             {
                 signRecFile.write((char*)&len,2);
@@ -143,6 +136,12 @@ void dataProcessingThread::playbackRadarData()
         }
         return;
     }
+}
+
+void dataProcessingThread::StopProcessing()
+{
+
+    deleteLater();
 }
 void dataProcessingThread::setIsDrawn(bool value)
 {
@@ -457,7 +456,13 @@ void dataProcessingThread::radTxOff()
 void dataProcessingThread::sendCommand(unsigned char *sendBuff, short len)
 {
     RadarCommand command;
-    memcpy(&command.bytes[0],sendBuff,7);
+    if(len>8)return;
+    command.bytes[7] = 0;
+    memcpy(&command.bytes[0],sendBuff,len);
+    for(int i=0;i<len-1;i++)
+    {
+        command.bytes[7]+=command.bytes[i];
+    }
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
 }
 

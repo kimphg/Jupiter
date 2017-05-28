@@ -8,6 +8,7 @@
 #define SCR_LEFT_MARGIN 550
 #define HR_FILE_EXTENSION ".r2d"
 //#include <qse>
+#include "dialogdocumentation.h"
 #include <QtNetwork>
 #include <QMainWindow>
 #include <QtCore>
@@ -23,6 +24,7 @@
 #include <QHostAddress>
 #include <jtarget.h>
 #include "Cmap/cmap.h"
+
 //#include <jviewport.h>
 //#include "ctarget.h"
 //#include "radarcontroldialog.h"
@@ -37,6 +39,7 @@
 //#endif
 namespace Ui {
 class MainWindow;
+class DialogDocumentation;
 //class QLabel;
 //class QPushButton;
 //class QUdpSocket;
@@ -83,7 +86,8 @@ private:
 //    QUdpSocket      *udpARPA;//ARPA
     QUdpSocket      *m_udpSocket;//socket for radar control
     C2_Local          m_CLocal;
-    C2_TrackLst m_AISList;
+    C2_TrackLst     m_AISList;
+    QSerialPort     serialPort1,serialPort2;
     //
     //CConfig         m_config;
     //CpView  *       m_view;
@@ -133,25 +137,14 @@ private slots:
     void on_actionOpen_rec_file_triggered();
     void on_actionOpen_map_triggered();
     void on_actionSaveMap_triggered();
-
-
     void on_actionSetting_triggered();
-
     void on_actionAddTarget_toggled(bool arg1);
-
     void on_actionClear_data_triggered();
-
 //    void on_actionView_grid_triggered(bool checked);
-
-
     void on_actionPlayPause_toggled(bool arg1);
-
     void on_actionRecording_triggered();
-
     void on_comboBox_temp_type_currentIndexChanged(int index);
-
 //    void on_horizontalSlider_brightness_actionTriggered(int action);
-
     void on_horizontalSlider_brightness_valueChanged(int value);
 
 //    void on_horizontalSlider_signal_scale_valueChanged(int value);
@@ -199,7 +192,6 @@ private slots:
     void on_comboBox_currentIndexChanged(int index);
 
     void on_comboBox_img_mode_currentIndexChanged(int index);
-
 
     void on_toolButton_send_command_clicked();
 
@@ -324,6 +316,9 @@ private slots:
 
     void on_toolButton_sharp_eye_toggled(bool checked);
 
+    void on_toolButton_help_clicked();
+
+    void SerialDataRead();
 private:
     void initActionsConnections();
     void initGraphicView();
@@ -336,6 +331,7 @@ private:
     void UpdateMouseStat(QPainter *p);
     void setMouseMode(mouseMode mode, bool isOn);
     bool CalcAziContour(double theta, QPoint *point0, QPoint *point1, QPoint *point2, int d);
+    void DisplayClkAdc(int clk);
 };
 
 #endif // MAINWINDOW_H
