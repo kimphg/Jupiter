@@ -29,7 +29,7 @@
 //#include "ctarget.h"
 //#include "radarcontroldialog.h"
 //#include "c_arpa_data.h"
-#include <QtSerialPort/QSerialPort>
+
 //#ifdef TIXML_USE_STL
 //    #include <iostream>
 //    #include <sstream>
@@ -87,7 +87,7 @@ private:
     QUdpSocket      *m_udpSocket;//socket for radar control
     C2_Local          m_CLocal;
     C2_TrackLst     m_AISList;
-    QSerialPort     serialPort1,serialPort2;
+
     //
     //CConfig         m_config;
     //CpView  *       m_view;
@@ -169,7 +169,7 @@ private slots:
 
 //    void on_toolButton_scan_clicked();
 
-    void on_toolButton_tx_toggled(bool checked);
+    //void on_toolButton_tx_toggled(bool checked);
 
 //    void on_toolButton_scan_toggled(bool checked);
 
@@ -318,7 +318,8 @@ private slots:
 
     void on_toolButton_help_clicked();
 
-    void SerialDataRead();
+    void on_toolButton_setRangeUnit_clicked();
+
 private:
     void initActionsConnections();
     void initGraphicView();
@@ -332,6 +333,7 @@ private:
     void setMouseMode(mouseMode mode, bool isOn);
     bool CalcAziContour(double theta, QPoint *point0, QPoint *point1, QPoint *point2, int d);
     void DisplayClkAdc(int clk);
+    void setDistanceUnit(MeasuringUnit unit);
 };
 
 #endif // MAINWINDOW_H

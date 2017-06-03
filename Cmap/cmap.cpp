@@ -20,11 +20,12 @@ CMap::CMap(QObject *parent): mScale(10),QObject(parent)
 {
     //khoi tao mot vung pixmap co kich thuoc 256 X 256 va boi day no voi mau lightGray
     m_emptyTile = QPixmap(tdim, tdim);
-    m_emptyTile.fill(Qt::lightGray);
+    m_emptyTile.fill(Qt::darkGray);
     mMapWidth = 1024;
     mMapHeight = 1024;
     mapImage = 0;
-    SetType(0);
+    this->setPath("D:/HR2D/MapData/GM/" );
+    //SetType(0);
 }
 void CMap::SetType(int type)
 {
@@ -288,19 +289,28 @@ void CMap::LoadMap()
     }
     //QString path = "C:/Users/LamPT/Desktop/mapData/%1/%2_%3_%4.png" ;
     QString imageMapPath = mPath.arg(mScale).arg(grab.x()).arg(grab.y());
-    if(QFile::exists(imageMapPath+".png"))imageMapPath =imageMapPath+".png";
-    else if(QFile::exists(imageMapPath+".jpg"))imageMapPath+=".jpg";
-    else
+//    if(QFile::exists(imageMapPath+".png"))imageMapPath =imageMapPath+".png";
+//    else if(QFile::exists(imageMapPath+".jpg"))imageMapPath+=".jpg";
+//    else
+//    {
+//        QString imageMapPathraw = mPathraw.arg(grab.x()).arg(grab.y()).arg(mScale)+".jpg";
+//        imageMapPath+=".jpg";
+//        if(QFile::exists(imageMapPathraw))
+//            QFile::copy(imageMapPathraw,imageMapPath);
+//    }
+    QImage img(imageMapPath+".png");
+    if (img.isNull())
+    {
+        img = QImage(imageMapPath+".jpg");
+    }
+    if (img.isNull())
     {
         QString imageMapPathraw = mPathraw.arg(grab.x()).arg(grab.y()).arg(mScale)+".jpg";
         imageMapPath+=".jpg";
         if(QFile::exists(imageMapPathraw))
             QFile::copy(imageMapPathraw,imageMapPath);
     }
-    QImage img(imageMapPath);
-    if (img.isNull())printf("\nmap file not found");
-        //img = QImage(imageMapPath+".jpg");
-    //QPoint tp = grab;
+
 
     m_tilePixmaps[grab] = QPixmap::fromImage(img);
     if (img.isNull())

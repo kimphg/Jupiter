@@ -23,6 +23,7 @@ void CConfig::SaveToFile()
     radar_config->SetAttribute("trueN",trueN);
     radar_config->SetAttribute("rangeView",rangeView);
     radar_config->SetAttribute("mapOpacity",mapOpacity);
+    radar_config->SetAttribute("nmkm",nmkm);
     //printf("\nthis->mapFilename.data():");
     //printf(this->mapFilename.data());
     //radar_config->SetAttribute("mapFilename",this->mapFilename.data());
@@ -67,6 +68,7 @@ void CConfig::setDefault()
     codeType   = 0;
     socket_port_arpa = 8800;
     socket_port_radar =8900;
+    nmkm = 0;
     SaveToFile();
 
 }
@@ -86,6 +88,7 @@ bool CConfig::LoadFromFile()
         pParm->QueryDoubleAttribute("trueN",&trueN);
         pParm->QueryDoubleAttribute("mapOpacity",&mapOpacity);
         pParm->QueryIntAttribute("rangeView",&rangeView);
+        pParm->QueryIntAttribute("nmkm",&nmkm);
         return true;
     }
     else
@@ -106,6 +109,32 @@ void CConfig::setLat(double lat)
 {
     mLat = lat;
     SaveToFile();
+}
+
+MeasuringUnit CConfig::getMeasUnit()
+{
+    if(nmkm==0)
+    {
+        measUnit = NauticalMile;
+    }
+    else
+    {
+        measUnit = Kilometer;
+    }
+    return measUnit;
+}
+
+void CConfig::setMeasUnit(const MeasuringUnit &value)
+{
+    measUnit = value;
+    if(measUnit==NauticalMile)
+    {
+        nmkm = 0;
+    }
+    else
+    {
+        nmkm = 1;
+    }
 }
 
 double CConfig::getLon() const

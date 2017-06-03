@@ -1148,7 +1148,7 @@ void C_radar_data::ProcessDataFrame()
     }
     else
     {
-        clearPPI();
+        //clearPPI();
     }
     rotation_speed = dataBuff[1];
     overload = dataBuff[4]>>7;
@@ -1164,6 +1164,7 @@ void C_radar_data::ProcessDataFrame()
     }
     temp = dataBuff[3]/4.0f;//
     tempType = dataBuff[2];
+    if(tempType>4)printf("Wrong temperature\n");
     sn_stat = dataBuff[14]<<8|dataBuff[15];
 
     memcpy(command_feedback,&dataBuff[RADAR_COMMAND_FEEDBACK],8);
@@ -1416,14 +1417,14 @@ void C_radar_data::procTracks(unsigned short curA)
 
 
 }
-void C_radar_data::kmxyToPolarDeg(double x,double y,double *azi,double *range)
+void C_radar_data::kmxyToPolarDeg(double x, double y, double *azi, double *range)
 {
     *azi = atanf(x/y);
     if(y<0)*azi+=PI;
     if(*azi<0)*azi += PI_NHAN2;
     *range = sqrt(x*x+y*y);
     *azi = *azi*DEG_RAD;
-    *range = *range/CONST_NM;
+
 }
 void C_radar_data::addTrackManual(double x,double y)
 {

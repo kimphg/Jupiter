@@ -66,8 +66,14 @@ void dataProcessingThread::setIsXuLyThuCap(bool value)
     isXuLyThuCap = value;
     radarData->setIsVtorih(isXuLyThuCap);
 }
+
+double dataProcessingThread::getCenterAzi() const
+{
+    return centerAzi;
+}
 dataProcessingThread::dataProcessingThread()
 {
+    centerAzi = 0;
     isXuLyThuCap = false;
     dataBuff = &dataB[0];
     iRec=0;iRead=0;
@@ -89,10 +95,100 @@ dataProcessingThread::dataProcessingThread()
             break;
         }
     }
-    connect(&UpdateTimer, SIGNAL(timeout()), this, SLOT(PushCommandQueue()));
-    UpdateTimer.start(300);
-    connect(&readBuffTimer, SIGNAL(timeout()), this, SLOT(ReadDataBuffer()));
-    readBuffTimer.start(10);
+    connect(&commandSendTimer, &QTimer::timeout, this, &dataProcessingThread::PushCommandQueue);
+    commandSendTimer.start(200);
+    connect(&readUdpBuffTimer, &QTimer::timeout, this, &dataProcessingThread::ReadDataBuffer);
+    readUdpBuffTimer.start(10);
+    //connect(&readSerialTimer, &QTimer::timeout, this, &dataProcessingThread::SerialDataRead);
+    //readSerialTimer.start(20);
+    init();
+
+}
+void dataProcessingThread::init()
+{
+    //
+    QList<QSerialPortInfo> portlist = QSerialPortInfo::availablePorts();
+    for(int i = 0;i<portlist.size();i++)
+    {
+        if(!portlist.at(i).isBusy())
+        {
+            QSerialPort *newport = new QSerialPort(this);
+            QString qstr = portlist.at(i).portName();
+            newport->setPortName(qstr);
+            newport->setBaudRate(QSerialPort::Baud9600);
+            newport->open(QIODevice::ReadWrite);
+            connect(newport, &QSerialPort::readyRead, this, &dataProcessingThread::SerialDataRead);
+            serialPorts.push_back(newport);
+        }
+    }
+    printf("Serial available:%d\n",portlist.size());
+}
+void dataProcessingThread::SerialDataRead()
+{
+    for(uint i = 0;i<serialPorts.size();i++)
+    {
+        QSerialPort *newport = serialPorts.at(i);
+
+        QByteArray responseData = newport->readAll();
+
+        if(responseData.size())
+        {
+            processSerialData(responseData);
+        }
+
+    }
+}
+void dataProcessingThread::processSerialData(QByteArray inputData)
+{
+    unsigned short len = inputData.length();
+    unsigned char* data = (unsigned char*)inputData.data();
+    if(isRecording)
+    {
+        signRecFile.write((char*)&len,2);
+        signRecFile.write((char*)data,len);
+    }
+    if((data[0]==0xff)&&(len>=3))
+    {
+        unsigned short mazi = (data[1]<<8) + data[2];
+        //centerAzi = mazi*360.0/1024.0*3.0;
+        //while(centerAzi>=360)centerAzi-=360;
+        double newAzi = mazi*360.0/1024.0*3.0;
+        while(newAzi>=360)newAzi-=360;
+        if(abs(newAzi-centerAzi)>180)
+        {
+            if(centerAzi>newAzi)
+            {
+                newAzi+=360.0;
+                centerAzi+=(newAzi-centerAzi)/10.0;
+                while(centerAzi>=360)centerAzi-=360;
+            }
+            else
+            {
+                centerAzi+=360.0;
+                centerAzi+=(newAzi-centerAzi)/10.0;
+                while(centerAzi>=360)centerAzi-=360;
+            }
+        }
+        else
+        {
+            centerAzi+=(newAzi-centerAzi)/10.0;
+        }
+        //printf("centerAzi:%f\n",centerAzi);
+    }
+    if((data[0]==0xfa)&&(data[1]==0xfb)&&(data[2]==0x01)&&len>=5)
+    {
+        //            for(int i = 0;i<=responseData.length()-5;i++)
+        //            {
+        //            if((*(data+i)==0xfa)&&(*(data+i+1)==0xfb)&&(*(data+i+2)==0x01))
+        //            {
+        unsigned short mazi = (data[3]<<8) + data[4];
+        centerAzi = mazi*360.0/1024.0*3.0;
+        while(centerAzi>=360)centerAzi-=360;
+        //            }
+
+        //            }
+
+    }
 }
 void dataProcessingThread::PushCommandQueue()
 {
@@ -110,7 +206,6 @@ void dataProcessingThread::playbackRadarData()
     if(isPlaying) {
         isDrawn = false;
         unsigned short len;
-
         if(!signRepFile.isOpen())return;
         for(unsigned short i=0;i<playRate;i++)
         {
@@ -126,7 +221,8 @@ void dataProcessingThread::playbackRadarData()
             QByteArray buff;
             buff.resize(len);
             signRepFile.read(buff.data(),len);
-            radarData->assembleDataFrame((unsigned char*)buff.data(),buff.size());
+            if(len>500)radarData->assembleDataFrame((unsigned char*)buff.data(),buff.size());
+            else processSerialData(buff);
             if(isRecording)
             {
                 signRecFile.write((char*)&len,2);
@@ -212,7 +308,7 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
 //    strftime( timestr, sizeof timestr, "%H:%M:%S", &ltime);
 
     if(*pIsPlaying)return;
-    if(header->len<=500)return;
+    if(header->len<500)return;
     if(((*(pkt_data+36)<<8)|(*(pkt_data+37)))!=HR2D_UDP_PORT)
     {
         //printf("\nport:%d",((*(pkt_data+36)<<8)|(*(pkt_data+37))));
@@ -238,7 +334,7 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
 QTimer *timer_read_buffer;
 void dataProcessingThread::run()
 {
-
+    //init();
     pcap_if_t *alldevs;
     pcap_if_t *d;
     pcap_t *adhandle;

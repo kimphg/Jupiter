@@ -8,7 +8,6 @@
 //#define mapHeight mapWidth
 #define CONST_NM 1.852f// he so chuyen doi tu km sang hai ly
 #define MAX_VIEW_RANGE_KM 50
-//#include <queue>
 
 QPixmap                     *pMap=NULL;// painter cho ban do
 QPixmap                     *pViewFrame=NULL;// painter cho ban do
@@ -16,7 +15,7 @@ CMap *osmap ;
 dataProcessingThread        *processing;// thread xu ly du lieu radar
 QThread                     *t2,*t1;
 //Q_vnmap                     vnmap;
-QTimer                      scrUpdateTimer,readBuffTimer ;
+QTimer                      scrUpdateTimer ;
 QTimer                      syncTimer1s,syncTimer5p ;
 QTimer                      dataPlaybackTimer ;
 bool                        displayAlpha = false;
@@ -29,11 +28,12 @@ short                       mousePointerX,mousePointerY,mouseX,mouseY;
 bool                        isScaleChanged =true;
 double                      mScale;
 double                      centerAzi=0;
-bool serialOnline = false;
-//QGraphicsScene* scene;
-//jViewPort* view;
+double                      temperature[5];
+int         curTempIndex = 0;
+double      rangeRatio = 1;
 CConfig         config;
 QStringList     warningList;
+QString         strDistanceUnit;
 short selectedTargetIndex;
 mouseMode mouse_mode = MouseNormal;
 enum drawModes{
@@ -44,7 +44,7 @@ enum TargetType{
 }selectedTargetType  = NOTARGET;
 int targetID = -1;
 //short config.getRangeView() = 1;
-float rangeStep = 1;
+float ringStep = 1;
 double curAziRad = 3;
 //typedef struct {
 //    unsigned char        bytes[8];
@@ -602,8 +602,11 @@ void Mainwindow::DrawMap()
 void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
 {
     //return;
-    QPen pen(QColor(0x8f,0x8f,0x8f,0xff));
+    QPen pen(QColor(150,150,30,0xff));
     pen.setStyle(Qt::DashLine);
+    QFont font;
+    font.setPointSize(10);
+    p->setFont(font);
     p->setBrush(QBrush(Qt::NoBrush));
     p->setPen(pen);
     p->drawLine(centerX-5,centerY,centerX+5,centerY);
@@ -613,9 +616,11 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
     p->setPen(pen);
     for(short i = 1;i<8;i++)
     {
+        int rad = i*ringStep*rangeRatio*mScale;
     p->drawEllipse(QPoint(centerX,centerY),
-                  (short)(i*rangeStep*CONST_NM*mScale),
-                  (short)(i*rangeStep*CONST_NM*mScale));
+                  (short)(rad),
+                  (short)(rad));
+    p->drawText(centerX+2,centerY-rad+2,100,20,0,QString::number(i*ringStep)+strDistanceUnit);
     }
 
 
@@ -625,7 +630,7 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
         //pen.setWidth(1);
         //p->setPen(pen);
         short theta;
-        short gridR = rangeStep*1.852f*mScale*7;
+        short gridR = ringStep*1.852f*mScale*7;
         for(theta=0;theta<360;theta+=90){
             QPoint point1,point2;
                 short dx = gridR*cosf(theta/DEG_RAD);
@@ -1021,8 +1026,8 @@ void Mainwindow::UpdateMouseStat(QPainter *p)
     {
         C_radar_data::kmxyToPolarDeg((mx - scrCtX+dx)/mScale,-(my - scrCtY+dy)/mScale,&azi,&rg);
     }
-
-    ui->label_cursor_range->setText(QString::number(rg,'f',2)+"Nm");
+    rg*=rangeRatio;
+    ui->label_cursor_range->setText(QString::number(rg,'f',2)+strDistanceUnit);
     ui->label_cursor_azi->setText(QString::number((short)azi)+QString::fromLocal8Bit("\260")+QString::number((azi - (short)azi)*60,'f',2)+"'");
     ui->label_cursor_lat->setText(QString::number( (short)y2lat(-(my - scrCtY+dy)))+QString::fromLocal8Bit("\260")+
                                   QString::number(((float)y2lat(-(my - scrCtY+dy))-(short)(y2lat(-(my - scrCtY+dy))))*60,'f',2)+"'N");
@@ -1168,14 +1173,34 @@ void Mainwindow::SaveBinFile()
     //vnmap.SaveBinFile();
 
 }
-
+void Mainwindow::setDistanceUnit(MeasuringUnit unit)
+{
+    if(unit==NauticalMile)
+    {
+        rangeRatio = 1.852;
+        strDistanceUnit = "NM";
+        ui->toolButton_setRangeUnit->setText(QString::fromUtf8("Đơn vị đo:NM"));
+        UpdateScale();
+    }
+    else
+    {
+        rangeRatio = 1.0;
+        strDistanceUnit = "KM";
+        ui->toolButton_setRangeUnit->setText(QString::fromUtf8("Đơn vị đo:KM"));
+        UpdateScale();
+    }
+}
 void Mainwindow::InitSetting()
 {
+
+    setDistanceUnit(config.getMeasUnit());
     //load openstreetmap
     osmap = new CMap();
     osmap->setCenterPos(config.getLat(),config.getLon());
     osmap->setImgSize(height(),height());
     osmap->SetType(0);
+    //config.setMapOpacity(value/50.0);
+    ui->horizontalSlider_map_brightness->setValue(config.getMapOpacity()*50);
     //
     setMouseTracking(true);
     //initGraphicView();21.433170, 106.624043
@@ -1323,22 +1348,24 @@ void Mainwindow::DrawViewFrame(QPainter* p)
     double maxazi = rad2deg(processing->radarData->getArcMaxAziRad());
     if(maxazi<minazi)minazi-=360.0;
     double dazi = maxazi-minazi;
+    //drwa arc
     QRect rect(scrCtX-dx-50,scrCtY-dy-50,100,100);
-    p->setPen(QPen(Qt::white,2));
-    p->drawArc(rect,16*((-minazi+90)-5),dazi*16);
-
+    p->setPen(QPen(Qt::white,2,Qt::DashLine));
+    p->drawArc(rect,16*((-maxazi+90)),dazi*16);
+    //plot cur azi
     if(CalcAziContour(azi,&point0,&point1,&point2,height()-70))
     {
-        p->setPen(QPen(Qt::white,8));
+        p->setPen(QPen(Qt::white,3));
             p->drawLine(point2,point0);
 //            p->drawText(point2.x()-25,point0.y()-10,50,20,
 //                        Qt::AlignHCenter|Qt::AlignVCenter,
 //                        QString::number(azi,'f',2));
     }
-    if(serialOnline)if(CalcAziContour(centerAzi,&point0,&point1,&point2,height()-80))
+    //plot center azi
+    if(CalcAziContour(processing->getCenterAzi(),&point0,&point1,&point2,height()-70))
     {
         p->setPen(QPen(Qt::yellow,8));
-            p->drawLine(point2,point0);
+            p->drawLine(point1,point0);
 //            p->drawText(point2.x()-25,point0.y()-10,50,20,
 //                        Qt::AlignHCenter|Qt::AlignVCenter,
 //                        QString::number(azi,'f',2));
@@ -1506,54 +1533,16 @@ void Mainwindow::InitTimer()
     connect(&scrUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadarData()));
     scrUpdateTimer.start(20);//ENVDEP
     scrUpdateTimer.moveToThread(t2);
+    //connect(t2,SIGNAL(finished()),t2,SLOT(deleteLater()));
+
     connect(this,SIGNAL(destroyed()),processing,SLOT(deleteLater()));
     connect(&dataPlaybackTimer,SIGNAL(timeout()),processing,SLOT(playbackRadarData()));
-    connect(t2,SIGNAL(finished()),t2,SLOT(deleteLater()));
     processing->start(QThread::TimeCriticalPriority);
     t2->start(QThread::HighPriority);
-    serialPort1.setBaudRate(QSerialPort::Baud115200);
-    serialPort1.setPortName("COM6");
-    serialPort1.open(QIODevice::ReadWrite);
-    connect(&serialPort1, SIGNAL(readyRead()), this, SLOT(SerialDataRead()));
+
 
 }
-void Mainwindow::SerialDataRead()
-{
 
-    QByteArray responseData = serialPort1.readAll();
-//    while (serialPort1.waitForReadyRead(1))
-//        responseData += serialPort1.readAll();
-    serialOnline = true;
-    //printf("\nlen:%d",responseData.length());
-    unsigned char* data = (unsigned char*)responseData.data();
-    if(responseData.length()>=3)
-    {
-        for(int i = 0;i<=responseData.length()-3;i++)
-        {
-//            if(responseData.at(i)==0xff)
-//            {
-
-        if(*(data+i)==255)
-        {
-                unsigned short mazi = ((*(data+i+1)))*256 + (*(data+i+2));
-                mazi=mazi>>1;
-                centerAzi = mazi*360.0/512.0*3.0;
-                while(centerAzi>360)centerAzi-=360;
-                //printf("\nbyte cao:%d",((*(data+i+1))));
-                //printf("\nbyte thap:%d",((*(data+i+2))));
-                //double newcenterAzi = mazi*360.0/1024.0;
-                //centerAzi+=(newcenterAzi-centerAzi)/2.0;break;
-                //printf("\nazi:%d",mazi);
-                //flushall();
-                break;
-        }
-                //break;
-//            }
-        }
-
-
-    }
-}
 void Mainwindow::InitNetwork()
 {
         m_udpSocket = new QUdpSocket(this);
@@ -1729,11 +1718,11 @@ void Mainwindow::sync5p()//period 10 second
     {
         QFile logFile;
         QDateTime now = QDateTime::currentDateTime();
-        if(!QDir("C:\\logs\\"+now.toString("\\dd.MM\\")).exists())
+        if(!QDir("D:\\logs\\"+now.toString("\\dd.MM\\")).exists())
         {
-            QDir().mkdir("C:\\logs\\"+now.toString("\\dd.MM\\"));
+            QDir().mkdir("D:\\logs\\"+now.toString("\\dd.MM\\"));
         }
-        logFile.setFileName("C:\\logs\\"+now.toString("\\dd.MM\\")+now.toString("dd.MM-hh.mm.ss")+"_radar_online.log");
+        logFile.setFileName("D:\\logs\\"+now.toString("\\dd.MM\\")+now.toString("dd.MM-hh.mm.ss")+"_radar_online.log");
         logFile.open(QIODevice::WriteOnly);
 
         logFile.close();
@@ -1801,8 +1790,6 @@ void Mainwindow::updateTargetInfo()
 }
 void Mainwindow::sync1S()//period 1 second
 {
-    // display radar temperature:
-    ui->label_temp->setText(QString::number(processing->radarData->tempType)+"|"+QString::number(processing->radarData->temp,'f',0)+ QString::fromLocal8Bit("\260 C"));
     this->updateTargetInfo();
 
 //    int n = 32*256.0f/((processing->radarData->noise_level[0]*256 + processing->radarData->noise_level[1]));
@@ -1856,10 +1843,20 @@ void Mainwindow::sync1S()//period 1 second
 
     //display time
     showTime();
+    // display radar temperature:
+    temperature[processing->radarData->tempType] = processing->radarData->temp;
+    ui->label_temp->setText(QString::number(ui->comboBox_temp_type->currentIndex())
+            +"|"+QString::number(temperature[ui->comboBox_temp_type->currentIndex()],'f',0)
+            + QString::fromLocal8Bit("\260 C"));
+    // request radar temperature:
     if(radar_state!=DISCONNECTED)
     {
-        processing->radRequestTemp(ui->comboBox_temp_type->currentIndex());
-        //udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        processing->radRequestTemp(curTempIndex);
+
+        curTempIndex++;
+        if(curTempIndex>4)curTempIndex=0;
+
+
     }
     QByteArray array(processing->radarData->getFeedback(), 8);
     switch(radar_state)
@@ -2038,7 +2035,7 @@ void Mainwindow::on_actionRecording_toggled(bool arg1)
                 "_"+ui->label_sn_type->text()+
                 "_"+ui->label_sn_param->text();
         ui->label_record_file_name->setText(filename);
-        processing->startRecord("C:/HR2D/rec_"+filename+HR_FILE_EXTENSION);
+        processing->startRecord("D:/HR2D/rec_"+filename+HR_FILE_EXTENSION);
     }
     else
     {        
@@ -2185,7 +2182,6 @@ void Mainwindow::on_actionRecording_triggered()
 void Mainwindow::on_comboBox_temp_type_currentIndexChanged(int index)
 {
 
- //!!!
 }
 
 //void RadarGui::on_horizontalSlider_brightness_actionTriggered(int action)
@@ -2260,50 +2256,91 @@ void MainWindow::on_toolButton_13_clicked()
 */
 void Mainwindow::setScaleRange(double srange)
 {
-    mScale = (height()/2-5)/(CONST_NM*srange );
-    rangeStep = srange/6.0f;
-    ui->label_range->setText(QString::number(srange)+" NM");
-    ui->toolButton_grid->setText(QString::fromUtf8("Lưới tọa độ(")+QString::number(rangeStep)+"NM)");
+    if(config.getMeasUnit()==NauticalMile)
+    {
+        mScale = (height()/2.0-5.0)/(rangeRatio*srange );
+        ringStep = srange/6.0f;
+        ui->label_range->setText(QString::number(srange)+strDistanceUnit);
+    }
+    else if(config.getMeasUnit()==Kilometer)
+    {
+        mScale = (height()/2.0-5.0)/(rangeRatio*srange );
+        ringStep = srange/5;
+        ui->label_range->setText(QString::number(srange)+strDistanceUnit);
+    }
 }
 void Mainwindow::UpdateScale()
 {
     float oldScale = mScale;
     //char byte2;
-    switch(config.getRangeView())
+    if(config.getMeasUnit()==NauticalMile)
     {
-    case 0:
-        setScaleRange(1.5);
-        break;
-    case 1:
-        setScaleRange(3);
-        break;
-    case 2:
-        setScaleRange(6);
-        break;
-    case 3:
-        setScaleRange(12);
-        break;
-    case 4:
-        setScaleRange(24);
-        break;
-    case 5:
-        setScaleRange(36);
-        break;
-    case 6:
-        setScaleRange(48);
-        break;
-    case 7:
-        setScaleRange(72);
-        break;
-    case 8:
-        setScaleRange(96);
-        break;
-    case 9:
-        setScaleRange(120);
-        break;
-    default:
-        setScaleRange(150);
-        break;
+        switch(config.getRangeView())
+        {
+        case 0:
+            setScaleRange(1.5);
+            break;
+        case 1:
+            setScaleRange(3);
+            break;
+        case 2:
+            setScaleRange(6);
+            break;
+        case 3:
+            setScaleRange(12);
+            break;
+        case 4:
+            setScaleRange(24);
+            break;
+        case 5:
+            setScaleRange(36);
+            break;
+        case 6:
+            setScaleRange(48);
+            break;
+        case 7:
+            setScaleRange(72);
+            break;
+        case 8:
+            setScaleRange(96);
+            break;
+        case 9:
+            setScaleRange(120);
+            break;
+        default:
+            setScaleRange(150);
+            break;
+        }
+    }
+    else if(config.getMeasUnit()==Kilometer)
+    {
+        switch(config.getRangeView())
+        {
+        case 0:
+            setScaleRange(2.5);
+            break;
+        case 1:
+            setScaleRange(5);
+            break;
+        case 2:
+            setScaleRange(10);
+            break;
+        case 3:
+            setScaleRange(20);
+            break;
+        case 4:
+            setScaleRange(50);
+            break;
+        case 5:
+            setScaleRange(100);
+            break;
+        case 6:
+            setScaleRange(200);
+            break;
+        default:
+            setScaleRange(300);
+            break;
+        }
     }
 
 
@@ -2525,7 +2562,7 @@ void Mainwindow::on_toolButton_exit_clicked()
 //    this->on_actionSetting_triggered();
 //}
 
-
+/*
 void Mainwindow::on_toolButton_tx_toggled(bool checked)
 {
 
@@ -2551,7 +2588,7 @@ void Mainwindow::on_toolButton_tx_toggled(bool checked)
 //    }
 
 }
-
+*/
 
 
 void Mainwindow::on_toolButton_xl_nguong_toggled(bool checked)
@@ -2745,14 +2782,14 @@ void Mainwindow::on_toolButton_send_command_clicked()
     else
     {
 
-        ui->lineEdit_password->setFocus();
+        ui->lineEdit_password->clear();
     }
 }
 
 
 void Mainwindow::on_toolButton_zoom_in_clicked()
 {
-    if(config.getRangeView()>0)config.setRangeView( config.getRangeView()-1);
+    if(config.getRangeView()>1)config.setRangeView( config.getRangeView()-1);
     UpdateScale();
     DrawMap();
 }
@@ -3350,7 +3387,25 @@ void Mainwindow::on_toolButton_help_clicked()
     if(ui->lineEdit_password->text()=="ccndt3108")
     {
         DialogDocumentation *dlg=new DialogDocumentation();
+        dlg->setModal(false);
         dlg->showNormal();
         printf("\nNew windows");
     }
+}
+
+void Mainwindow::on_toolButton_setRangeUnit_clicked()
+{
+    switch(config.getMeasUnit())
+    {
+    case NauticalMile:
+        config.setMeasUnit(Kilometer);
+        break;
+    case Kilometer:
+        config.setMeasUnit(NauticalMile);
+        break;
+    default:
+        break;
+
+    }
+    this->setDistanceUnit(config.getMeasUnit());
 }

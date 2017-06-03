@@ -9,6 +9,8 @@
 #include <QFile>
 #include <QUdpSocket>
 #include <QStringList>
+#include <QtSerialPort/QSerialPort>
+#include <QSerialPortInfo>
 #define MAX_COMMAND_QUEUE_SIZE 100
 #define HAVE_REMOTE// for pcap
 #include "pcap.h"
@@ -41,8 +43,9 @@ public:
 
     ~dataProcessingThread();
     dataProcessingThread();
-    QTimer UpdateTimer;
-    QTimer readBuffTimer;
+    QTimer commandSendTimer;
+    QTimer readUdpBuffTimer;
+    QTimer readSerialTimer;
     void PlaybackFile();
     void startRecord(QString fileName);
     void stopRecord();
@@ -69,6 +72,8 @@ public:
     bool getIsXuLyThuCap() const;
     void setIsXuLyThuCap(bool value);
 
+    double getCenterAzi() const;
+
 private:
     bool    isDrawn;
     bool isXuLyThuCap;
@@ -77,16 +82,20 @@ private:
     bool isPlaying;
     QFile signRepFile;
     QFile signRecFile;
-
+    std::vector<QSerialPort*>     serialPorts;
     QUdpSocket      *radarSocket;
     QUdpSocket      *ARPADataSocket;
+    double centerAzi;
     void listenToRadar();
+    void init();
+    void processSerialData(QByteArray inputData);
 private slots:
     void ReadDataBuffer();
     void PushCommandQueue();
     void processRadarData();
     void processARPAData();
     void playbackRadarData();
+    void SerialDataRead();
 public slots:
     void StopProcessing();
 };

@@ -4,9 +4,9 @@
 
 #define SCALE_MAX 80
 #define SCALE_MIN 5
-#define HR_APP_PATH       "C:/HR2D/"
-#define HR_DATA_REC_PATH  "C:/HR2D/RecordData/"
-#define HR_CONFIG_FILE    "C:/HR2D/radar_config.xml"
+#define HR_APP_PATH       "D:/HR2D/"
+#define HR_DATA_REC_PATH  "D:/HR2D/RecordData/"
+#define HR_CONFIG_FILE    "D:/HR2D/radar_config.xml"
 #define DEFAULT_LAT		20.707f
 #define DEFAULT_LONG	106.78f
 #define LAT_MIN			5
@@ -17,6 +17,7 @@
 #include <QTextStream>
 #include <string>
 #include <tinyxml/tinyxml2.h>
+enum MeasuringUnit{NauticalMile, Kilometer};
 class CConfig
 {
 public:
@@ -28,7 +29,7 @@ public:
     bool LoadFromFile();
     double getLat() const;
     void setLat(double getLat);
-
+    MeasuringUnit measUnit;
     double getLon() const;
     void setLon(double getLon);
 
@@ -44,6 +45,9 @@ public:
     short getRangeView() const;
     void setRangeView(int value);
 
+    MeasuringUnit getMeasUnit();
+    void setMeasUnit(const MeasuringUnit &value);
+
 private:
     double mLat;
     double mLon;
@@ -55,6 +59,7 @@ private:
     double scale;
     double mapOpacity;
     int rangeView;
+    int nmkm;
     short dxView ,dyView;
     short socket_port_radar;
     short socket_port_arpa;
