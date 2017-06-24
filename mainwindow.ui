@@ -21451,7 +21451,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>2</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -27816,6 +27816,36 @@
      <attribute name="title">
       <string>Zoom</string>
      </attribute>
+     <widget class="QCustomButton" name="toolButton_zoom_AR">
+      <property name="geometry">
+       <rect>
+        <x>340</x>
+        <y>260</y>
+        <width>141</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Zoom AR</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <zorder>toolButton_ais_show</zorder>
+     <zorder>toolButton_ais_show</zorder>
+     <zorder>toolButton_zoom_AR</zorder>
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
@@ -28931,8 +28961,8 @@
      <string>AIS</string>
     </property>
     <layout class="QGridLayout" name="gridLayout_13">
-     <item row="1" column="0">
-      <widget class="QCustomButton" name="toolButton_ais_show">
+     <item row="2" column="0">
+      <widget class="QCustomButton" name="toolButton_ais_name">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -28945,7 +28975,7 @@
         </font>
        </property>
        <property name="text">
-        <string>AIS</string>
+        <string>Tên AIS</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -28973,8 +29003,8 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QCustomButton" name="toolButton_ais_name">
+     <item row="1" column="0">
+      <widget class="QCustomButton" name="toolButton_ais_show">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -28987,7 +29017,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Tên AIS</string>
+        <string>AIS</string>
        </property>
        <property name="checkable">
         <bool>true</bool>

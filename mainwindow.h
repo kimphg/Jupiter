@@ -320,6 +320,8 @@ private slots:
 
     void on_toolButton_setRangeUnit_clicked();
 
+    void on_toolButton_zoom_AR_clicked();
+
 private:
     void initActionsConnections();
     void initGraphicView();

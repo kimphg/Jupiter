@@ -147,32 +147,35 @@ void dataProcessingThread::processSerialData(QByteArray inputData)
         signRecFile.write((char*)&len,2);
         signRecFile.write((char*)data,len);
     }
-    if((data[0]==0xff)&&(len>=3))
+    if((data[0]==0xff))
     {
-        unsigned short mazi = (data[1]<<8) + data[2];
+        unsigned int mazi = (data[1]<<16) + (data[2]<<8)+(data[3]);
+        //mazi=mazi>>1;
         //centerAzi = mazi*360.0/1024.0*3.0;
         //while(centerAzi>=360)centerAzi-=360;
-        double newAzi = mazi*360.0/1024.0*3.0;
+        double newAzi = mazi*360.0/262144.0*3.0;
         while(newAzi>=360)newAzi-=360;
-        if(abs(newAzi-centerAzi)>180)
-        {
-            if(centerAzi>newAzi)
-            {
-                newAzi+=360.0;
-                centerAzi+=(newAzi-centerAzi)/10.0;
-                while(centerAzi>=360)centerAzi-=360;
-            }
-            else
-            {
-                centerAzi+=360.0;
-                centerAzi+=(newAzi-centerAzi)/10.0;
-                while(centerAzi>=360)centerAzi-=360;
-            }
-        }
-        else
-        {
-            centerAzi+=(newAzi-centerAzi)/10.0;
-        }
+        centerAzi = newAzi;
+        printf("\ngoc:%f len:%d",centerAzi,len);
+//        if(abs(newAzi-centerAzi)>180)
+//        {
+//            if(centerAzi>newAzi)
+//            {
+//                newAzi+=360.0;
+//                centerAzi+=(newAzi-centerAzi)/5.0;
+//                while(centerAzi>=360)centerAzi-=360;
+//            }
+//            else
+//            {
+//                centerAzi+=360.0;
+//                centerAzi+=(newAzi-centerAzi)/5.0;
+//                while(centerAzi>=360)centerAzi-=360;
+//            }
+//        }
+//        else
+//        {
+//            centerAzi+=(newAzi-centerAzi)/5.0;
+//        }
         //printf("centerAzi:%f\n",centerAzi);
     }
     if((data[0]==0xfa)&&(data[1]==0xfb)&&(data[2]==0x01)&&len>=5)
@@ -432,37 +435,34 @@ void dataProcessingThread::radTxOn()
     RadarCommand command;
     //rotation on
     command.bytes[1] = 0xab;
-    setRotationSpeed(3);
+    //setRotationSpeed(3);
 //    //tx off
 //    command.bytes[0] = 0xaa;
 //    command.bytes[2] = 0x02;
 //    command.bytes[3] = 0x00;
 //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+
     //thich nghi
-    command.bytes[0] = 0x1a;
-    command.bytes[2] = 0x20;
+    command.bytes[0] = 0xaa;
+    command.bytes[2] = 0x02;
     command.bytes[3] = 0x01;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     //do trong
-    command.bytes[0] = 0x14;
+    command.bytes[0] = 0xaa;
     command.bytes[2] = 0x00;
-    command.bytes[3] = 0x00;
+    command.bytes[3] = 0x07;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    //set 1536
-    command.bytes[0] = 0x04;
-    command.bytes[2] = 0x00;
-    command.bytes[3] = 0x06;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+//0x18 - 0xab - 0x01 - 0x0f
     //dttt 192
-    command.bytes[0] = 0x01;
-    command.bytes[2] = 0x04;
-    command.bytes[3] = 0x04;
+    command.bytes[0] = 0x18;
+    command.bytes[2] = 0x01;
+    command.bytes[3] = 0x0f;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     //set resolution 60m
-    command.bytes[0] = 0x08;
+    /*command.bytes[0] = 0x08;
     command.bytes[2] = 0x02;
     command.bytes[3] = 0x00;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);*/
 //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
 //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
 //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
@@ -472,7 +472,7 @@ void dataProcessingThread::radTxOn()
 //    command.bytes[2] = 0x20;
 //    command.bytes[3] = 0x00;
 //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-
+/*
     //tx on 1
     command.bytes[0] = 0xaa;
     command.bytes[2] = 0x02;
@@ -493,7 +493,7 @@ void dataProcessingThread::radTxOn()
     command.bytes[5] = 0x05;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
 
-
+*/
 //    if(1){
 //        QFile logFile;
 //        QDateTime now = QDateTime::currentDateTime();
@@ -525,11 +525,12 @@ void dataProcessingThread::radTxOff()
     command.bytes[6] = 0x00;
     command.bytes[7] = 0x00;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    command.bytes[3] = 0x06;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     command.bytes[2] = 0x02;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    command.bytes[2] = 0x03;
+    command.bytes[2] = 0x00;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);

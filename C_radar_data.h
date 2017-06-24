@@ -89,7 +89,7 @@ typedef struct {
 
 typedef struct  {
     unsigned int sumTer,sumA,sumR;
-    short maxA,minA,ctA;
+    short lastA,firstA,ctA;
     unsigned short maxR,minR,ctR;
     unsigned short size;
     unsigned char maxLevel,dopler;
@@ -236,7 +236,9 @@ public:
     unsigned char           noise_level[8];
     unsigned char           tempType,rotation_speed;
     unsigned short          range_max;
-    QImage                  *img_ppi,*img_RAmp,*img_zoom_ppi,*img_histogram,*img_spectre;
+    QImage                  *img_ppi,*img_RAmp,*img_zoom_ppi,*img_histogram,*img_spectre,*img_zoom_ar;
+    int                     zoom_ar_w,zoom_ar_h,zoom_ar_a0,zoom_ar_r0,zoom_ar_a1,zoom_ar_r1;
+    double                  zoom_ar_scale_a,zoom_ar_scale_r;
     imgDrawMode             imgMode;
     void deleteTrack(ushort trackNum);
     void drawRamp();
@@ -295,6 +297,7 @@ public:
     double getArcMaxAziRad() const;
     double getArcMinAziRad() const;
 private:
+    QVector<QRgb> colorTable;
     double      selfRotationDazi;
     double      selfRotationAzi;
     float       k_rain_auto,k_gain_auto;
@@ -319,6 +322,9 @@ private:
     //FILE *pFile;
 
     void decodeData(int azi);
+    void initZoomAR(int a0, int r0);
+public:
+    void drawZoomAR();
 };
 
 //extern C_radar_data radarData;

@@ -97,11 +97,21 @@ double x2lon(short x)
 }
 void Mainwindow::mouseDoubleClickEvent( QMouseEvent * e )
 {
-    if ( e->button() == Qt::LeftButton )
+    if ( e->button() == Qt::RightButton )
     {
         mousePointerX = (e->x());
         mousePointerY = (e->y());
         processing->radarData->updateZoomRect(mousePointerX - scrCtX+dx,mousePointerY - scrCtY+dy);
+        processing->radarData->drawZoomAR();
+    }
+    else
+    {
+
+        float xRadar = (mouseX - scrCtX+dx)/processing->radarData->scale_ppi ;//coordinates in  radar xy system
+        float yRadar = -(mouseY - scrCtY+dy)/processing->radarData->scale_ppi;
+        processing->radarData->addTrackManual(xRadar,yRadar);
+        ui->toolButton_manual_track->setChecked(false);
+
     }
     //Test doc AIS
 
@@ -331,14 +341,7 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
     mouseY = (event->y());
     if(!isInsideViewZone(mouseX,mouseY))return;
     if(event->buttons() & Qt::LeftButton) {
-        if(mouse_mode&MouseAddingTrack)//(ui->toolButton_manual_track->isChecked())
-        {
-            float xRadar = (mouseX - scrCtX+dx)/processing->radarData->scale_ppi ;//coordinates in  radar xy system
-            float yRadar = -(mouseY - scrCtY+dy)/processing->radarData->scale_ppi;
-            processing->radarData->addTrackManual(xRadar,yRadar);
-            ui->toolButton_manual_track->setChecked(false);
-        }
-        else if(mouse_mode&MouseAutoSelect)//(ui->toolButton_auto_select->isChecked())
+         if(mouse_mode&MouseAutoSelect)//(ui->toolButton_auto_select->isChecked())
         {
             if(isSelectingTarget)
             {
@@ -602,7 +605,8 @@ void Mainwindow::DrawMap()
 void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
 {
     //return;
-    QPen pen(QColor(150,150,30,0xff));
+    QPen pen(QColor(150,150,150,0xff));
+    p->setCompositionMode(QPainter::CompositionMode_Plus);
     pen.setStyle(Qt::DashLine);
     QFont font;
     font.setPointSize(10);
@@ -621,6 +625,9 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
                   (short)(rad),
                   (short)(rad));
     p->drawText(centerX+2,centerY-rad+2,100,20,0,QString::number(i*ringStep)+strDistanceUnit);
+    p->drawText(centerX+2,centerY+rad+2,100,20,0,QString::number(i*ringStep)+strDistanceUnit);
+    p->drawText(centerX+rad+2,centerY+2,100,20,0,QString::number(i*ringStep)+strDistanceUnit);
+    p->drawText(centerX-rad+2,centerY+2,100,20,0,QString::number(i*ringStep)+strDistanceUnit);
     }
 
 
@@ -659,6 +666,7 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
         }
 
         //end grid
+        p->setCompositionMode(QPainter::CompositionMode_SourceOver);
 
 
 
@@ -1026,7 +1034,7 @@ void Mainwindow::UpdateMouseStat(QPainter *p)
     {
         C_radar_data::kmxyToPolarDeg((mx - scrCtX+dx)/mScale,-(my - scrCtY+dy)/mScale,&azi,&rg);
     }
-    rg*=rangeRatio;
+    rg/=rangeRatio;
     ui->label_cursor_range->setText(QString::number(rg,'f',2)+strDistanceUnit);
     ui->label_cursor_azi->setText(QString::number((short)azi)+QString::fromLocal8Bit("\260")+QString::number((azi - (short)azi)*60,'f',2)+"'");
     ui->label_cursor_lat->setText(QString::number( (short)y2lat(-(my - scrCtY+dy)))+QString::fromLocal8Bit("\260")+
@@ -1073,8 +1081,11 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     //draw mouse coordinates
     UpdateMouseStat(&p);
     if(ui->toolButton_ais_show->isChecked())drawAisTarget(&p);
+    //ve luoi cu ly phuong vi
+
     DrawViewFrame(&p);
     DrawZoomArea(&p);
+
 //    updateTargets();
 }
 void Mainwindow::DrawZoomArea(QPainter* p)
@@ -1094,7 +1105,8 @@ void Mainwindow::DrawZoomArea(QPainter* p)
         p->setPen(QPen(Qt::black));
         p->setBrush(QBrush(Qt::black));
         p->drawRect(rect);
-        p->drawImage(rect,*processing->radarData->img_zoom_ppi,processing->radarData->img_zoom_ppi->rect());
+        //p->drawImage(rect,*processing->radarData->img_zoom_ppi,processing->radarData->img_zoom_ppi->rect());
+        p->drawImage(rect,*processing->radarData->img_zoom_ar,processing->radarData->img_zoom_ar->rect());
 
     }
     else if(ui->tabWidget_2->currentIndex()==3)
@@ -1189,6 +1201,7 @@ void Mainwindow::setDistanceUnit(MeasuringUnit unit)
         ui->toolButton_setRangeUnit->setText(QString::fromUtf8("Đơn vị đo:KM"));
         UpdateScale();
     }
+    DrawMap();
 }
 void Mainwindow::InitSetting()
 {
@@ -1273,6 +1286,8 @@ void Mainwindow::ReloadSetting()
 }
 bool Mainwindow::CalcAziContour(double theta, QPoint *point0,QPoint *point1,QPoint *point2,int d)
 {
+    if(theta>=360)theta-=360.0;
+    if(theta<0)theta+=360.0;
     double tanA = tan(theta/57.295779513);
     double sinA = sin(theta/57.295779513);
     double cosA = cos(theta/57.295779513);
@@ -1340,37 +1355,6 @@ bool Mainwindow::CalcAziContour(double theta, QPoint *point0,QPoint *point1,QPoi
 void Mainwindow::DrawViewFrame(QPainter* p)
 {
 
-    //ve phuong vi ang ten
-    QPoint point0,point1,point2;
-
-    double azi = rad2deg(processing->radarData->getCurAziRad());
-    double minazi = rad2deg(processing->radarData->getArcMinAziRad());
-    double maxazi = rad2deg(processing->radarData->getArcMaxAziRad());
-    if(maxazi<minazi)minazi-=360.0;
-    double dazi = maxazi-minazi;
-    //drwa arc
-    QRect rect(scrCtX-dx-50,scrCtY-dy-50,100,100);
-    p->setPen(QPen(Qt::white,2,Qt::DashLine));
-    p->drawArc(rect,16*((-maxazi+90)),dazi*16);
-    //plot cur azi
-    if(CalcAziContour(azi,&point0,&point1,&point2,height()-70))
-    {
-        p->setPen(QPen(Qt::white,3));
-            p->drawLine(point2,point0);
-//            p->drawText(point2.x()-25,point0.y()-10,50,20,
-//                        Qt::AlignHCenter|Qt::AlignVCenter,
-//                        QString::number(azi,'f',2));
-    }
-    //plot center azi
-    if(CalcAziContour(processing->getCenterAzi(),&point0,&point1,&point2,height()-70))
-    {
-        p->setPen(QPen(Qt::yellow,8));
-            p->drawLine(point1,point0);
-//            p->drawText(point2.x()-25,point0.y()-10,50,20,
-//                        Qt::AlignHCenter|Qt::AlignVCenter,
-//                        QString::number(azi,'f',2));
-    }
-    //ve luoi cu ly phuong vi
     if(ui->toolButton_grid->isChecked())
     {
 
@@ -1383,6 +1367,42 @@ void Mainwindow::DrawViewFrame(QPainter* p)
             DrawGrid(p,scrCtX-dx,scrCtY-dy);
         }
     }
+    //ve phuong vi ang ten
+    QPoint point[6];//,point1,point2,pointA,pointB;
+
+    double azi = rad2deg(processing->radarData->getCurAziRad());
+    double minazi = rad2deg(processing->radarData->getArcMinAziRad());
+    double maxazi = rad2deg(processing->radarData->getArcMaxAziRad());
+    if(maxazi<minazi)minazi-=360.0;
+    double dazi = maxazi-minazi;
+    //drwa arc
+    QRect rect(scrCtX-dx-50,scrCtY-dy-50,100,100);
+    p->setPen(QPen(Qt::white,2,Qt::DashLine));
+    p->drawArc(rect,16*((-maxazi+90)),dazi*16);
+
+    //plot center azi
+    if(CalcAziContour(processing->getCenterAzi(),&point[0],&point[2],&point[1],height()-100))
+    {
+        p->setPen(QPen(Qt::yellow,2,Qt::SolidLine,Qt::FlatCap,Qt::MiterJoin));
+//            p->drawLine(point2,point0);
+            CalcAziContour(processing->getCenterAzi()-1,&point[0],&point[3],&point[5],height());
+            CalcAziContour(processing->getCenterAzi()+1,&point[2],&point[3],&point[5],height());
+
+            p->drawPolyline(&point[0],3);
+//            p->drawText(point2.x()-25,point0.y()-10,50,20,
+//                        Qt::AlignHCenter|Qt::AlignVCenter,
+//                        QString::number(azi,'f',2));
+    }
+    //plot cur azi
+    if(CalcAziContour(azi,&point[0],&point[1],&point[2],height()-70))
+    {
+        p->setPen(QPen(Qt::red,4));
+            p->drawLine(point[2],point[0]);
+//            p->drawText(point2.x()-25,point0.y()-10,50,20,
+//                        Qt::AlignHCenter|Qt::AlignVCenter,
+//                        QString::number(azi,'f',2));
+    }
+
     if(mouse_mode&MouseDrag)
     {
         pViewFrame->fill(Qt::transparent);
@@ -1418,10 +1438,10 @@ void Mainwindow::DrawViewFrame(QPainter* p)
         //short theta;
         for(short theta=0;theta<360;theta+=10){
 
-            if(CalcAziContour(theta,&point0,&point1,&point2,d))
+            if(CalcAziContour(theta,&point[0],&point[1],&point[2],d))
             {
-                    pt.drawLine(point1,point2);
-                    pt.drawText(point0.x()-25,point0.y()-10,50,20,
+                    pt.drawLine(point[1],point[2]);
+                    pt.drawText(point[0].x()-25,point[0].y()-10,50,20,
                                 Qt::AlignHCenter|Qt::AlignVCenter,
                                 QString::number(theta));
             }
@@ -2342,8 +2362,6 @@ void Mainwindow::UpdateScale()
             break;
         }
     }
-
-
     isScaleChanged = true;
     short sdx = mousePointerX - scrCtX + dx;
     short sdy = mousePointerY - scrCtY + dy;
@@ -3408,4 +3426,9 @@ void Mainwindow::on_toolButton_setRangeUnit_clicked()
 
     }
     this->setDistanceUnit(config.getMeasUnit());
+}
+
+void Mainwindow::on_toolButton_zoom_AR_clicked()
+{
+    processing->radarData->drawZoomAR();
 }

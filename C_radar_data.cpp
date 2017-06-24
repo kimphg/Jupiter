@@ -22,7 +22,8 @@ unsigned char dataBuff[RADAR_DATA_HEADER_MAX + RADAR_DATA_MAX_SIZE];
 QFile *exp_file = NULL;
 
 typedef std::queue<int> aziQueue;
-aziQueue aziToProcess;// TODO:lap hang cho xu ly
+aziQueue aziToProcess;//hàng chờ các frame cần xử lý
+
 typedef struct  {
     //processing dataaziQueue
     unsigned char level [MAX_AZIR][RAD_M_PULSE_RES];
@@ -360,8 +361,29 @@ void track_t::setManual(bool isMan)
 
 
 // ---------------Data processing class------------------------
+QImage *imgAR;
+
+void C_radar_data::initZoomAR(int a0,int r0)
+{
+
+    img_zoom_ar = new QImage(ZOOM_SIZE+1,ZOOM_SIZE+1,QImage::Format_ARGB32);
+    zoom_ar_scale_a = MAX_AZIR/36.0/ZOOM_SIZE;
+    zoom_ar_scale_r = 1;
+    zoom_ar_a0 = a0;
+    zoom_ar_a1 = zoom_ar_a0+img_zoom_ar->height()*zoom_ar_scale_a;
+    zoom_ar_r0 = r0;
+    zoom_ar_r1 = zoom_ar_r0+img_zoom_ar->width();
+}
 C_radar_data::C_radar_data()
 {
+    imgMode = VALUE_ORANGE_BLUE;
+    brightness = 1.5;
+    for(int i=0;i<255;i++)
+    {
+
+        colorTable.push_back((getColor(i,0,0)));
+    }
+
     img_histogram=new QImage(257,101,QImage::Format_Mono);
     img_histogram->fill(0);
     img_ppi = new QImage(DISPLAY_RES*2+1,DISPLAY_RES*2+1,QImage::Format_ARGB32);
@@ -369,10 +391,11 @@ C_radar_data::C_radar_data()
     img_spectre = new QImage(16,256,QImage::Format_Mono);
     img_spectre->fill(0);
     img_zoom_ppi = new QImage(ZOOM_SIZE+1,ZOOM_SIZE+1,QImage::Format_ARGB32);
+    initZoomAR(0,0);
     img_ppi->fill(Qt::transparent);
     isSelfRotation = false;
     isProcessing = true;
-    imgMode = VALUE_ORANGE_BLUE;
+
     isManualTune = false;
     isVtorih = true;
     rgs_auto = false;
@@ -1053,12 +1076,12 @@ void C_radar_data::ProcessData(unsigned short azi)
             data_mem.detect[azi][r_pos] = !cutoff;
             if(data_mem.detect[azi][r_pos]&&(!init_time))
             {
-                //procPix(azi,r_pos);
-                if(data_mem.terrain[azi][r_pos]<TERRAIN_MAX)data_mem.terrain[azi][r_pos]++;
+                procPix(azi,r_pos);
+                //if(data_mem.terrain[azi][r_pos]<TERRAIN_MAX)data_mem.terrain[azi][r_pos]++;
             }
             else
             {
-                if(data_mem.terrain[azi][r_pos])data_mem.terrain[azi][r_pos]--;
+                //if(data_mem.terrain[azi][r_pos])data_mem.terrain[azi][r_pos]--;
             }
 
         }
@@ -1131,6 +1154,7 @@ void C_radar_data::ProcessDataFrame()
         {
             rotDir  = Left;
             arcMaxAzi = curAzir;
+            resetData();
 
         }
     }
@@ -1309,8 +1333,8 @@ void C_radar_data::procPLot(plot_t* mPlot)
         float ctR = (float)mPlot->sumR/(float)mPlot->size;
         if(ctA >= MAX_AZIR)ctA -= MAX_AZIR;
         newobject.size = mPlot->size;
-        newobject.azMax = mPlot->maxA;
-        newobject.azMin = mPlot->minA;
+        newobject.azMax = mPlot->lastA;
+        newobject.azMin = mPlot->firstA;
         //newobject.rMax = mPlot->maxR;
         //newobject.rMin = mPlot->minR;
         //short dr = mPlot->maxR-mPlot->minR;
@@ -1331,7 +1355,7 @@ void C_radar_data::procPLot(plot_t* mPlot)
         //            }
 
         newobject.dopler = mPlot->dopler;
-        newobject.terrain = data_mem.terrain[short(ctA)][short(ctR)];
+        //newobject.terrain = data_mem.terrain[short(ctA)][short(ctR)];
         newobject.az   = ctA/MAX_AZIR*PI_NHAN2+trueN;
         if(newobject.az>PI_NHAN2)newobject.az-=PI_NHAN2;
         newobject.rg   = ctR;
@@ -1373,7 +1397,7 @@ void C_radar_data::procTracks(unsigned short curA)
     {
         if(plot_list.at(i).size)
         {
-            if((plot_list.at(i).maxA!=curA)&&(plot_list.at(i).maxA!=pr_curA))
+            if((plot_list.at(i).lastA!=curA)&&(plot_list.at(i).lastA!=pr_curA))
             {
                 procPLot(&plot_list.at(i));
                 plot_list.at(i).size =0;
@@ -1661,7 +1685,6 @@ void C_radar_data::procPix(short proc_azi,short range)//_______signal detected, 
                      )
     {
         plotIndex = data_mem.plotIndex[proc_azi][range-1];
-
     }
     else if(data_mem.detect[pr_proc_azi][range-1]
             &&(data_mem.dopler[pr_proc_azi][range-1]==dopler_0
@@ -1688,23 +1711,21 @@ void C_radar_data::procPix(short proc_azi,short range)//_______signal detected, 
         }
         data_mem.plotIndex[proc_azi][range] = plotIndex;
         plot_list.at(plotIndex).size++;
-        if(proc_azi<plot_list.at(plotIndex).minA){
+        if(proc_azi<plot_list.at(plotIndex).firstA){
             plot_list.at(plotIndex).sumA    +=  proc_azi + MAX_AZIR;
-            plot_list.at(plotIndex).maxA    =  proc_azi ;
+            plot_list.at(plotIndex).lastA    =  proc_azi ;
         }else
         {
             plot_list.at(plotIndex).sumA    +=  proc_azi;
-            plot_list.at(plotIndex).maxA    =  proc_azi;
+            plot_list.at(plotIndex).lastA    =  proc_azi;
         }
         if(plot_list.at(plotIndex).maxR<range)plot_list.at(plotIndex).maxR=range;
         if(plot_list.at(plotIndex).minR>range)plot_list.at(plotIndex).minR=range;
         plot_list.at(plotIndex).sumR    +=  range;
-        plot_list.at(plotIndex).sumTer  +=  data_mem.terrain[proc_azi][range];
+        //plot_list.at(plotIndex).sumTer  +=  data_mem.terrain[proc_azi][range];
         // get max dopler and max level of this plot
         if(plot_list.at(plotIndex).maxLevel<data_mem.level[proc_azi][range])
         {
-            //plot_list.at(plotIndex).ctA = proc_azi;
-            //plot_list.at(plotIndex).ctR = range;
             plot_list.at(plotIndex).maxLevel = data_mem.level[proc_azi][range];
             plot_list.at(plotIndex).dopler = data_mem.dopler[proc_azi][range];
         }
@@ -1713,7 +1734,7 @@ void C_radar_data::procPix(short proc_azi,short range)//_______signal detected, 
     {
 
         plot_t         new_plot;
-        new_plot.maxA =  new_plot.minA  = proc_azi;
+        new_plot.lastA =  new_plot.firstA  = proc_azi;
         //new_plot.ctA = proc_azi;
         //new_plot.ctR = range;
         new_plot.maxLevel = data_mem.level[proc_azi][range];
@@ -1721,7 +1742,7 @@ void C_radar_data::procPix(short proc_azi,short range)//_______signal detected, 
         //new_mark.minR = new_mark.maxR = range;
         new_plot.size =  1;
 
-        new_plot.sumTer = data_mem.terrain[proc_azi][range];
+        //.sumTer = data_mem.terrain[proc_azi][range];
         new_plot.sumA =  proc_azi;
         new_plot.sumR =  range;
         new_plot.maxR = range;
@@ -1743,7 +1764,6 @@ void C_radar_data::procPix(short proc_azi,short range)//_______signal detected, 
         }
         if(listFull)
         {
-            //if(plot_list.size()>99)return;
             plot_list.push_back(new_plot);
             data_mem.plotIndex[proc_azi][range]  = plot_list.size()-1;
         }
@@ -1779,13 +1799,18 @@ short zoomXmax,zoomYmax,zoomXmin,zoomYmin;
 short zoomCenterX=DISPLAY_RES,zoomCenterY=DISPLAY_RES;
 void C_radar_data::updateZoomRect(float ctx, float cty)
 {
-    ctx*=4/scale_ppi;
-    cty*=4/scale_ppi;
-    zoomXmax = ctx+ZOOM_SIZE/2;
-    zoomYmax = cty+ZOOM_SIZE/2;
-    zoomXmin = ctx-ZOOM_SIZE/2;
-    zoomYmin = cty-ZOOM_SIZE/2;
+
+    zoomXmax = ctx*4.0/scale_ppi+ZOOM_SIZE/2;
+    zoomYmax = cty*4.0/scale_ppi+ZOOM_SIZE/2;
+    zoomXmin = ctx*4.0/scale_ppi-ZOOM_SIZE/2;
+    zoomYmin = cty*4.0/scale_ppi-ZOOM_SIZE/2;
     raw_map_init_zoom();
+    double a0,r0 = sqrt(ctx*ctx+cty*cty);
+    a0 = acos(ctx/r0)-trueN;
+    r0/=scale_ppi;
+    if(a0<0)a0+=PI_NHAN2;
+
+    initZoomAR(a0/PI_NHAN2*MAX_AZIR,r0/scale_ppi);
 
 }
 
@@ -1795,7 +1820,7 @@ void C_radar_data::setAutorgs(bool aut)
     {
         rgs_auto = true;
         krain_auto = 0.3;
-        kgain_auto  = 2.5;
+        kgain_auto  = 3;
         ksea_auto = 0;
     }else
     {
@@ -1859,7 +1884,7 @@ void C_radar_data::resetData()
     memset(data_mem.plotIndex,  0,dataLen);
     memset(data_mem.hot,        0,dataLen);
     memset(data_mem.hot_disp,   0,dataLen);
-    memset(data_mem.terrain,    TERRAIN_INIT,dataLen);
+    //memset(data_mem.terrain,    TERRAIN_INIT,dataLen);
     //memset(data_mem.rainLevel,  0,dataLen);
     resetSled();
     init_time = 3;
@@ -1911,6 +1936,16 @@ void C_radar_data::setScaleZoom(float scale)
     //updateZoomRect();
 }
 
+void C_radar_data::drawZoomAR()
+{
+
+      //memcpy(imgAR->bits(),(unsigned char *)&data_mem.level[0][0],MAX_AZIR*RAD_M_PULSE_RES);
+       imgAR = new QImage((unsigned char *)&data_mem.level[0][0],RAD_M_PULSE_RES,MAX_AZIR,QImage::Format_Indexed8);
+        imgAR->setColorTable(colorTable);
+      QRect rect(zoom_ar_a0, zoom_ar_r0, 225, 225);
+      *img_zoom_ar = imgAR->copy(rect);//.convertToFormat(QImage::Format_Indexed8,colorTable,Qt::ColorOnly);
+
+}
 void C_radar_data::drawSgnZoom(short azi_draw, short r_pos)
 {
     unsigned char value    = data_mem.display_ray_zoom[r_pos][0];
@@ -1969,7 +2004,6 @@ uint C_radar_data::getColor(unsigned char pvalue,unsigned char dopler,unsigned c
     {
         value = 0xff;
     }
-
     unsigned char alpha;
     unsigned char red   = 0;
     unsigned char green = 0;
