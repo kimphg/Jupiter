@@ -19,8 +19,8 @@
 #ifndef CONST_NM
     #define CONST_NM 1.852f// he so chuyen doi tu km sang hai ly
 #endif
-#define PI_NHAN2                    6.2831853072f
-#define PI_CHIA2                    1.5707963268f
+#define PI_NHAN2                    6.2831853072
+#define PI_CHIA2                    1.5707963268
 #ifndef PI
    #define PI                       3.14159265358979323846
 #endif
@@ -33,11 +33,11 @@
 #define RAD_S_PULSE_RES             256
 #define DISPLAY_RES                 768
 #define RAD_FULL_RES                1792
-#define SIGNAL_SCALE_7              0.2109890 //215.38461538461538461538461538461
-#define SIGNAL_SCALE_6              0.180847724//184.61538461538461538461538461538
-#define SIGNAL_SCALE_5              0.15070644 //153.84615384615384615384615384615
-#define SIGNAL_SCALE_4              0.12056514914 // 123.07692307692307692307692307692
-#define SIGNAL_SCALE_3              0.09042386185 //92.307692307692307692307692307692
+#define SIGNAL_SCALE_7              0.24013 //215.38461538461538461538461538461
+#define SIGNAL_SCALE_6              0.24013//184.61538461538461538461538461538
+#define SIGNAL_SCALE_5              0.24013 //153.84615384615384615384615384615
+#define SIGNAL_SCALE_4              0.24013 // 123.07692307692307692307692307692
+#define SIGNAL_SCALE_3              0.12056514914 //92.307692307692307692307692307692
 #define SIGNAL_SCALE_2              0.06028257456 //61.538461538461538461538461538462
 #define SIGNAL_SCALE_1              0.03014128728 //30.769230769230769230769230769231
 #define SIGNAL_SCALE_0              0.015070644f //15.384615384615384615384615384615
@@ -324,7 +324,7 @@ private:
     void decodeData(int azi);
     void initZoomAR(int a0, int r0);
 public:
-    void drawZoomAR();
+    void drawZoomAR(int a0, int r0);
 };
 
 //extern C_radar_data radarData;

@@ -73,7 +73,9 @@ public:
     void setIsXuLyThuCap(bool value);
 
     double getCenterAzi() const;
-
+    double newAzi;
+    unsigned int mazi;
+    unsigned int realazi1,realazi2;
 private:
     bool    isDrawn;
     bool isXuLyThuCap;

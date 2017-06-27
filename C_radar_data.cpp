@@ -361,7 +361,7 @@ void track_t::setManual(bool isMan)
 
 
 // ---------------Data processing class------------------------
-QImage *imgAR;
+//QImage *imgAR;
 
 void C_radar_data::initZoomAR(int a0,int r0)
 {
@@ -488,9 +488,9 @@ void C_radar_data::setProcessing(bool onOff)
 
 bool C_radar_data::checkFeedback(unsigned char *command)
 {
-    //for (short i=0;i<8;i++)
-    //{if(command[i]!=command_feedback[i])return false;}
-    //memset(&command_feedback[0],0,8);
+    for (short i=0;i<8;i++)
+    {if(command[i]!=command_feedback[i])return false;}
+    memset(&command_feedback[0],0,8);
     return true;
 }
 
@@ -1443,6 +1443,7 @@ void C_radar_data::procTracks(unsigned short curA)
 }
 void C_radar_data::kmxyToPolarDeg(double x, double y, double *azi, double *range)
 {
+    if(y==0)return;
     *azi = atanf(x/y);
     if(y<0)*azi+=PI;
     if(*azi<0)*azi += PI_NHAN2;
@@ -1452,6 +1453,7 @@ void C_radar_data::kmxyToPolarDeg(double x, double y, double *azi, double *range
 }
 void C_radar_data::addTrackManual(double x,double y)
 {
+    if(y==0)return;
     float azi = atanf(x/y);//tinh azi,range
     if(y<0)azi+=PI;
     if(azi<0)azi += PI_NHAN2;
@@ -1635,7 +1637,7 @@ bool C_radar_data::procObjectManual(object_t* pObject)// !!!
 {
 
     short trackId = -1;
-    short max_length = 0;
+    ushort max_length = 0;
     for(unsigned short i=0;i<mTrackList.size();i++)
     {
         if(!mTrackList.at(i).isManual)continue;
@@ -1797,20 +1799,23 @@ void C_radar_data::setIsSharpEye(bool value)
 }
 short zoomXmax,zoomYmax,zoomXmin,zoomYmin;
 short zoomCenterX=DISPLAY_RES,zoomCenterY=DISPLAY_RES;
-void C_radar_data::updateZoomRect(float ctx, float cty)
+void C_radar_data::updateZoomRect(float ctx, float cty)// unit pixels
 {
 
-    zoomXmax = ctx*4.0/scale_ppi+ZOOM_SIZE/2;
+    /*zoomXmax = ctx*4.0/scale_ppi+ZOOM_SIZE/2;
     zoomYmax = cty*4.0/scale_ppi+ZOOM_SIZE/2;
     zoomXmin = ctx*4.0/scale_ppi-ZOOM_SIZE/2;
     zoomYmin = cty*4.0/scale_ppi-ZOOM_SIZE/2;
-    raw_map_init_zoom();
+    raw_map_init_zoom();*/
     double a0,r0 = sqrt(ctx*ctx+cty*cty);
-    a0 = acos(ctx/r0)-trueN;
+    if(cty==0)return;
+    a0 = atan(ctx/cty)-trueN;
+    if(cty<0)a0+=PI;
+    if(a0<0)a0 += PI_NHAN2;
+    if(a0>PI_NHAN2)a0-=PI_NHAN2;
+    a0=a0/PI_NHAN2*MAX_AZIR;
     r0/=scale_ppi;
-    if(a0<0)a0+=PI_NHAN2;
-
-    initZoomAR(a0/PI_NHAN2*MAX_AZIR,r0/scale_ppi);
+    drawZoomAR(a0,r0);
 
 }
 
@@ -1936,13 +1941,14 @@ void C_radar_data::setScaleZoom(float scale)
     //updateZoomRect();
 }
 
-void C_radar_data::drawZoomAR()
+void C_radar_data::drawZoomAR(int a0,int r0)
 {
-
+    zoom_ar_a0 = a0;
+    zoom_ar_r0 = r0;
       //memcpy(imgAR->bits(),(unsigned char *)&data_mem.level[0][0],MAX_AZIR*RAD_M_PULSE_RES);
-       imgAR = new QImage((unsigned char *)&data_mem.level[0][0],RAD_M_PULSE_RES,MAX_AZIR,QImage::Format_Indexed8);
+      QImage* imgAR = new QImage((unsigned char *)&data_mem.level[0][0],RAD_M_PULSE_RES,MAX_AZIR,QImage::Format_Indexed8);
         imgAR->setColorTable(colorTable);
-      QRect rect(zoom_ar_a0, zoom_ar_r0, 225, 225);
+      QRect rect(zoom_ar_r0, zoom_ar_a0, 225, 225);
       *img_zoom_ar = imgAR->copy(rect);//.convertToFormat(QImage::Format_Indexed8,colorTable,Qt::ColorOnly);
 
 }

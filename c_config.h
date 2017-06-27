@@ -37,7 +37,7 @@ public:
     //void setMapFilename(const char* filename);
 
     float getTrueN() const;
-    void setTrueN(float value);
+    void setTrueN(float value, float value2);
 
     double getMapOpacity() const;
     void setMapOpacity(double value);
@@ -48,6 +48,8 @@ public:
     MeasuringUnit getMeasUnit();
     void setMeasUnit(const MeasuringUnit &value);
 
+    double getTrueN2() const;
+
 private:
     double mLat;
     double mLon;
@@ -55,7 +57,7 @@ private:
     char mapEnabled;
     char cfarThresh;
     char codeType;
-    double trueN;
+    double trueN,trueN2;
     double scale;
     double mapOpacity;
     int rangeView;

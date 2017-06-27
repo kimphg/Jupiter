@@ -21,6 +21,7 @@ void CConfig::SaveToFile()
     radar_config->SetAttribute("mLong",mLon);
     radar_config->SetAttribute("scale",scale);
     radar_config->SetAttribute("trueN",trueN);
+    radar_config->SetAttribute("trueN2",trueN2);
     radar_config->SetAttribute("rangeView",rangeView);
     radar_config->SetAttribute("mapOpacity",mapOpacity);
     radar_config->SetAttribute("nmkm",nmkm);
@@ -61,6 +62,7 @@ void CConfig::setDefault()
     mLon      = DEFAULT_LONG;//106.87;
     scale      = SCALE_MIN;
     trueN      = 0;
+    trueN2      = 0;
     dxView     = 0;
     dyView     = 0;
     mapEnabled = false;
@@ -86,6 +88,7 @@ bool CConfig::LoadFromFile()
         pParm->QueryDoubleAttribute("mLong",&mLon);
         pParm->QueryDoubleAttribute("scale",&scale);
         pParm->QueryDoubleAttribute("trueN",&trueN);
+        pParm->QueryDoubleAttribute("trueN2",&trueN2);
         pParm->QueryDoubleAttribute("mapOpacity",&mapOpacity);
         pParm->QueryIntAttribute("rangeView",&rangeView);
         pParm->QueryIntAttribute("nmkm",&nmkm);
@@ -137,6 +140,11 @@ void CConfig::setMeasUnit(const MeasuringUnit &value)
     }
 }
 
+double CConfig::getTrueN2() const
+{
+    return trueN2;
+}
+
 double CConfig::getLon() const
 {
     return mLon;
@@ -155,9 +163,10 @@ float CConfig::getTrueN() const
     return trueN;
 }
 
-void CConfig::setTrueN(float value)
+void CConfig::setTrueN(float value,float value2)
 {
     trueN = value;
+    trueN2 = value2;
     SaveToFile();
 }
 

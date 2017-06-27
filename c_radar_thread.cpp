@@ -149,14 +149,16 @@ void dataProcessingThread::processSerialData(QByteArray inputData)
     }
     if((data[0]==0xff))
     {
-        unsigned int mazi = (data[1]<<16) + (data[2]<<8)+(data[3]);
+         mazi = (data[1]<<16) + (data[2]<<8)+(data[3]);
+         realazi1 = (data[4]);
+         realazi2 = (data[5]);
         //mazi=mazi>>1;
         //centerAzi = mazi*360.0/1024.0*3.0;
         //while(centerAzi>=360)centerAzi-=360;
-        double newAzi = mazi*360.0/262144.0*3.0;
+         newAzi = mazi*360.0/262144.0*3.0;
         while(newAzi>=360)newAzi-=360;
         centerAzi = newAzi;
-        printf("\ngoc:%f len:%d",centerAzi,len);
+        //printf("\ngoc:%f len:%d",centerAzi,len);
 //        if(abs(newAzi-centerAzi)>180)
 //        {
 //            if(centerAzi>newAzi)
@@ -178,20 +180,7 @@ void dataProcessingThread::processSerialData(QByteArray inputData)
 //        }
         //printf("centerAzi:%f\n",centerAzi);
     }
-    if((data[0]==0xfa)&&(data[1]==0xfb)&&(data[2]==0x01)&&len>=5)
-    {
-        //            for(int i = 0;i<=responseData.length()-5;i++)
-        //            {
-        //            if((*(data+i)==0xfa)&&(*(data+i+1)==0xfb)&&(*(data+i+2)==0x01))
-        //            {
-        unsigned short mazi = (data[3]<<8) + data[4];
-        centerAzi = mazi*360.0/1024.0*3.0;
-        while(centerAzi>=360)centerAzi-=360;
-        //            }
 
-        //            }
-
-    }
 }
 void dataProcessingThread::PushCommandQueue()
 {
@@ -458,6 +447,21 @@ void dataProcessingThread::radTxOn()
     command.bytes[2] = 0x01;
     command.bytes[3] = 0x0f;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //dttt 192
+    command.bytes[0] = 0x14;
+    command.bytes[2] = 0xff;
+    command.bytes[3] = 0x02;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //dttt 192
+    command.bytes[0] = 0x01;
+    command.bytes[2] = 0x02;
+    command.bytes[3] = 0x07;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //dttt 192
+    command.bytes[0] = 0x15;
+    command.bytes[2] = 0x01;
+    command.bytes[3] = 0x00;
+    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     //set resolution 60m
     /*command.bytes[0] = 0x08;
     command.bytes[2] = 0x02;
@@ -524,13 +528,13 @@ void dataProcessingThread::radTxOff()
     command.bytes[5] = 0x00;
     command.bytes[6] = 0x00;
     command.bytes[7] = 0x00;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     command.bytes[3] = 0x06;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     command.bytes[2] = 0x02;
-    command.bytes[2] = 0x00;
+    command.bytes[3] = 0x00;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);

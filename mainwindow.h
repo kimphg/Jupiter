@@ -320,7 +320,7 @@ private slots:
 
     void on_toolButton_setRangeUnit_clicked();
 
-    void on_toolButton_zoom_AR_clicked();
+
 
 private:
     void initActionsConnections();
@@ -336,6 +336,7 @@ private:
     bool CalcAziContour(double theta, QPoint *point0, QPoint *point1, QPoint *point2, int d);
     void DisplayClkAdc(int clk);
     void setDistanceUnit(MeasuringUnit unit);
+    void keyReleaseEvent(QKeyEvent *event);
 };
 
 #endif // MAINWINDOW_H
