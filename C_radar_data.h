@@ -215,8 +215,9 @@ public:
     unsigned char           overload, init_time, clk_adc;
     float                   scale_ppi,scale_zoom_ppi;
     short                   curAzir,arcMinAzi,arcMaxAzi,arcWidth;
-    void                    updateZoomRect(float ctx, float cty);
-    unsigned short          sn_stat;
+    void                    updateZoomRectAR(float ctx, float cty);
+    void                    updateZoomRectXY(float ctx, float cty);
+    unsigned short          sn_stat,chu_ky,tb_tap;
     bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled,filter2of3;
     bool                    isManualTune,rgs_auto,bo_bang_0,data_export;
     bool                    isSelfRotation;
@@ -238,7 +239,7 @@ public:
     unsigned short          range_max;
     QImage                  *img_ppi,*img_RAmp,*img_zoom_ppi,*img_histogram,*img_spectre,*img_zoom_ar;
     int                     zoom_ar_w,zoom_ar_h,zoom_ar_a0,zoom_ar_r0,zoom_ar_a1,zoom_ar_r1;
-    double                  zoom_ar_scale_a,zoom_ar_scale_r;
+    double                  zoom_ar_size_a,zoom_ar_size_r;
     imgDrawMode             imgMode;
     void deleteTrack(ushort trackNum);
     void drawRamp();
@@ -322,9 +323,10 @@ private:
     //FILE *pFile;
 
     void decodeData(int azi);
-    void initZoomAR(int a0, int r0);
+    //void initZoomAR(int a0, int r0);
+    bool DrawZoomAR(int a,int r,short val,short dopler,short sled);
 public:
-    void drawZoomAR(int a0, int r0);
+    //void drawZoomAR();
 };
 
 //extern C_radar_data radarData;

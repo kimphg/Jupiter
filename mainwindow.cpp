@@ -297,10 +297,7 @@ void Mainwindow::keyPressEvent(QKeyEvent *event)
         short   mx=this->mapFromGlobal(QCursor::pos()).x();
         short   my=this->mapFromGlobal(QCursor::pos()).y();
         if(!isInsideViewZone(mx,my))return;
-        mousePointerX = (mx);
-        mousePointerY = (my);
-        pRadar->updateZoomRect((mousePointerX - scrCtX+dx),-(mousePointerY - scrCtY+dy));
-        //pRadar->drawZoomAR();
+        pRadar->updateZoomRectAR((mx - scrCtX+dx),-(my - scrCtY+dy));
     }
 
 }
@@ -1127,7 +1124,8 @@ void Mainwindow::DrawZoomArea(QPainter* p)
         p->setBrush(QBrush(Qt::black));
         p->drawRect(rect);
         //p->drawImage(rect,*pRadar->img_zoom_ppi,pRadar->img_zoom_ppi->rect());
-        p->drawImage(rect,*pRadar->img_zoom_ar,pRadar->img_zoom_ar->rect());
+
+        p->drawImage(rect,pRadar->img_zoom_ar->scaled(rect.width(),rect.height()),pRadar->img_zoom_ar->rect());//todo:resize
 
     }
     else if(ui->tabWidget_2->currentIndex()==3)
@@ -1933,7 +1931,8 @@ void Mainwindow::sync1S()//period 1 second
     default:
         break;
     }
-
+    ui->label_debug_2->setText("Chu ky:"+QString::number(pRadar->chu_ky)
+                               +"TB tap:"+QString::number(pRadar->tb_tap));
     switch((pRadar->sn_stat>>8)&0x07)
     {
     case 4:
@@ -3455,3 +3454,57 @@ void Mainwindow::on_toolButton_setRangeUnit_clicked()
 }
 
 
+
+void Mainwindow::on_toolButton_tx_2_clicked()
+{
+    sendToRadarHS("aaab010222474e");
+    sendToRadarHS("aaab010222474e");
+    sendToRadarHS("aaab010222474e");
+
+}
+
+void Mainwindow::on_toolButton_tx_3_clicked()
+{
+    sendToRadarHS("aaab010221484e");
+    sendToRadarHS("aaab010221484e");
+    sendToRadarHS("aaab010221484e");
+}
+
+void Mainwindow::on_toolButton_tx_4_clicked()
+{
+    sendToRadarHS("aaab010221b14e");
+    sendToRadarHS("aaab010221b14e");
+    sendToRadarHS("aaab010221b14e");
+}
+
+void Mainwindow::on_toolButton_tx_5_clicked()
+{
+    sendToRadarHS("aaab010222884e");
+    sendToRadarHS("aaab010222884e");
+    sendToRadarHS("aaab010222884e");
+}
+
+void Mainwindow::on_toolButton_tx_6_clicked()
+{
+    sendToRadarHS("aaab010222ce4e");
+    sendToRadarHS("aaab010222ce4e");
+    sendToRadarHS("aaab010222ce4e");
+}
+
+void Mainwindow::on_toolButton_tx_7_clicked()
+{
+    sendToRadarHS("aaab0102230f4e");
+    sendToRadarHS("aaab0102230f4e");
+    sendToRadarHS("aaab0102230f4e");
+}
+
+void Mainwindow::on_toolButton_gps_update_auto_clicked()
+{
+    double lat,lon;
+    if(processing->getPosition(&lat,&lon))
+    {
+        config.setLat(lat);
+        config.setLon(lon);
+    }
+    DrawMap();
+}

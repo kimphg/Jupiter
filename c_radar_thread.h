@@ -3,6 +3,7 @@
 #include <QThread>
 #include <queue>
 #include <QTimer>
+#include <QGeoPositionInfo>
 #include "c_radar_data.h"
 #include "c_arpa_data.h"
 #include <vector>
@@ -76,6 +77,7 @@ public:
     double newAzi;
     unsigned int mazi;
     unsigned int realazi1,realazi2;
+    bool getPosition(double *lat, double *lon);
 private:
     bool    isDrawn;
     bool isXuLyThuCap;
@@ -98,6 +100,7 @@ private slots:
     void processARPAData();
     void playbackRadarData();
     void SerialDataRead();
+    void gpsupdate(QGeoPositionInfo geo);
 public slots:
     void StopProcessing();
 };

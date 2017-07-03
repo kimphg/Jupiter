@@ -1,11 +1,12 @@
 #include "c_radar_thread.h"
 #define MAX_IREC 500
-
+//#include <QGeoCoordinate>
+#include <QNmeaPositionInfoSource>
 DataBuff dataB[MAX_IREC];
 short iRec=0,iRead=0;
 bool *pIsDrawn;
 bool *pIsPlaying;
-
+QNmeaPositionInfoSource *geoLocation = NULL;
 //QTimer readDataBuff;
 dataProcessingThread::~dataProcessingThread()
 {
@@ -119,18 +120,53 @@ void dataProcessingThread::init()
             newport->open(QIODevice::ReadWrite);
             connect(newport, &QSerialPort::readyRead, this, &dataProcessingThread::SerialDataRead);
             serialPorts.push_back(newport);
+
         }
     }
     printf("Serial available:%d\n",portlist.size());
 }
+bool  dataProcessingThread::getPosition(double *lat,double *lon)
+{
+    if(!geoLocation)return false;
+
+    QGeoPositionInfo location = geoLocation->lastKnownPosition();
+    *lat = location.coordinate().latitude();
+    *lon = location.coordinate().longitude();
+    return true;
+}
+void dataProcessingThread::gpsupdate(QGeoPositionInfo geo)
+{
+    //geo.HorizontalAccuracy
+    return;
+}
 void dataProcessingThread::SerialDataRead()
 {
-    for(uint i = 0;i<serialPorts.size();i++)
+    for(std::vector<QSerialPort*>::iterator it = serialPorts.begin() ; it != serialPorts.end(); ++it)
     {
-        QSerialPort *newport = serialPorts.at(i);
 
-        QByteArray responseData = newport->readAll();
 
+        QByteArray responseData = (*it)->readAll();
+        if(!geoLocation)
+        {
+            if(responseData.contains("$GP"))
+            {
+                geoLocation = new QNmeaPositionInfoSource(QNmeaPositionInfoSource::RealTimeMode,this);
+                QString nameport( (*it)->portName() );
+                (*it)->close();
+                serialPorts.erase(it);
+                QSerialPort *newport = new QSerialPort();
+                newport->setPortName(nameport);
+                newport->setBaudRate(QSerialPort::Baud9600);
+                newport->open(QIODevice::ReadWrite);
+                geoLocation->setDevice(newport);
+                geoLocation->startUpdates();
+//                //connect(&geoLocation, QNmeaPositionInfoSource::positionUpdated(), this, &dataProcessingThread::gpsupdate);
+                connect(geoLocation, SIGNAL(positionUpdated(QGeoPositionInfo)),
+                                this, SLOT(gpsupdate(QGeoPositionInfo)));
+                return;
+
+            }
+        }
         if(responseData.size())
         {
             processSerialData(responseData);
@@ -140,6 +176,8 @@ void dataProcessingThread::SerialDataRead()
 }
 void dataProcessingThread::processSerialData(QByteArray inputData)
 {
+
+
     unsigned short len = inputData.length();
     unsigned char* data = (unsigned char*)inputData.data();
     if(isRecording)
@@ -421,9 +459,9 @@ void dataProcessingThread::radRequestTemp( char index)
 
 void dataProcessingThread::radTxOn()
 {
-    RadarCommand command;
+    unsigned char bytes[8]={0,0,0,0,0,0,0,0};
     //rotation on
-    command.bytes[1] = 0xab;
+    bytes[1] = 0xab;
     //setRotationSpeed(3);
 //    //tx off
 //    command.bytes[0] = 0xaa;
@@ -432,36 +470,47 @@ void dataProcessingThread::radTxOn()
 //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
 
     //thich nghi
-    command.bytes[0] = 0xaa;
-    command.bytes[2] = 0x02;
-    command.bytes[3] = 0x01;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    bytes[0] = 0xaa;
+    bytes[2] = 0x02;
+    bytes[3] = 0x01;
+    sendCommand(&bytes[0],7);
+    sendCommand(&bytes[0],7);
+    sendCommand(&bytes[0],7);
+    //if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     //do trong
-    command.bytes[0] = 0xaa;
-    command.bytes[2] = 0x00;
-    command.bytes[3] = 0x07;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    bytes[0] = 0xaa;
+    bytes[2] = 0x00;
+    bytes[3] = 0x07;
+    sendCommand(&bytes[0],7);
+    sendCommand(&bytes[0],7);
+    sendCommand(&bytes[0],7);
+    //if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
 //0x18 - 0xab - 0x01 - 0x0f
     //dttt 192
-    command.bytes[0] = 0x18;
-    command.bytes[2] = 0x01;
-    command.bytes[3] = 0x0f;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    bytes[0] = 0x18;
+    bytes[2] = 0x01;
+    bytes[3] = 0x0f;
+    sendCommand(&bytes[0],7);
+
+    //if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     //dttt 192
-    command.bytes[0] = 0x14;
-    command.bytes[2] = 0xff;
-    command.bytes[3] = 0x02;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    bytes[0] = 0x14;
+    bytes[2] = 0xff;
+    bytes[3] = 0x02;
+    sendCommand(&bytes[0],7);
+    //if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     //dttt 192
-    command.bytes[0] = 0x01;
-    command.bytes[2] = 0x02;
-    command.bytes[3] = 0x07;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    bytes[0] = 0x01;
+    bytes[2] = 0x02;
+    bytes[3] = 0x07;
+    sendCommand(&bytes[0],7);
+    //if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     //dttt 192
-    command.bytes[0] = 0x15;
-    command.bytes[2] = 0x01;
-    command.bytes[3] = 0x00;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    bytes[0] = 0x15;
+    bytes[2] = 0x01;
+    bytes[3] = 0x00;
+    sendCommand(&bytes[0],7);
+    //if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
     //set resolution 60m
     /*command.bytes[0] = 0x08;
     command.bytes[2] = 0x02;
@@ -518,26 +567,20 @@ void dataProcessingThread::radTxOn()
 
 void dataProcessingThread::radTxOff()
 {
-    RadarCommand command;
-    //rotation on
-    command.bytes[0] = 0xaa;
-    command.bytes[1] = 0xab;
-    command.bytes[2] = 0x00;
-    command.bytes[3] = 0x00;
-    command.bytes[4] = 0x00;
-    command.bytes[5] = 0x00;
-    command.bytes[6] = 0x00;
-    command.bytes[7] = 0x00;
+    //RadarCommand command;
+    unsigned char bytes[8]={0xaa,0xab,0,0,0,0,0,0};
+
     //if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    command.bytes[3] = 0x06;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    command.bytes[2] = 0x02;
-    command.bytes[3] = 0x00;
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+
+    bytes[3] = 0x06;
+    sendCommand(&bytes[0],7);
+    sendCommand(&bytes[0],7);
+    sendCommand(&bytes[0],7);
+    bytes[2] = 0x02;
+    bytes[3] = 0x00;
+    sendCommand(&bytes[0],7);
+    sendCommand(&bytes[0],7);
+    sendCommand(&bytes[0],7);
 //    if(1)
 //    {
 //        QFile logFile;

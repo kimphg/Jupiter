@@ -322,6 +322,20 @@ private slots:
 
 
 
+    void on_toolButton_tx_2_clicked();
+
+    void on_toolButton_tx_3_clicked();
+
+    void on_toolButton_tx_4_clicked();
+
+    void on_toolButton_tx_5_clicked();
+
+    void on_toolButton_tx_6_clicked();
+
+    void on_toolButton_tx_7_clicked();
+
+    void on_toolButton_gps_update_auto_clicked();
+
 private:
     void initActionsConnections();
     void initGraphicView();
