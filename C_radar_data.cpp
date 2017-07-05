@@ -380,7 +380,7 @@ C_radar_data::C_radar_data()
     img_spectre = new QImage(16,256,QImage::Format_Mono);
     img_spectre->fill(0);
     img_zoom_ppi = new QImage(ZOOM_SIZE+1,ZOOM_SIZE+1,QImage::Format_ARGB32);
-    img_zoom_ar = new QImage(550,550,QImage::Format_ARGB32);
+    img_zoom_ar = 0;
     //img_zoom_ar->setColorTable(colorTable);
     img_ppi->fill(Qt::transparent);
     isSelfRotation = false;
@@ -421,7 +421,7 @@ C_radar_data::C_radar_data()
     setScalePPI(1);
     resetData();
     setScaleZoom(4);
-    updateZoomRectAR(0,0);
+    //setZoomRectAR(0,0);
 }
 C_radar_data::~C_radar_data()
 {
@@ -495,7 +495,7 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
     short py = data_mem.y[azi_draw][r_pos];
     if(px<=0||py<=0)return;
     short pSize = 1;
-    if(DrawZoomAR(azi_draw/3.0,r_pos,value,dopler,sled))value=0;
+
     //if(pSize>2)pSize = 2;
     if((px<pSize)||(py<pSize)||(px>=img_ppi->width()-pSize)||(py>=img_ppi->height()-pSize))return;
     for(short x = -pSize;x <= pSize;x++)
@@ -614,7 +614,14 @@ void C_radar_data::drawAzi(short azi)
     {
         unsigned short value = data_mem.level_disp[azi][r_pos];
         unsigned short dopler = data_mem.dopler[azi][r_pos];
-
+        if(DrawZoomAR(azi,r_pos,
+                      value,
+                      dopler,
+                      data_mem.sled[azi][r_pos]))
+        {
+            value+=50;
+            if(value>255)value=255;
+        }
         //zoom to view scale
         short display_pos = r_pos*scale_ppi;
         short display_pos_next = (r_pos+1)*scale_ppi;
@@ -677,6 +684,8 @@ void C_radar_data::drawAzi(short azi)
         drawSgnZoom(azi*3+1,display_pos);
         drawSgnZoom(azi*3+2,display_pos);
     }
+
+
     if(k<=2)
     {
         for(short display_pos = 1;display_pos<DISPLAY_RES;display_pos++)
@@ -685,7 +694,6 @@ void C_radar_data::drawAzi(short azi)
             drawSgn(azi*3+1,display_pos);
             drawSgn(azi*3+2,display_pos);
         }
-
 
     }
     else
@@ -1799,8 +1807,10 @@ void C_radar_data::updateZoomRectXY(float ctx, float cty)
     zoomYmin = cty*4.0/scale_ppi-ZOOM_SIZE/2;
     raw_map_init_zoom();*/
 }
-void C_radar_data::updateZoomRectAR(float ctx, float cty)// unit pixels
+void C_radar_data::setZoomRectAR(float ctx, float cty,double sizeKM,double sizeDeg)// unit km
 {
+
+
     double cta,ctr = sqrt(ctx*ctx+cty*cty);
     if(cty==0)return;
     cta = atan(ctx/cty)-trueN;
@@ -1808,29 +1818,35 @@ void C_radar_data::updateZoomRectAR(float ctx, float cty)// unit pixels
     if(cta<0)cta += PI_NHAN2;
     if(cta>PI_NHAN2)cta-=PI_NHAN2;
     cta=cta/PI_NHAN2*MAX_AZIR;
-    ctr/=scale_ppi;
-    zoom_ar_size_a = MAX_AZIR/20.0;
-    zoom_ar_size_r = 2.0/sn_scale;
+    ctr/=sn_scale;
+    zoom_ar_size_a = MAX_AZIR/360.0*sizeDeg;
+    zoom_ar_size_r = sizeKM/sn_scale;
     zoom_ar_a0 = cta-zoom_ar_size_a/2.0;
     zoom_ar_a1 = zoom_ar_a0+zoom_ar_size_a;
     zoom_ar_r0 = ctr-zoom_ar_size_r/2.0;
     //if(zoom_ar_r0 <0)
     zoom_ar_r1 = zoom_ar_r0+zoom_ar_size_r;
+    img_zoom_ar = new QImage(zoom_ar_size_r+1,zoom_ar_size_a+1,QImage::Format_ARGB32);
     //img_zoom_ar->// toto:resize
     //drawZoomAR(a0,r0);
     
 }
 bool C_radar_data::DrawZoomAR(int a,int r,short val,short dopler,short sled)
 {
+    //return true if point is on the edges of the zone
     if(a<zoom_ar_size_a)a+=MAX_AZIR;
     int pa= a-zoom_ar_a0;
-    if(pa>=zoom_ar_size_a)return false;
+    if(pa>zoom_ar_size_a)return false;
     if(pa<0)return false;
     int pr = r-zoom_ar_r0;
-    if(pr>=zoom_ar_size_r)return false;
+    if(pr>zoom_ar_size_r)return false;
     if(pr<0)return false;
     img_zoom_ar->setPixel(pr,pa,getColor(val,dopler,sled));
-    return true;
+    if(pa==zoom_ar_size_a)return true;
+    if(pr==zoom_ar_size_r)return true;
+    if(pa==0)return true;
+    if(pr==0)return true;
+    return false;
 
 }
 void C_radar_data::setAutorgs(bool aut)

@@ -297,7 +297,7 @@ void Mainwindow::keyPressEvent(QKeyEvent *event)
         short   mx=this->mapFromGlobal(QCursor::pos()).x();
         short   my=this->mapFromGlobal(QCursor::pos()).y();
         if(!isInsideViewZone(mx,my))return;
-        pRadar->updateZoomRectAR((mx - scrCtX+dx),-(my - scrCtY+dy));
+        pRadar->setZoomRectAR((mx - scrCtX+dx)/mScale,-(my - scrCtY+dy)/mScale,4,10);
     }
 
 }
@@ -1112,20 +1112,21 @@ void Mainwindow::DrawZoomArea(QPainter* p)
     rect.adjust(4,30,-5,-5);
     if(ui->tabWidget_2->currentIndex()==2)
     {
-
-        if(config.getRangeView()>2)
+        //C_radar_data *prad = pRadar;
+        /*if(config.getRangeView()>2)
         {
             short zoom_size = ui->tabWidget_2->width()/pRadar->scale_zoom_ppi*pRadar->scale_ppi;
             p->setPen(QPen(QColor(255,255,255,200),0,Qt::DashLine));
             p->drawRect(mousePointerX-zoom_size/2.0,mousePointerY-zoom_size/2.0,zoom_size,zoom_size);
+        }*/
+        if(pRadar->img_zoom_ar)
+        {
+            p->setPen(QPen(Qt::black));
+            p->setBrush(QBrush(Qt::black));
+            p->drawRect(rect);
+            //p->drawImage(rect,*pRadar->img_zoom_ppi,pRadar->img_zoom_ppi->rect());
+            p->drawImage(rect,*pRadar->img_zoom_ar);//todo:resize
         }
-
-        p->setPen(QPen(Qt::black));
-        p->setBrush(QBrush(Qt::black));
-        p->drawRect(rect);
-        //p->drawImage(rect,*pRadar->img_zoom_ppi,pRadar->img_zoom_ppi->rect());
-
-        p->drawImage(rect,pRadar->img_zoom_ar->scaled(rect.width(),rect.height()),pRadar->img_zoom_ar->rect());//todo:resize
 
     }
     else if(ui->tabWidget_2->currentIndex()==3)

@@ -475,10 +475,10 @@
    <widget class="QCustomGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>1510</x>
-      <y>950</y>
-      <width>201</width>
-      <height>121</height>
+      <x>1720</x>
+      <y>890</y>
+      <width>191</width>
+      <height>181</height>
      </rect>
     </property>
     <property name="title">
@@ -970,6 +970,27 @@
        </property>
        <property name="checkable">
         <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0" colspan="2">
+      <widget class="QCustomButton" name="toolButton_setRangeUnit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Đơn vị đo: Hải lý(NM)</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -10286,10 +10307,10 @@
    <widget class="QCustomGroupBox" name="groupBox_5">
     <property name="geometry">
      <rect>
-      <x>1720</x>
-      <y>850</y>
-      <width>191</width>
-      <height>221</height>
+      <x>1510</x>
+      <y>840</y>
+      <width>201</width>
+      <height>231</height>
      </rect>
     </property>
     <property name="autoFillBackground">
@@ -20587,7 +20608,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -25588,6 +25609,32 @@
        <bool>false</bool>
       </property>
      </widget>
+     <widget class="QLabel" name="label_debug_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>310</y>
+        <width>261</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_debug">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>200</y>
+        <width>171</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_4">
      <attribute name="title">
@@ -27286,7 +27333,7 @@
       <x>1720</x>
       <y>720</y>
       <width>191</width>
-      <height>121</height>
+      <height>161</height>
      </rect>
     </property>
     <property name="title">
@@ -30332,59 +30379,6 @@
       </widget>
      </item>
     </layout>
-   </widget>
-   <widget class="QCustomButton" name="toolButton_setRangeUnit">
-    <property name="geometry">
-     <rect>
-      <x>560</x>
-      <y>1022</y>
-      <width>171</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Đơn vị đo: Hải lý(NM)</string>
-    </property>
-    <property name="checkable">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_debug">
-    <property name="geometry">
-     <rect>
-      <x>560</x>
-      <y>170</y>
-      <width>151</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>TextLabel</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_debug_2">
-    <property name="geometry">
-     <rect>
-      <x>730</x>
-      <y>20</y>
-      <width>261</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>TextLabel</string>
-    </property>
    </widget>
   </widget>
   <action name="actionExit">
