@@ -338,7 +338,7 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
 //    strftime( timestr, sizeof timestr, "%H:%M:%S", &ltime);
 
     if(*pIsPlaying)return;
-    if(header->len<500)return;
+    if(header->len<1000)return;
     if(((*(pkt_data+36)<<8)|(*(pkt_data+37)))!=HR2D_UDP_PORT)
     {
         //printf("\nport:%d",((*(pkt_data+36)<<8)|(*(pkt_data+37))));
@@ -364,6 +364,7 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
 QTimer *timer_read_buffer;
 void dataProcessingThread::run()
 {
+
     //init();
     pcap_if_t *alldevs;
     pcap_if_t *d;

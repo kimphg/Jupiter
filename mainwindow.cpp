@@ -12,9 +12,16 @@
 QPixmap                     *pMap=NULL;// painter cho ban do
 QPixmap                     *pViewFrame=NULL;// painter cho ban do
 CMap *osmap ;
+double                      mTrueN2,mTrueN;
+int                         mRangeLevel = 0;
+int                         mDistanceUnit=0;//0:NM;1:KM
+double                      mZoomSizeRg = 2;
+double                      mZoomSizeAz = 10;
+double                      mLat=DEFAULT_LAT,mLon = DEFAULT_LONG;
 dataProcessingThread        *processing;// thread xu ly du lieu radar
 C_radar_data                *pRadar;
 QThread                     *t2,*t1;
+double                      mMapOpacity;
 //Q_vnmap                     vnmap;
 QTimer                      scrUpdateTimer ;
 QTimer                      syncTimer1s,syncTimer5p ;
@@ -79,22 +86,22 @@ guard_zone_t gz1,gz2,gz3;
 //static unsigned short cur_object_index = 0;
 short lon2x(float lon)
 {
-   float refLat = (config.getLat() )*0.00872664625997f;
-   return  (- dx + scrCtX + ((lon - config.getLon()) * 111.31949079327357f*cosf(refLat))*mScale);
+   float refLat = mLat*0.00872664625997f;
+   return  (- dx + scrCtX + ((lon - mLon) * 111.31949079327357f*cosf(refLat))*mScale);
 }
 short lat2y(float lat)
 {
 
-   return (- dy + scrCtY - ((lat - config.getLat()) * 111.31949079327357f)*mScale);
+   return (- dy + scrCtY - ((lat - mLat) * 111.31949079327357f)*mScale);
 }
 double y2lat(short y)
 {
-   return (y  )/mScale/111.31949079327357f + config.getLat();
+   return (y  )/mScale/111.31949079327357f + mLat;
 }
 double x2lon(short x)
 {
-    float refLat = (config.getLat() )*0.00872664625997;
-   return (x  )/mScale/111.31949079327357f/cosf(refLat) + config.getLon();
+    float refLat = mLat*0.00872664625997;
+   return (x  )/mScale/111.31949079327357f/cosf(refLat) + mLon;
 }
 void Mainwindow::mouseDoubleClickEvent( QMouseEvent * e )
 {
@@ -108,7 +115,7 @@ void Mainwindow::mouseDoubleClickEvent( QMouseEvent * e )
         float xRadar = (mouseX - scrCtX+dx)/pRadar->scale_ppi ;//coordinates in  radar xy system
         float yRadar = -(mouseY - scrCtY+dy)/pRadar->scale_ppi;
         pRadar->addTrackManual(xRadar,yRadar);
-        ui->toolButton_manual_track->setChecked(false);
+        //ui->toolButton_manual_track->setChecked(false);
 
     }
     //Test doc AIS
@@ -244,7 +251,6 @@ void Mainwindow::mouseMoveEvent(QMouseEvent *event) {
         short olddy = dy;
         dx+= mouseX-event->x();
         dy+= mouseY-event->y();
-
         dxMap += mouseX-event->x();
         dyMap += mouseY-event->y();
         while(dx*dx+dy*dy>dxMax*dxMax)
@@ -261,6 +267,7 @@ void Mainwindow::mouseMoveEvent(QMouseEvent *event) {
         mousePointerY+= olddy - dy;
         mouseX=event->x();
         mouseY=event->y();
+        update();
     }
 }
 bool controlPressed = false;
@@ -280,8 +287,8 @@ void Mainwindow::keyPressEvent(QKeyEvent *event)
             short   my=this->mapFromGlobal(QCursor::pos()).y();
             double mlat = y2lat(-(my - scrCtY+dy));
             double mlon = x2lon(mx - scrCtX+dx);
-            config.setLat(mlat);
-            config.setLon(mlon);
+            config.setValue("mLat",mlat);
+            config.setValue("mLon",mlon);
             DrawMap();
             this->repaint();
 
@@ -297,7 +304,9 @@ void Mainwindow::keyPressEvent(QKeyEvent *event)
         short   mx=this->mapFromGlobal(QCursor::pos()).x();
         short   my=this->mapFromGlobal(QCursor::pos()).y();
         if(!isInsideViewZone(mx,my))return;
-        pRadar->setZoomRectAR((mx - scrCtX+dx)/mScale,-(my - scrCtY+dy)/mScale,4,10);
+        pRadar->setZoomRectAR((mx - scrCtX+dx)/mScale,
+                              -(my - scrCtY+dy)/mScale,
+                              mZoomSizeRg,mZoomSizeAz);
     }
 
 }
@@ -329,7 +338,7 @@ void Mainwindow::detectZone()
         selZone_y2 = tmp;
     }
     trackList* trackListPt = &pRadar->mTrackList;
-    if(ui->toolButton_blue_tracks->isChecked())
+    if(true)
     {
         for(uint trackId=0;trackId<trackListPt->size();trackId++)
         {
@@ -379,9 +388,8 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
             double azid,rg;
             C_radar_data::kmxyToPolarDeg((mouseX - scrCtX+dx)/mScale,-(mouseY - scrCtY+dy)/mScale,&azid,&rg);
             pRadar->drawRamp(azid);
-
         }
-        else if(ui->toolButton_create_zone->isChecked())
+        /*else if(ui->toolButton_create_zone->isChecked())
         {
             gz1.isActive = 1;
             gz1.x1 = event->x();
@@ -398,7 +406,7 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
             gz3.isActive = 1;
             gz3.x1 = event->x();
             gz3.y1 = event->y();
-        }
+        }*/
         else
         {
             setMouseMode(MouseDrag,true);
@@ -607,7 +615,8 @@ void Mainwindow::DrawMap()
         ConvKmToWGS((double(dx))/mScale,(double(-dy))/mScale,&dLong,&dLat);
         osmap->setCenterPos(dLat,dLong);
         QPixmap pix = osmap->getImage(mScale);
-        p.setOpacity(config.getMapOpacity());
+
+        p.setOpacity(mMapOpacity);
         p.drawPixmap((-pix.width()/2+pMap->width()/2),
                      (-pix.height()/2+pMap->height()/2),pix.width(),pix.height(),pix
                      );
@@ -721,7 +730,7 @@ void Mainwindow::DrawRadarTargetByPainter(QPainter* p)//draw radar target from p
     float scale_ppi = pRadar->scale_ppi;
     //short targetId = 0;
     trackList* trackListPt = &pRadar->mTrackList;
-    if(ui->toolButton_blue_tracks->isChecked())
+    if(true)//ui->toolButton_blue_tracks->isChecked())
     {
         for(uint trackId=0;trackId<trackListPt->size();trackId++)
         {
@@ -966,20 +975,18 @@ void Mainwindow::DrawRadarTargetByPainter(QPainter* p)//draw radar target from p
 }
 void Mainwindow::ConvWGSToKm(double* x, double *y, double m_Long,double m_Lat)
 {
-    double mCenterLat = config.getLat();
-    double mCenterLon = config.getLon();
-    double refLat = (mCenterLat + (m_Lat))*0.00872664625997;//pi/360
-    *x	= (((m_Long) - mCenterLon) * 111.31949079327357)*cos(refLat);// 3.14159265358979324/180.0*6378.137);//deg*pi/180*rEarth
-    *y	= ((mCenterLat - (m_Lat)) * 111.132954);
+
+    double refLat = (mLat + (m_Lat))*0.00872664625997;//pi/360
+    *x	= (((m_Long) - mLon) * 111.31949079327357)*cos(refLat);// 3.14159265358979324/180.0*6378.137);//deg*pi/180*rEarth
+    *y	= ((mLat - (m_Lat)) * 111.132954);
     //tinh toa do xy KM so voi diem center khi biet lat-lon
 }
 void Mainwindow::ConvKmToWGS(double x, double y, double *m_Long, double *m_Lat)
 {
-    double mCenterLat = config.getLat();
-    double mCenterLon = config.getLon();
-    *m_Lat  = mCenterLat +  (y)/(111.132954);
-    double refLat = (mCenterLat +(*m_Lat))*0.00872664625997;//3.14159265358979324/180.0/2;
-    *m_Long = (x)/(111.31949079327357*cos(refLat))+ mCenterLon;
+
+    *m_Lat  = mLat +  (y)/(111.132954);
+    double refLat = (mLat +(*m_Lat))*0.00872664625997;//3.14159265358979324/180.0/2;
+    *m_Long = (x)/(111.31949079327357*cos(refLat))+ mLon;
     //tinh toa do lat-lon khi biet xy km (truong hop coi trai dat hinh cau)
 }
 void Mainwindow::drawAisTarget(QPainter *p)
@@ -1074,7 +1081,6 @@ void Mainwindow::UpdateMouseStat(QPainter *p)
 }
 void Mainwindow::paintEvent(QPaintEvent *event)
 {
-    (void)event;
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing, true);
     if(pMap)
@@ -1102,7 +1108,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     //ve luoi cu ly phuong vi
 
     DrawViewFrame(&p);
-    DrawZoomArea(&p);
+    //DrawZoomArea(&p);
 
 //    updateTargets();
 }
@@ -1124,8 +1130,10 @@ void Mainwindow::DrawZoomArea(QPainter* p)
             p->setPen(QPen(Qt::black));
             p->setBrush(QBrush(Qt::black));
             p->drawRect(rect);
+            QImage img = pRadar->img_zoom_ar->scaled(rect.width(),rect.height(),Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+
             //p->drawImage(rect,*pRadar->img_zoom_ppi,pRadar->img_zoom_ppi->rect());
-            p->drawImage(rect,*pRadar->img_zoom_ar);//todo:resize
+            p->drawImage(rect,img);//todo:resize
         }
 
     }
@@ -1205,16 +1213,18 @@ void Mainwindow::SaveBinFile()
     //vnmap.SaveBinFile();
 
 }
-void Mainwindow::setDistanceUnit(MeasuringUnit unit)
+void Mainwindow::setDistanceUnit(int unit)//0:NM, 1:KM
 {
-    if(unit==NauticalMile)
+    mDistanceUnit = unit;
+    config.setValue("mDistanceUnit",mDistanceUnit);
+    if(mDistanceUnit==0)
     {
         rangeRatio = 1.852;
         strDistanceUnit = "NM";
         ui->toolButton_setRangeUnit->setText(QString::fromUtf8("Đơn vị đo:NM"));
         UpdateScale();
     }
-    else
+    else if(mDistanceUnit==1)
     {
         rangeRatio = 1.0;
         strDistanceUnit = "KM";
@@ -1225,15 +1235,24 @@ void Mainwindow::setDistanceUnit(MeasuringUnit unit)
 }
 void Mainwindow::InitSetting()
 {
+    mRangeLevel = config.getInt("mRangeLevel");
+    assert(mRangeLevel>=0&&mRangeLevel<8);
+    setDistanceUnit(config.getInt("mDistanceUnit"));
+    assert(mDistanceUnit>=0&&mDistanceUnit<2);
 
-    setDistanceUnit(config.getMeasUnit());
-    //load openstreetmap
+    mTrueN2 = config.getDouble("trueN2");
+    mTrueN = config.getDouble("trueN");
+    ui->textEdit_heading->setText(config.getString("trueN"));
+    pRadar->setTrueN(mTrueN);
+    //load map
     osmap = new CMap();
-    osmap->setCenterPos(config.getLat(),config.getLon());
+    SetGPS(config.getDouble("mLat"), config.getDouble("mLon"));
+    osmap->setCenterPos(mLat,mLon);
     osmap->setImgSize(height(),height());
     osmap->SetType(0);
+    mMapOpacity = config.getDouble("mMapOpacity");
     //config.setMapOpacity(value/50.0);
-    ui->horizontalSlider_map_brightness->setValue(config.getMapOpacity()*50);
+    ui->horizontalSlider_map_brightness->setValue(mMapOpacity*50);
     //
     setMouseTracking(true);
     //initGraphicView();21.433170, 106.624043
@@ -1269,8 +1288,7 @@ void Mainwindow::InitSetting()
     mousePointerX = scrCtX = SCR_H/2 + SCR_LEFT_MARGIN;//ENVDEP
     mousePointerY = scrCtY = SCR_H/2;
     UpdateScale();
-    ui->textEdit_heading->setText(QString::number(config.getTrueN()));
-    pRadar->setTrueN(config.getTrueN());
+
     //ui->horizontalSlider_2->setValue(config.m_config.cfarThresh);
 
     ui->horizontalSlider_brightness->setValue(ui->horizontalSlider_brightness->maximum()/4);
@@ -1289,7 +1307,7 @@ void Mainwindow::InitSetting()
     setCursor(QCursor(Qt::ArrowCursor));
     UpdateScale();
 
-    SetGPS(config.getLat(), config.getLon());
+
     //vnmap.setUp(config.m_config.lat(), config.m_config.lon(), 200,config.m_config.mapFilename.data());
     if(pMap)delete pMap;
     pMap = new QPixmap(height(),height());
@@ -1401,7 +1419,7 @@ void Mainwindow::DrawViewFrame(QPainter* p)
     p->drawArc(rect,16*((-maxazi+90)),dazi*16);
 
     //plot center azi
-    centerAzi = processing->getCenterAzi()+config.getTrueN2();
+    centerAzi = processing->getCenterAzi()+mTrueN2 ;
     if(centerAzi>360)centerAzi-=360;
     if(CalcAziContour(centerAzi,&point[0],&point[2],&point[1],height()-70))
     {
@@ -1538,12 +1556,9 @@ void Mainwindow::UpdateRadarData()
             pRadar->isClkAdcChanged = false;
         }
         pRadar->UpdateData();
+        update();
     }
-    update();
-    if(processing->isConnected())
-        setRadarState(CONNECTED);
-    else
-        setRadarState(DISCONNECTED);
+
     /*QStandardItemModel* model = new QStandardItemModel(trackListPt->size(), 5);
     for (int row = 0; row < trackListPt->size(); ++row)
     {
@@ -1742,7 +1757,7 @@ void Mainwindow::on_actionExit_triggered()
 }
 void Mainwindow::ExitProgram()
 {
-    config.SaveToFile();
+    //config.SaveToFile();
     QApplication::quit();
 #ifdef _WIN32
     QProcess::startDetached("shutdown -s -f -t 0");
@@ -1835,7 +1850,10 @@ void Mainwindow::updateTargetInfo()
 void Mainwindow::sync1S()//period 1 second
 {
     this->updateTargetInfo();
-
+    if(processing->isConnected())
+        setRadarState(CONNECTED);
+    else
+        setRadarState(DISCONNECTED);
 //    int n = 32*256.0f/((pRadar->noise_level[0]*256 + pRadar->noise_level[1]));
 //    int m = 256.0f*((pRadar->noise_level[2]*256 + pRadar->noise_level[3]))
 //            /((pRadar->noise_level[4]*256 + pRadar->noise_level[5]));
@@ -1903,37 +1921,37 @@ void Mainwindow::sync1S()//period 1 second
 
     }
     QByteArray array(pRadar->getFeedback(), 8);
+    ui->label_command->setText(QString(array.toHex()));
     switch(radar_state)
     {
     case DISCONNECTED:
         ui->label_status->setText(QString::fromUtf8("Chưa k. nối"));
         //ui->toolButton_tx->setEnabled(false);
 //        ui->toolButton_scan->setEnabled(false);
-        if(ui->label_command->isHidden())
+        ui->label_status_warning->setText(QString::fromUtf8("Chưa kết nối radar"));
+        if(ui->label_status_warning->isHidden())
         {
-            ui->label_command->setText(QString::fromUtf8("Chưa kết nối radar"));
-            ui->label_command->setHidden(false);
+            ui->label_status_warning->setHidden(false);
         }
         else
         {
-            ui->label_command->setText(QString::fromUtf8("Chưa kết nối radar"));
-            ui->label_command->setHidden(true);
+            ui->label_status_warning->setHidden(true);
         }
         m_udpSocket->writeDatagram("d",1,QHostAddress("127.0.0.1"),8001);
         break;
     case CONNECTED:
         //printf("\ns_tx");
+        ui->label_status_warning->setText(QString::fromUtf8("Đã kết nối radar"));
         ui->label_status->setText(QString::number(pRadar->overload));
-        ui->label_command->setHidden(false);
+        ui->label_status_warning->setHidden(false);
 
-        ui->label_command->setText(QString(array.toHex()));
         m_udpSocket->writeDatagram("c",1,QHostAddress("127.0.0.1"),8001);
         break;
     default:
         break;
     }
-    ui->label_debug_2->setText("Chu ky:"+QString::number(pRadar->chu_ky)
-                               +"TB tap:"+QString::number(pRadar->tb_tap));
+    ui->label_debug_data->setText("Chu ky: "+QString::number(pRadar->chu_ky));
+    ui->label_he_so_tap->setText(QString::fromUtf8("Hệ số tạp: ")+QString::number(pRadar->tb_tap));
     switch((pRadar->sn_stat>>8)&0x07)
     {
     case 4:
@@ -2301,13 +2319,13 @@ void MainWindow::on_toolButton_13_clicked()
 */
 void Mainwindow::setScaleRange(double srange)
 {
-    if(config.getMeasUnit()==NauticalMile)
+    if(mDistanceUnit==0)
     {
         mScale = (height()/2.0-5.0)/(rangeRatio*srange );
         ringStep = srange/6.0f;
         ui->label_range->setText(QString::number(srange)+strDistanceUnit);
     }
-    else if(config.getMeasUnit()==Kilometer)
+    else if(mDistanceUnit==1)
     {
         mScale = (height()/2.0-5.0)/(rangeRatio*srange );
         ringStep = srange/5;
@@ -2318,9 +2336,9 @@ void Mainwindow::UpdateScale()
 {
     float oldScale = mScale;
     //char byte2;
-    if(config.getMeasUnit()==NauticalMile)
+    if(mDistanceUnit==0)//NM
     {
-        switch(config.getRangeView())
+        switch(mRangeLevel)
         {
         case 0:
             setScaleRange(1.5);
@@ -2338,28 +2356,22 @@ void Mainwindow::UpdateScale()
             setScaleRange(24);
             break;
         case 5:
-            setScaleRange(36);
-            break;
-        case 6:
             setScaleRange(48);
             break;
-        case 7:
-            setScaleRange(72);
-            break;
-        case 8:
+        case 6:
             setScaleRange(96);
             break;
-        case 9:
-            setScaleRange(120);
+        case 7:
+            setScaleRange(192);
             break;
         default:
-            setScaleRange(150);
+            setScaleRange(48);
             break;
         }
     }
-    else if(config.getMeasUnit()==Kilometer)
+    else if(mDistanceUnit==1)
     {
-        switch(config.getRangeView())
+        switch(mRangeLevel)
         {
         case 0:
             setScaleRange(2.5);
@@ -2382,8 +2394,10 @@ void Mainwindow::UpdateScale()
         case 6:
             setScaleRange(200);
             break;
+        case 7:
+            setScaleRange(400);
+            break;
         default:
-            setScaleRange(300);
             break;
         }
     }
@@ -2832,14 +2846,16 @@ void Mainwindow::on_toolButton_send_command_clicked()
 
 void Mainwindow::on_toolButton_zoom_in_clicked()
 {
-    if(config.getRangeView()>0)config.setRangeView( config.getRangeView()-1);
+    if(mRangeLevel >0) mRangeLevel-=1;
+    config.setValue("mRangeLevel",mRangeLevel);
     UpdateScale();
     DrawMap();
 }
 
 void Mainwindow::on_toolButton_zoom_out_clicked()
 {
-    if(config.getRangeView()<9)config.setRangeView( config.getRangeView()+1);
+    if(mRangeLevel <7) mRangeLevel+=1;
+    config.setValue("mRangeLevel",mRangeLevel);
     UpdateScale();
     DrawMap();
 }
@@ -2864,13 +2880,15 @@ void Mainwindow::on_toolButton_zoom_out_clicked()
 
 //}
 
-void Mainwindow::SetGPS(double mlat,double mlong)
+void Mainwindow::SetGPS(double lat,double lon)
 {
-    config.setLat(mlat);
-    config.setLon(mlong);
-    ui->text_latInput_2->setText(QString::number(mlat,'g',10));
-    ui->text_longInput_2->setText(QString::number(mlong,'g',10));
-    osmap->setCenterPos(config.getLat(), config.getLon());
+    mLat = lat;
+    mLon = lon;
+    config.setValue("mLat",mLat);
+    config.setValue("mLon",mLon);
+    ui->text_latInput_2->setText(QString::number(mLat,'f',4));
+    ui->text_longInput_2->setText(QString::number(mLon,'f',4));
+    osmap->setCenterPos(mLat, mLon);
     DrawMap();
     update();
 }
@@ -2885,10 +2903,11 @@ void Mainwindow::SetGPS(double mlat,double mlong)
 void Mainwindow::on_toolButton_set_heading_clicked()
 {
 
-    float heading = ui->textEdit_heading->text().toFloat();
-    float heading2 = ui->textEdit_heading_2->text().toFloat();
-    config.setTrueN(heading,heading2);
-    pRadar->setTrueN(config.getTrueN());
+    mTrueN = ui->textEdit_heading->text().toFloat();
+    mTrueN2 = ui->textEdit_heading_2->text().toFloat();
+    config.setValue("mTrueN",mTrueN);
+    config.setValue("mTrueN2",mTrueN2);
+    pRadar->setTrueN(mTrueN);
 
 }
 
@@ -3050,7 +3069,6 @@ bool Mainwindow::ProcDataAIS(BYTE *szBuff, int nLeng )
      // Connect 2 buffer is fragment
      if(!m_CLocal.OnLinkBuff(szBuff, nLeng,nRec))
          return 0;
-
      if(!m_CLocal.GetTrackAIS(m_CLocal.m_Buff, m_CLocal.m_Leng, &nTkNew,nRec))
          return 0;
      for(ushort i = 0;i<m_AISList.size();i++)
@@ -3105,7 +3123,7 @@ void Mainwindow::on_toolButton_ais_reset_clicked()
 //}
 
 void Mainwindow::on_toolButton_auto_adapt_clicked()
-{
+{/*
     if(config.getRangeView()<=2)
     {
         sendToRadarHS("1aab200100000000");// bat thich nghi
@@ -3243,7 +3261,7 @@ void Mainwindow::on_toolButton_auto_adapt_clicked()
         sendToRadarHS("aaab030100000000");//toc do quay
         sendToRadarHS("aaab030100000000");//toc do quay
     }
-    pRadar->resetTrack();
+    pRadar->resetTrack();*/
 //    for(short i = 0;i<targetDisplayList.size();i++)
 //    {
 //        targetDisplayList.at(i)->deleteLater();
@@ -3360,7 +3378,8 @@ void Mainwindow::on_comboBox_3_currentIndexChanged(int index)
 
 void Mainwindow::on_horizontalSlider_map_brightness_valueChanged(int value)
 {
-    config.setMapOpacity(value/50.0);
+    mMapOpacity = value/50.0;
+    config.setValue("mMapOpacity",mMapOpacity);
     DrawMap();
 }
 
@@ -3439,19 +3458,19 @@ void Mainwindow::on_toolButton_help_clicked()
 
 void Mainwindow::on_toolButton_setRangeUnit_clicked()
 {
-    switch(config.getMeasUnit())
+    switch(mDistanceUnit)
     {
-    case NauticalMile:
-        config.setMeasUnit(Kilometer);
+    case 0:
+        this->setDistanceUnit(1);
         break;
-    case Kilometer:
-        config.setMeasUnit(NauticalMile);
+    case 1:
+        this->setDistanceUnit(0);
         break;
     default:
         break;
-
     }
-    this->setDistanceUnit(config.getMeasUnit());
+
+
 }
 
 
@@ -3504,8 +3523,17 @@ void Mainwindow::on_toolButton_gps_update_auto_clicked()
     double lat,lon;
     if(processing->getPosition(&lat,&lon))
     {
-        config.setLat(lat);
-        config.setLon(lon);
+        config.setValue("mLat",lat);
+        config.setValue("mLon",lon);
     }
     DrawMap();
+}
+
+
+void Mainwindow::on_toolButton_set_zoom_ar_size_clicked()
+{
+    mZoomSizeRg = ui->textEdit_size_ar_r->text().toDouble();
+    mZoomSizeAz = ui->textEdit_size_ar_a->text().toDouble();
+    config.setValue("mZoomSizeRg",mZoomSizeRg);
+    config.setValue("mZoomSizeAz",mZoomSizeAz);
 }

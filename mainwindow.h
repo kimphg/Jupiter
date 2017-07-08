@@ -107,7 +107,7 @@ private:
     void DrawMap();
     void ReloadSetting();
     void SendCommandControl();
-    void SetGPS(double mlat, double mlong);
+    void SetGPS(double lat, double lon);
 public slots:
 //    void UpdateSetting();
 //    void UpdateSignScale();
@@ -336,6 +336,10 @@ private slots:
 
     void on_toolButton_gps_update_auto_clicked();
 
+
+
+    void on_toolButton_set_zoom_ar_size_clicked();
+
 private:
     void initActionsConnections();
     void initGraphicView();
@@ -349,7 +353,7 @@ private:
     void setMouseMode(mouseMode mode, bool isOn);
     bool CalcAziContour(double theta, QPoint *point0, QPoint *point1, QPoint *point2, int d);
     void DisplayClkAdc(int clk);
-    void setDistanceUnit(MeasuringUnit unit);
+    void setDistanceUnit(int unit);
     void keyReleaseEvent(QKeyEvent *event);
 };
 
