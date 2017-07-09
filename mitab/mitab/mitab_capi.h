@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: mitab_capi.h,v 1.32 2008/01/29 20:46:32 dmorissette Exp $
+ * $Id: mitab_capi.h,v 1.39 2010-09-07 17:19:22 aboudreault Exp $
  *
  * Name:     mitab_capi.h
  * Project:  MapInfo TAB Read/Write library
@@ -32,6 +32,27 @@
  **********************************************************************
  *
  * $Log: mitab_capi.h,v $
+ * Revision 1.39  2010-09-07 17:19:22  aboudreault
+ * Removed an unimplemented function from the C API: mitab_c_get_feature_id
+ *
+ * Revision 1.38  2010-07-05 18:23:53  aboudreault
+ * C API: added mitab_c_bounds_set() function (bug 2233)
+ *
+ * Revision 1.37  2010-07-05 18:13:12  aboudreault
+ * Added support for extended text attributes - new function for text style and symbol style (bug 2232)
+ *
+ * Revision 1.36  2009-07-28 21:35:29  aboudreault
+ * Added functions to get the file version (bug 1961)
+ *
+ * Revision 1.35  2009-02-25 17:18:08  aboudreault
+ * C API: Added mitab_c_set_charset() (bug 2013)
+ *
+ * Revision 1.34  2008-12-15 20:54:41  aboudreault
+ * C API: Added mitab_c_get_table_class() (bug 1957)
+ *
+ * Revision 1.33  2008/10/20 21:00:20  aboudreault
+ * C API: Added mitab_c_get_feature_count_by_type() (bug 1952)
+ *
  * Revision 1.32  2008/01/29 20:46:32  dmorissette
  * Added support for v9 Time and DateTime fields (byg 1754)
  *
@@ -166,6 +187,13 @@ typedef void * mitab_handle;
 typedef void * mitab_feature;
 typedef void * mitab_projinfo;
 
+/* File class values (match values from TABFileClass enum in mitab.h )*/
+#define TABFC_IMapInfoFile 0
+#define TABFC_TABFile      1
+#define TABFC_TABView      2
+#define TABFC_TABSeamless  3
+#define TABFC_MIFFile      4
+
 /* feature type values (match values from TABFeatureClass enum in mitab.h) */
 #define TABFC_NoGeom    0
 #define TABFC_Point     1
@@ -207,24 +235,29 @@ typedef void * mitab_projinfo;
 #define TABTL_Arrow     2
 
 int MITAB_DLL MITAB_STDCALL mitab_c_getlibversion();
+int MITAB_DLL MITAB_STDCALL mitab_c_get_file_version( mitab_handle handle );
 const char MITAB_DLL * MITAB_STDCALL mitab_c_getlasterrormsg();
 int MITAB_DLL MITAB_STDCALL mitab_c_getlasterrormsg_vb (char * errormsg, int l);
 int MITAB_DLL MITAB_STDCALL mitab_c_getlasterrorno();
 
 mitab_handle MITAB_DLL MITAB_STDCALL mitab_c_open( const char * filename );
 void MITAB_DLL MITAB_STDCALL mitab_c_close( mitab_handle handle );
+int MITAB_DLL MITAB_STDCALL mitab_c_get_table_class( mitab_handle handle ); 
 
 mitab_handle MITAB_DLL MITAB_STDCALL mitab_c_create( const char * filename,
                                        const char * mif_or_tab,
                                        const char * mif_projectiondef,
                                        double north, double south,
                                        double east, double west );
+int MITAB_DLL MITAB_STDCALL mitab_c_bounds_set( mitab_handle handle ); // Returns 1 if bounds set, 0 otherwise.
 
 int MITAB_DLL MITAB_STDCALL mitab_c_set_quick_spatial_index_mode( mitab_handle handle );
 
 int MITAB_DLL MITAB_STDCALL mitab_c_add_field( mitab_handle handle, const char * field_name,
                                  int field_type, int width, int precision, 
                                  int indexed, int unique );
+
+int MITAB_DLL MITAB_STDCALL mitab_c_set_charset( mitab_handle handle, const char * charset);
 
 int MITAB_DLL MITAB_STDCALL
 mitab_c_write_feature( mitab_handle handle, mitab_feature feature );
@@ -236,7 +269,6 @@ mitab_feature MITAB_DLL MITAB_STDCALL
 mitab_c_read_feature( mitab_handle handle, int feature_id );
 
 void MITAB_DLL MITAB_STDCALL mitab_c_destroy_feature( mitab_feature );
-int MITAB_DLL MITAB_STDCALL mitab_c_get_feature_id( mitab_feature );
 
 mitab_feature MITAB_DLL MITAB_STDCALL
 mitab_c_create_feature( mitab_handle, int feature_type );
@@ -313,6 +345,10 @@ int MITAB_DLL MITAB_STDCALL
 mitab_c_get_symbol_size( mitab_feature feature );
 double MITAB_DLL MITAB_STDCALL
 mitab_c_get_symbol_angle( mitab_feature feature );
+int  MITAB_DLL MITAB_STDCALL mitab_c_get_symbol_style( mitab_feature feature); 
+void MITAB_DLL MITAB_STDCALL mitab_c_set_symbol_style( mitab_feature feature, int symbol_style );
+int  MITAB_DLL MITAB_STDCALL mitab_c_get_text_style( mitab_feature feature);
+void MITAB_DLL MITAB_STDCALL mitab_c_set_text_style( mitab_feature feature, int text_style );
 
 void MITAB_DLL MITAB_STDCALL mitab_c_set_points( mitab_feature feature, int part,
                                    int vertex_count, double * x, double * y );
@@ -328,6 +364,9 @@ double MITAB_DLL MITAB_STDCALL mitab_c_get_vertex_x( mitab_feature, int part, in
 double MITAB_DLL MITAB_STDCALL mitab_c_get_vertex_y( mitab_feature, int part, int vertex );
 
 int MITAB_DLL MITAB_STDCALL mitab_c_get_feature_count( mitab_handle handle );
+int MITAB_DLL MITAB_STDCALL mitab_c_get_feature_count_by_type( mitab_handle handle,
+                                                               int *numPoints, int *numLines, 
+                                                               int *numRegions, int *numTexts );
 
 int MITAB_DLL MITAB_STDCALL mitab_c_get_field_count( mitab_handle handle );
 int MITAB_DLL MITAB_STDCALL mitab_c_get_field_type( mitab_handle handle, int field );

@@ -43,7 +43,13 @@ void CMap::SetType(int type)
     default:
         break;
     }
+    OpenMIF("D:/HR2D/MIF/HP_TEXT.MIF");
     Repaint();
+}
+
+void CMap::OpenMIF(const char *fileName)
+{
+
 }
 CMap::~CMap()
 {

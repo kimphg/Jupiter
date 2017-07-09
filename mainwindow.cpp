@@ -21,6 +21,9 @@ double                      mLat=DEFAULT_LAT,mLon = DEFAULT_LONG;
 dataProcessingThread        *processing;// thread xu ly du lieu radar
 C_radar_data                *pRadar;
 QThread                     *t2,*t1;
+QString                     mTxCommand,mRxCommand;
+QString                     mR0Command,mR1Command,mR2Command,mR3Command,
+                            mR4Command,mR5Command,mR6Command,mR7Command;
 double                      mMapOpacity;
 //Q_vnmap                     vnmap;
 QTimer                      scrUpdateTimer ;
@@ -119,6 +122,16 @@ void Mainwindow::mouseDoubleClickEvent( QMouseEvent * e )
 
     }
     //Test doc AIS
+
+}
+void Mainwindow::sendToRadarString(QString command)
+{
+    QStringList list = command.split(';');
+    for(int i=0;i<list.size();i++)
+    {
+        QByteArray ba=list.at(i).toLatin1();
+        sendToRadarHS(ba.data());
+    }
 
 }
 void Mainwindow::sendToRadarHS(const char* hexdata)
@@ -627,6 +640,7 @@ void Mainwindow::DrawMap()
     }
 
     //DrawGrid(&p,centerX,centerY);
+    update();
 
 }
 void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
@@ -1239,7 +1253,16 @@ void Mainwindow::InitSetting()
     assert(mRangeLevel>=0&&mRangeLevel<8);
     setDistanceUnit(config.getInt("mDistanceUnit"));
     assert(mDistanceUnit>=0&&mDistanceUnit<2);
-
+    mR0Command = config.getString("mR0Command");
+    mR1Command = config.getString("mR1Command");
+    mR2Command = config.getString("mR2Command");
+    mR3Command = config.getString("mR3Command");
+    mR4Command = config.getString("mR4Command");
+    mR5Command = config.getString("mR5Command");
+    mR6Command = config.getString("mR6Command");
+    mR7Command = config.getString("mR7Command");
+    mRxCommand = config.getString("mRxCommand");
+    mTxCommand = config.getString("mTxCommand");
     mTrueN2 = config.getDouble("trueN2");
     mTrueN = config.getDouble("trueN");
     ui->textEdit_heading->setText(config.getString("trueN"));
@@ -1254,6 +1277,8 @@ void Mainwindow::InitSetting()
     //config.setMapOpacity(value/50.0);
     ui->horizontalSlider_map_brightness->setValue(mMapOpacity*50);
     //
+    ui->groupBox_control->setHidden(true);
+    ui->groupBox_control_setting->setHidden(true);
     setMouseTracking(true);
     //initGraphicView();21.433170, 106.624043
     //init the guard zone
@@ -2336,33 +2361,42 @@ void Mainwindow::UpdateScale()
 {
     float oldScale = mScale;
     //char byte2;
+    bool isAdaptSn = ui->toolButton_auto_adapt->isChecked();
     if(mDistanceUnit==0)//NM
     {
         switch(mRangeLevel)
         {
         case 0:
             setScaleRange(1.5);
+           if(isAdaptSn) sendToRadarString(mR0Command);
             break;
         case 1:
             setScaleRange(3);
+           if(isAdaptSn) sendToRadarString(mR1Command);
             break;
         case 2:
             setScaleRange(6);
+           if(isAdaptSn) sendToRadarString(mR2Command);
             break;
         case 3:
             setScaleRange(12);
+           if(isAdaptSn) sendToRadarString(mR3Command);
             break;
         case 4:
             setScaleRange(24);
+           if(isAdaptSn) sendToRadarString(mR4Command);
             break;
         case 5:
             setScaleRange(48);
+           if(isAdaptSn) sendToRadarString(mR5Command);
             break;
         case 6:
             setScaleRange(96);
+           if(isAdaptSn) sendToRadarString(mR6Command);
             break;
         case 7:
             setScaleRange(192);
+           if(isAdaptSn) sendToRadarString(mR7Command);
             break;
         default:
             setScaleRange(48);
@@ -2375,27 +2409,35 @@ void Mainwindow::UpdateScale()
         {
         case 0:
             setScaleRange(2.5);
+           if(isAdaptSn) sendToRadarString(mR0Command);
             break;
         case 1:
             setScaleRange(5);
+           if(isAdaptSn) sendToRadarString(mR1Command);
             break;
         case 2:
             setScaleRange(10);
+           if(isAdaptSn) sendToRadarString(mR2Command);
             break;
         case 3:
             setScaleRange(20);
+           if(isAdaptSn) sendToRadarString(mR3Command);
             break;
         case 4:
             setScaleRange(50);
+           if(isAdaptSn) sendToRadarString(mR4Command);
             break;
         case 5:
             setScaleRange(100);
+           if(isAdaptSn) sendToRadarString(mR5Command);
             break;
         case 6:
             setScaleRange(200);
+           if(isAdaptSn) sendToRadarString(mR6Command);
             break;
         case 7:
             setScaleRange(400);
+           if(isAdaptSn) sendToRadarString(mR7Command);
             break;
         default:
             break;
@@ -2820,27 +2862,21 @@ void Mainwindow::on_comboBox_img_mode_currentIndexChanged(int index)
 
 void Mainwindow::on_toolButton_send_command_clicked()
 {
-    if(ui->lineEdit_password->text()=="ccndt3108")
-    {
-        unsigned char        bytes[8];
-        hex2bin(ui->lineEdit_byte_1->text().toStdString().data(),&bytes[0]);
-        hex2bin(ui->lineEdit_byte_2->text().toStdString().data(),&bytes[1]);
-        hex2bin(ui->lineEdit_byte_3->text().toStdString().data(),&bytes[2]);
-        hex2bin(ui->lineEdit_byte_4->text().toStdString().data(),&bytes[3]);
-        hex2bin(ui->lineEdit_byte_5->text().toStdString().data(),&bytes[4]);
-        hex2bin(ui->lineEdit_byte_6->text().toStdString().data(),&bytes[5]);
-        hex2bin(ui->lineEdit_byte_7->text().toStdString().data(),&bytes[6]);
-        bytes[7] = bytes[0]+bytes[1]+bytes[2]+bytes[3]+bytes[4]+bytes[5]+bytes[6];
-        ui->lineEdit_byte_8->setText(QString::number(bytes[7]));
-        //hex2bin(ui->lineEdit_byte_8->text().toStdString().data(),&bytes[7]);
-        sendToRadar((unsigned char*)&bytes[0]);
-        //udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-    }
-    else
-    {
 
-        ui->lineEdit_password->clear();
-    }
+    unsigned char        bytes[8];
+    hex2bin(ui->lineEdit_byte_1->text().toStdString().data(),&bytes[0]);
+    hex2bin(ui->lineEdit_byte_2->text().toStdString().data(),&bytes[1]);
+    hex2bin(ui->lineEdit_byte_3->text().toStdString().data(),&bytes[2]);
+    hex2bin(ui->lineEdit_byte_4->text().toStdString().data(),&bytes[3]);
+    hex2bin(ui->lineEdit_byte_5->text().toStdString().data(),&bytes[4]);
+    hex2bin(ui->lineEdit_byte_6->text().toStdString().data(),&bytes[5]);
+    hex2bin(ui->lineEdit_byte_7->text().toStdString().data(),&bytes[6]);
+    bytes[7] = bytes[0]+bytes[1]+bytes[2]+bytes[3]+bytes[4]+bytes[5]+bytes[6];
+    ui->lineEdit_byte_8->setText(QString::number(bytes[7]));
+    //hex2bin(ui->lineEdit_byte_8->text().toStdString().data(),&bytes[7]);
+    sendToRadar((unsigned char*)&bytes[0]);
+    //udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+
 }
 
 
@@ -3011,13 +3047,15 @@ void Mainwindow::on_toolButton_delete_target_clicked()
 
 void Mainwindow::on_toolButton_tx_clicked()
 {
-    processing->radTxOn();
+    //processing->radTxOn();
+    sendToRadarString(mTxCommand);
 }
 
 
 void Mainwindow::on_toolButton_tx_off_clicked()
 {
-    processing->radTxOff();
+    //processing->radTxOff();
+    sendToRadarString(mRxCommand);
 }
 
 void Mainwindow::on_toolButton_filter2of3_clicked(bool checked)
@@ -3447,13 +3485,12 @@ void Mainwindow::on_toolButton_sharp_eye_toggled(bool checked)
 
 void Mainwindow::on_toolButton_help_clicked()
 {
-    if(ui->lineEdit_password->text()=="ccndt3108")
-    {
-        DialogDocumentation *dlg=new DialogDocumentation();
-        dlg->setModal(false);
-        dlg->showNormal();
-        printf("\nNew windows");
-    }
+
+    DialogDocumentation *dlg=new DialogDocumentation();
+    dlg->setModal(false);
+    dlg->showNormal();
+    printf("\nNew windows");
+
 }
 
 void Mainwindow::on_toolButton_setRangeUnit_clicked()
@@ -3536,4 +3573,52 @@ void Mainwindow::on_toolButton_set_zoom_ar_size_clicked()
     mZoomSizeAz = ui->textEdit_size_ar_a->text().toDouble();
     config.setValue("mZoomSizeRg",mZoomSizeRg);
     config.setValue("mZoomSizeAz",mZoomSizeAz);
+}
+
+void Mainwindow::on_toolButton_advanced_control_clicked()
+{
+    if(ui->lineEdit_password->text()=="ccndt3108")
+    {
+        ui->groupBox_control->setHidden(false);
+    }
+}
+
+void Mainwindow::on_toolButton_set_commands_clicked(bool checked)
+{
+    ui->groupBox_control_setting->setHidden(!checked);
+    ui->plainTextEdit_range_0->setPlainText(mR0Command);
+    ui->plainTextEdit_range_1->setPlainText(mR1Command);
+    ui->plainTextEdit_range_2->setPlainText(mR2Command);
+    ui->plainTextEdit_range_3->setPlainText(mR3Command);
+    ui->plainTextEdit_range_4->setPlainText(mR4Command);
+    ui->plainTextEdit_range_5->setPlainText(mR5Command);
+    ui->plainTextEdit_range_6->setPlainText(mR6Command);
+    ui->plainTextEdit_range_7->setPlainText(mR7Command);
+    ui->plainTextEdit_command_rx->setPlainText(mRxCommand);
+    ui->plainTextEdit_command_tx->setPlainText(mTxCommand);
+
+}
+
+void Mainwindow::on_toolButton_set_command_clicked()
+{
+    mR0Command = ui->plainTextEdit_range_0->toPlainText();
+    mR1Command = ui->plainTextEdit_range_1->toPlainText();
+    mR2Command = ui->plainTextEdit_range_2->toPlainText();
+    mR3Command = ui->plainTextEdit_range_3->toPlainText();
+    mR4Command = ui->plainTextEdit_range_4->toPlainText();
+    mR5Command = ui->plainTextEdit_range_5->toPlainText();
+    mR6Command = ui->plainTextEdit_range_6->toPlainText();
+    mR7Command = ui->plainTextEdit_range_7->toPlainText();
+    mRxCommand = ui->plainTextEdit_command_rx->toPlainText();
+    mTxCommand = ui->plainTextEdit_command_tx->toPlainText();
+    config.setValue("mR0Command",mR0Command);
+    config.setValue("mR1Command",mR1Command);
+    config.setValue("mR2Command",mR2Command);
+    config.setValue("mR3Command",mR3Command);
+    config.setValue("mR4Command",mR4Command);
+    config.setValue("mR5Command",mR5Command);
+    config.setValue("mR6Command",mR6Command);
+    config.setValue("mR7Command",mR7Command);
+    config.setValue("mRxCommand",mRxCommand);
+    config.setValue("mTxCommand",mTxCommand);
 }

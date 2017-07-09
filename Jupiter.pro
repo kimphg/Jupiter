@@ -36,12 +36,12 @@ SOURCES += main.cpp\
     CDefine.cpp \
     jtarget.cpp \
     jgraphictarget.cpp \
-    tinyxml/tinyxml2.cpp \
     Cmap/cmap.cpp\
     c_config.cpp \
     c_radar_data.cpp \
     c_radar_thread.cpp \
     dialogdocumentation.cpp
+
 
 HEADERS  += mainwindow.h \
     c_arpa_data.h \
@@ -58,7 +58,6 @@ HEADERS  += mainwindow.h \
     CDefine.h \
     jtarget.h \
     jgraphictarget.h \
-    tinyxml/tinyxml2.h \
     Cmap/cmap.h\
     c_config.h \
     c_radar_data.h \
@@ -78,6 +77,9 @@ INCLUDEPATH += $$PWD/tinyxml/
 DEPENDPATH += $$PWD/tinyxml/
 INCLUDEPATH += $$PWD/
 DEPENDPATH += $$PWD/
+#INCLUDEPATH += $$PWD/mitab/mitab/
+#INCLUDEPATH += $$PWD/mitab/cpl/
+#INCLUDEPATH += $$PWD/mitab/ogr/
 #RESOURCES +=
 #INCLUDEPATH += $$PWD/../armadillo/include
 #DEPENDPATH += $$PWD/../armadillo/include
@@ -89,7 +91,7 @@ DEPENDPATH += $$PWD/
 #unix: LIBS += -larmadillo
 win32:LIBS += -L$$PWD//WpdPack/Lib/ -lPacket
 win32:LIBS += -L$$PWD//WpdPack/Lib/ -lwpcap
-
+#win32:LIBS += -L$$PWD/mitab/ -lmitab
 #LIBS += -ltinyxml
 #INCLUDEPATH += $$PWD/../opencv/build/include
 #win32:LIBS += -L$$PWD/../opencv/build/x86/vc10/lib/ -lopencv_core249

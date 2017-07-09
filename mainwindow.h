@@ -340,6 +340,12 @@ private slots:
 
     void on_toolButton_set_zoom_ar_size_clicked();
 
+    void on_toolButton_advanced_control_clicked();
+
+    void on_toolButton_set_commands_clicked(bool checked);
+
+    void on_toolButton_set_command_clicked();
+
 private:
     void initActionsConnections();
     void initGraphicView();
@@ -355,6 +361,7 @@ private:
     void DisplayClkAdc(int clk);
     void setDistanceUnit(int unit);
     void keyReleaseEvent(QKeyEvent *event);
+    void sendToRadarString(QString command);
 };
 
 #endif // MAINWINDOW_H

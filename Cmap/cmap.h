@@ -5,7 +5,7 @@
 #include <QtGui>
 #include <QPixmap>
 #include <QUrl>
-
+//#include "mitab/mitab/mitab.h"
 class QNetworkReply;
 class QPainter;
 
@@ -27,6 +27,7 @@ public:
     double getLat();
     double getLon();
     void SetType(int type);
+
 signals:
     void updated(const QRect &rect);
 private slots:
@@ -34,6 +35,7 @@ private slots:
 protected:
     QRect tileRect(const QPoint &tp);
 private:
+    void OpenMIF(const char* fileName);
     void Repaint();
     void render(QPainter *p, const QRect &rect);
     void invalidate();

@@ -603,6 +603,7 @@ void dataProcessingThread::sendCommand(unsigned char *sendBuff, short len)
     RadarCommand command;
     if(len>8)return;
     command.bytes[7] = 0;
+    memset(&command.bytes[0],0,8);
     memcpy(&command.bytes[0],sendBuff,len);
     for(int i=0;i<len-1;i++)
     {
