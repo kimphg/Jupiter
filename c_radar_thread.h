@@ -78,8 +78,15 @@ public:
     unsigned int mazi;
     unsigned int realazi1,realazi2;
     bool getPosition(double *lat, double *lon);
+    double getHeading() const;
+
+    bool   isHeadingAvaible;
+signals:
+    void HeadingDataReceived(double heading);
 private:
-    bool    isDrawn;
+    double mHeading ;
+
+    bool  isDrawn;
     bool isXuLyThuCap;
     RadarCommandQueue radarComQ;
     bool isRecording;

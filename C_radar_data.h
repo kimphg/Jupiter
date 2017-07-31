@@ -216,7 +216,7 @@ public:
     float                   scale_ppi,scale_zoom_ppi;
     short                   curAzir,arcMinAzi,arcMaxAzi,arcWidth;
     void                    setZoomRectAR(float ctx, float cty, double sizeKM, double sizeDeg);
-    void                    updateZoomRectXY(float ctx, float cty);
+    void                    setZoomRectXY(float ctx, float cty);
     unsigned short          sn_stat,chu_ky,tb_tap;
     bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled,filter2of3;
     bool                    isManualTune,rgs_auto,bo_bang_0,data_export;
@@ -328,6 +328,8 @@ private:
     bool DrawZoomAR(int a,int r,short val,short dopler,short sled);
 public:
     //void drawZoomAR();
+    float getNoiseAverage() const;
+    void setNoiseAverage(float value);
 };
 
 //extern C_radar_data radarData;

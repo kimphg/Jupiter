@@ -65,6 +65,12 @@ void CConfig::SaveToFile()
 
 void CConfig::setDefault()
 {
+    if (QFile::exists(HR_CONFIG_FILE))
+    {
+        QFile::remove(HR_CONFIG_FILE);
+    }
+
+    QFile::copy(HR_CONFIG_FILE_DF, HR_CONFIG_FILE);
 
 }
 
@@ -90,7 +96,7 @@ void CConfig::readFile() {
         // an invalid state at the end. A single readNext()
         // will advance us to EndDocument.
         if (xml.hasError()) {
-            break;
+            continue;
         }
     }
     xmlFile.close();

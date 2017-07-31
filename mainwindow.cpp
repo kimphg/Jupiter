@@ -25,6 +25,7 @@ QString                     mTxCommand,mRxCommand;
 QString                     mR0Command,mR1Command,mR2Command,mR3Command,
                             mR4Command,mR5Command,mR6Command,mR7Command;
 double                      mMapOpacity;
+int                         mMaxTapMayThu=18;
 //Q_vnmap                     vnmap;
 QTimer                      scrUpdateTimer ;
 QTimer                      syncTimer1s,syncTimer5p ;
@@ -300,8 +301,7 @@ void Mainwindow::keyPressEvent(QKeyEvent *event)
             short   my=this->mapFromGlobal(QCursor::pos()).y();
             double mlat = y2lat(-(my - scrCtY+dy));
             double mlon = x2lon(mx - scrCtX+dx);
-            config.setValue("mLat",mlat);
-            config.setValue("mLon",mlon);
+            SetGPS(mlat,mlon);
             DrawMap();
             this->repaint();
 
@@ -316,10 +316,13 @@ void Mainwindow::keyPressEvent(QKeyEvent *event)
     {
         short   mx=this->mapFromGlobal(QCursor::pos()).x();
         short   my=this->mapFromGlobal(QCursor::pos()).y();
+        mousePointerX = mx;
+        mousePointerY = my;
         if(!isInsideViewZone(mx,my))return;
         pRadar->setZoomRectAR((mx - scrCtX+dx)/mScale,
                               -(my - scrCtY+dy)/mScale,
                               mZoomSizeRg,mZoomSizeAz);
+        pRadar->setZoomRectXY(mx - scrCtX+dx,my - scrCtY+dy);
     }
 
 }
@@ -614,7 +617,7 @@ void Mainwindow::DrawMap()
 
 
     if(!pMap) return;
-    pMap->fill(Qt::transparent);
+    pMap->fill(QColor(5,10,15,255));
 
     dxMap = 0;
     dyMap = 0;
@@ -1122,7 +1125,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     //ve luoi cu ly phuong vi
 
     DrawViewFrame(&p);
-    //DrawZoomArea(&p);
+    DrawZoomArea(&p);
 
 //    updateTargets();
 }
@@ -1132,23 +1135,43 @@ void Mainwindow::DrawZoomArea(QPainter* p)
     rect.adjust(4,30,-5,-5);
     if(ui->tabWidget_2->currentIndex()==2)
     {
+        p->setPen(QPen(Qt::black));
+        p->setBrush(QBrush(Qt::black));
+        p->drawRect(rect);
+        p->setPen(QPen(Qt::white,2));
+        QPoint p1(rect.x(),rect.y());
+        //QPoint p2(rect.x(),rect.y());
+        QPoint p11(rect.x()+rect.width(),rect.y());
+        QPoint p22(rect.x(),rect.y()+rect.height());
+        p->drawLine(p1,p11);
+        p->drawLine(p1,p22);
+        int step = rect.width()/5;
+        for(int i = 0;i<5;i++)
+        {
+            p->drawLine(rect.x()+step*i,rect.y(),rect.x()+step*i,rect.y()+5);
+            p->drawLine(rect.x(),rect.y()+step*i,rect.x()+5,rect.y()+step*i);
+        }
+        p->setFont(QFont("Times",10));
+        p->drawText(rect.x()+rect.width()-50,rect.y()+15,QString::number(mZoomSizeRg/0.1852,'f',1)+QString::fromUtf8(" Liên"));
+        p->drawText(rect.x()+5,rect.y()+rect.height()-5,QString::number(mZoomSizeAz,'f',1)+QString::fromUtf8(" Độ"));
+        if(pRadar->img_zoom_ar)
+        {
+            QImage img = pRadar->img_zoom_ar->scaled(rect.width(),rect.height(),Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+            p->drawImage(rect,img);//todo:resize
+
+        }
+
+    }
+    else if(ui->tabWidget_2->currentIndex()==6)
+    {
         //C_radar_data *prad = pRadar;
-        /*if(config.getRangeView()>2)
+        if(mRangeLevel>2)
         {
             short zoom_size = ui->tabWidget_2->width()/pRadar->scale_zoom_ppi*pRadar->scale_ppi;
             p->setPen(QPen(QColor(255,255,255,200),0,Qt::DashLine));
             p->drawRect(mousePointerX-zoom_size/2.0,mousePointerY-zoom_size/2.0,zoom_size,zoom_size);
-        }*/
-        if(pRadar->img_zoom_ar)
-        {
-            p->setPen(QPen(Qt::black));
-            p->setBrush(QBrush(Qt::black));
-            p->drawRect(rect);
-            QImage img = pRadar->img_zoom_ar->scaled(rect.width(),rect.height(),Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
-
-            //p->drawImage(rect,*pRadar->img_zoom_ppi,pRadar->img_zoom_ppi->rect());
-            p->drawImage(rect,img);//todo:resize
         }
+        p->drawImage(rect,*pRadar->img_zoom_ppi,pRadar->img_zoom_ppi->rect());
 
     }
     else if(ui->tabWidget_2->currentIndex()==3)
@@ -1249,6 +1272,7 @@ void Mainwindow::setDistanceUnit(int unit)//0:NM, 1:KM
 }
 void Mainwindow::InitSetting()
 {
+    mMaxTapMayThu = config.getInt("mMaxTapMayThu");
     mRangeLevel = config.getInt("mRangeLevel");
     assert(mRangeLevel>=0&&mRangeLevel<8);
     setDistanceUnit(config.getInt("mDistanceUnit"));
@@ -1263,9 +1287,16 @@ void Mainwindow::InitSetting()
     mR7Command = config.getString("mR7Command");
     mRxCommand = config.getString("mRxCommand");
     mTxCommand = config.getString("mTxCommand");
-    mTrueN2 = config.getDouble("trueN2");
-    mTrueN = config.getDouble("trueN");
-    ui->textEdit_heading->setText(config.getString("trueN"));
+    mTrueN2 = config.getDouble("mTrueN2");
+    mTrueN = config.getDouble("mTrueN");
+
+    pRadar->setTrueN(mTrueN);
+    ui->textEdit_heading->setText(config.getString("mTrueN"));
+    ui->textEdit_heading_2->setText(config.getString("mTrueN2"));
+    mZoomSizeAz = config.getDouble("mZoomSizeAz");
+    ui->textEdit_size_ar_a->setText(QString::number(mZoomSizeAz));
+    mZoomSizeRg = config.getDouble("mZoomSizeRg");
+    ui->textEdit_size_ar_r->setText(QString::number(mZoomSizeRg));
     pRadar->setTrueN(mTrueN);
     //load map
     osmap = new CMap();
@@ -1276,7 +1307,7 @@ void Mainwindow::InitSetting()
     mMapOpacity = config.getDouble("mMapOpacity");
     //config.setMapOpacity(value/50.0);
     ui->horizontalSlider_map_brightness->setValue(mMapOpacity*50);
-    //
+    ui->toolButton_xl_nguong_3->setChecked(true);
     ui->groupBox_control->setHidden(true);
     ui->groupBox_control_setting->setHidden(true);
     setMouseTracking(true);
@@ -1316,7 +1347,7 @@ void Mainwindow::InitSetting()
 
     //ui->horizontalSlider_2->setValue(config.m_config.cfarThresh);
 
-    ui->horizontalSlider_brightness->setValue(ui->horizontalSlider_brightness->maximum()/4);
+    ui->horizontalSlider_brightness->setValue(ui->horizontalSlider_brightness->maximum()/3.5);
     ui->horizontalSlider_gain->setValue(ui->horizontalSlider_gain->maximum());
     ui->horizontalSlider_rain->setValue(ui->horizontalSlider_rain->minimum());
     ui->horizontalSlider_sea->setValue(ui->horizontalSlider_sea->minimum());
@@ -1581,9 +1612,8 @@ void Mainwindow::UpdateRadarData()
             pRadar->isClkAdcChanged = false;
         }
         pRadar->UpdateData();
-        update();
     }
-
+    update();
     /*QStandardItemModel* model = new QStandardItemModel(trackListPt->size(), 5);
     for (int row = 0; row < trackListPt->size(); ++row)
     {
@@ -1872,6 +1902,36 @@ void Mainwindow::updateTargetInfo()
         ui->label_data_dopler->setText("--");
     }
 }
+void Mainwindow::autoSwitchFreq()
+{
+    int newFreq = rand()%6;
+    if(newFreq==0)
+    {
+        ui->toolButton_tx_2->setChecked(true);
+    }
+    else  if(newFreq==1)
+    {
+        ui->toolButton_tx_3->setChecked(true);
+    }
+    else if(newFreq==2)
+    {
+        ui->toolButton_tx_4->setChecked(true);
+    }
+    else if(newFreq==3)
+    {
+        ui->toolButton_tx_5->setChecked(true);
+    }
+    else if(newFreq==4)
+    {
+        ui->toolButton_tx_6->setChecked(true);
+    }
+    else if(newFreq==5)
+    {
+        ui->toolButton_tx_7->setChecked(true);
+    }
+
+
+}
 void Mainwindow::sync1S()//period 1 second
 {
     this->updateTargetInfo();
@@ -1879,6 +1939,13 @@ void Mainwindow::sync1S()//period 1 second
         setRadarState(CONNECTED);
     else
         setRadarState(DISCONNECTED);
+    if(warningList.size())
+    {
+        ui->label_status_warning->setText(warningList.at(warningList.size()-1));
+        ui->label_status_warning->setStyleSheet("background-color: rgb(230, 160, 10);");
+        if(ui->label_status_warning->isHidden())ui->label_status_warning->setHidden(false);
+        else ui->label_status_warning->setHidden(true);
+    }
 //    int n = 32*256.0f/((pRadar->noise_level[0]*256 + pRadar->noise_level[1]));
 //    int m = 256.0f*((pRadar->noise_level[2]*256 + pRadar->noise_level[3]))
 //            /((pRadar->noise_level[4]*256 + pRadar->noise_level[5]));
@@ -1932,6 +1999,7 @@ void Mainwindow::sync1S()//period 1 second
     showTime();
     // display radar temperature:
     temperature[pRadar->tempType] = pRadar->temp;
+    ui->label_noiseAverrage->setText(QString::number(pRadar->getNoiseAverage(),'f',1));
     ui->label_temp->setText(QString::number(ui->comboBox_temp_type->currentIndex())
             +"|"+QString::number(temperature[ui->comboBox_temp_type->currentIndex()],'f',0)
             + QString::fromLocal8Bit("\260 C"));
@@ -1953,22 +2021,14 @@ void Mainwindow::sync1S()//period 1 second
         ui->label_status->setText(QString::fromUtf8("Chưa k. nối"));
         //ui->toolButton_tx->setEnabled(false);
 //        ui->toolButton_scan->setEnabled(false);
-        ui->label_status_warning->setText(QString::fromUtf8("Chưa kết nối radar"));
-        if(ui->label_status_warning->isHidden())
-        {
-            ui->label_status_warning->setHidden(false);
-        }
-        else
-        {
-            ui->label_status_warning->setHidden(true);
-        }
+        if(!warningList.size())warningList.push_back(QString::fromUtf8("Chưa kết nối radar"));
         m_udpSocket->writeDatagram("d",1,QHostAddress("127.0.0.1"),8001);
         break;
     case CONNECTED:
         //printf("\ns_tx");
-        ui->label_status_warning->setText(QString::fromUtf8("Đã kết nối radar"));
-        ui->label_status->setText(QString::number(pRadar->overload));
-        ui->label_status_warning->setHidden(false);
+        //ui->label_status_warning->setText(QString::fromUtf8("Đã kết nối radar"));
+        ui->label_status->setText(QString::fromUtf8("sẵn sàng"));
+        //ui->label_status_warning->setHidden(false);
 
         m_udpSocket->writeDatagram("c",1,QHostAddress("127.0.0.1"),8001);
         break;
@@ -1977,10 +2037,17 @@ void Mainwindow::sync1S()//period 1 second
     }
     ui->label_debug_data->setText("Chu ky: "+QString::number(pRadar->chu_ky));
     ui->label_he_so_tap->setText(QString::fromUtf8("Hệ số tạp: ")+QString::number(pRadar->tb_tap));
+    if(ui->toolButton_auto_freq->isChecked())
+    {
+        if(pRadar->tb_tap>mMaxTapMayThu)
+        {
+            this->autoSwitchFreq();
+        }
+    }
     switch((pRadar->sn_stat>>8)&0x07)
     {
     case 4:
-        ui->label_sn_type->setText("Ma DTTT");
+        ui->label_sn_type->setText("DTTT");
         //ui->label_sn_param->setText(QString::number(32<<());
         if(((pRadar->sn_stat)&0x07)==0)
         {
@@ -2013,19 +2080,19 @@ void Mainwindow::sync1S()//period 1 second
         }
         break;
     case 0:
-        ui->label_sn_type->setText("Xung don");
+        ui->label_sn_type->setText(QString::fromUtf8("Xung đơn"));
         ui->label_sn_param->setText(QString::number((((pRadar->sn_stat)&0x07))));
         break;
     case 2:
-        ui->label_sn_type->setText("Ma M");
+        ui->label_sn_type->setText(QString::fromUtf8("Mã M"));
         ui->label_sn_param->setText(QString::number((((pRadar->sn_stat)&0x07))));
         break;
     case 3:
-        ui->label_sn_type->setText("Ma ngau nhien");
+        ui->label_sn_type->setText(QString::fromUtf8("Mã ngẫu nhiên"));
         ui->label_sn_param->setText(QString::number((((pRadar->sn_stat)&0x07))));
         break;
     case 1:
-        ui->label_sn_type->setText("Ma baker");
+        ui->label_sn_type->setText(QString::fromUtf8("Mã baker"));
         ui->label_sn_param->setText(QString::number((((pRadar->sn_stat)&0x07))));
         break;
     default:
@@ -2922,8 +2989,8 @@ void Mainwindow::SetGPS(double lat,double lon)
     mLon = lon;
     config.setValue("mLat",mLat);
     config.setValue("mLon",mLon);
-    ui->text_latInput_2->setText(QString::number(mLat,'f',4));
-    ui->text_longInput_2->setText(QString::number(mLon,'f',4));
+    ui->text_latInput_2->setText(QString::number(mLat,'f',5));
+    ui->text_longInput_2->setText(QString::number(mLon,'f',5));
     osmap->setCenterPos(mLat, mLon);
     DrawMap();
     update();
@@ -3562,7 +3629,13 @@ void Mainwindow::on_toolButton_gps_update_auto_clicked()
     {
         config.setValue("mLat",lat);
         config.setValue("mLon",lon);
+        SetGPS(lat, lon);
     }
+    else
+    {
+        warningList.push_back("Chưa đủ tín hiệu vệ tinh");
+    }
+
     DrawMap();
 }
 
@@ -3621,4 +3694,51 @@ void Mainwindow::on_toolButton_set_command_clicked()
     config.setValue("mR7Command",mR7Command);
     config.setValue("mRxCommand",mRxCommand);
     config.setValue("mTxCommand",mTxCommand);
+}
+
+void Mainwindow::on_toolButton_grid_clicked(bool checked)
+{
+    update();
+}
+
+void Mainwindow::on_toolButton_auto_freq_toggled(bool checked)
+{
+    if(checked) autoSwitchFreq();
+}
+
+void Mainwindow::on_toolButton_set_default_clicked()
+{
+    config.setDefault();
+}
+
+
+
+void Mainwindow::on_toolButton_heading_update_clicked()
+{
+    if(processing->isHeadingAvaible)
+    {
+        mTrueN = processing->getHeading()+config.getDouble("mTrueN3");
+        if(mTrueN>=360)mTrueN-=360;
+        ui->label_compass_value->setText(QString::number(processing->getHeading(),'f',1));
+        ui->textEdit_heading->setText(QString::number(mTrueN));
+    }
+    else
+    {
+        warningList.push_back(QString::fromUtf8("Chưa kết nối la bàn"));
+    }
+}
+
+void Mainwindow::on_toolButton_sled_clicked()
+{
+
+}
+
+void Mainwindow::on_toolButton_sled_toggled(bool checked)
+{
+    pRadar->isSled=checked;
+}
+
+void Mainwindow::on_toolButton_sled_reset_clicked()
+{
+    pRadar->resetSled();
 }

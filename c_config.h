@@ -7,6 +7,7 @@
 #define HR_APP_PATH       "D:/HR2D/"
 #define HR_DATA_REC_PATH  "D:/HR2D/RecordData/"
 #define HR_CONFIG_FILE    "D:/HR2D/radar_config.xml"
+#define HR_CONFIG_FILE_DF "D:/HR2D/radar_config_default.xml"
 #define XML_ELEM_NAME     "radar_config"
 #define DEFAULT_LAT		20.707f
 #define DEFAULT_LONG	106.78f
@@ -24,10 +25,10 @@ public:
     double  getDouble(QString key);
     QString getString(QString key);
     int     getInt(QString key);
-
+    void    setDefault();
 private:
     QXmlStreamReader xml;
-    void setDefault();
+
     void readFile();
     void SaveToFile();
 };

@@ -74,6 +74,7 @@ double dataProcessingThread::getCenterAzi() const
 }
 dataProcessingThread::dataProcessingThread()
 {
+    isHeadingAvaible=false;
     centerAzi = 0;
     isXuLyThuCap = false;
     dataBuff = &dataB[0];
@@ -134,6 +135,12 @@ bool  dataProcessingThread::getPosition(double *lat,double *lon)
     *lon = location.coordinate().longitude();
     return true;
 }
+
+double dataProcessingThread::getHeading() const
+{
+    return mHeading;
+}
+
 void dataProcessingThread::gpsupdate(QGeoPositionInfo geo)
 {
     //geo.HorizontalAccuracy
@@ -148,7 +155,7 @@ void dataProcessingThread::SerialDataRead()
         QByteArray responseData = (*it)->readAll();
         if(!geoLocation)
         {
-            if(responseData.contains("$GP"))
+            if(responseData.contains("$GP")&&(!responseData.contains("HDT")))
             {
                 geoLocation = new QNmeaPositionInfoSource(QNmeaPositionInfoSource::RealTimeMode,this);
                 QString nameport( (*it)->portName() );
@@ -185,38 +192,23 @@ void dataProcessingThread::processSerialData(QByteArray inputData)
         signRecFile.write((char*)&len,2);
         signRecFile.write((char*)data,len);
     }
-    if((data[0]==0xff))
+    if(data[0]==0xff)//encoder data
     {
          mazi = (data[1]<<16) + (data[2]<<8)+(data[3]);
          realazi1 = (data[4]);
          realazi2 = (data[5]);
-        //mazi=mazi>>1;
-        //centerAzi = mazi*360.0/1024.0*3.0;
-        //while(centerAzi>=360)centerAzi-=360;
          newAzi = mazi*360.0/262144.0*3.0;
         while(newAzi>=360)newAzi-=360;
         centerAzi = newAzi;
-        //printf("\ngoc:%f len:%d",centerAzi,len);
-//        if(abs(newAzi-centerAzi)>180)
-//        {
-//            if(centerAzi>newAzi)
-//            {
-//                newAzi+=360.0;
-//                centerAzi+=(newAzi-centerAzi)/5.0;
-//                while(centerAzi>=360)centerAzi-=360;
-//            }
-//            else
-//            {
-//                centerAzi+=360.0;
-//                centerAzi+=(newAzi-centerAzi)/5.0;
-//                while(centerAzi>=360)centerAzi-=360;
-//            }
-//        }
-//        else
-//        {
-//            centerAzi+=(newAzi-centerAzi)/5.0;
-//        }
-        //printf("centerAzi:%f\n",centerAzi);
+    }
+    else if(data[0]==0x24)//NMEA
+    {
+         QString s_data = QString::fromLatin1(inputData.data());
+         if(s_data.contains("HDT"))
+         {
+              mHeading = s_data.split(',').at(1).toDouble();
+              isHeadingAvaible = true;
+         }
     }
 
 }

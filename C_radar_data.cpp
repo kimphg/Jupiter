@@ -48,7 +48,7 @@ typedef struct  {
     short xzoom[MAX_AZIR_DRAW][DISPLAY_RES_ZOOM];
     short yzoom[MAX_AZIR_DRAW][DISPLAY_RES_ZOOM];
 } signal_map_t;
-double sn_scale;
+double sn_scale = SIGNAL_SCALE_0;
 short curIdCount = 1;
 qint64 cur_timeMSecs = 0;//QDateTime::currentMSecsSinceEpoch();
 signal_map_t data_mem;
@@ -380,7 +380,8 @@ C_radar_data::C_radar_data()
     img_spectre = new QImage(16,256,QImage::Format_Mono);
     img_spectre->fill(0);
     img_zoom_ppi = new QImage(ZOOM_SIZE+1,ZOOM_SIZE+1,QImage::Format_ARGB32);
-    img_zoom_ar = 0;
+    img_zoom_ar = NULL;
+    setZoomRectAR(10,10,1.852,10);
     //img_zoom_ar->setColorTable(colorTable);
     img_ppi->fill(Qt::transparent);
     isSelfRotation = false;
@@ -1788,6 +1789,16 @@ void C_radar_data::polarToXY(float *x, float *y, float azi, float range)
     *y = ((cosf(azi)))*range;
 }
 
+float C_radar_data::getNoiseAverage() const
+{
+    return noiseAverage;
+}
+
+void C_radar_data::setNoiseAverage(float value)
+{
+    noiseAverage = value;
+}
+
 bool C_radar_data::getIsSharpEye() const
 {
     return isSharpEye;
@@ -1799,21 +1810,23 @@ void C_radar_data::setIsSharpEye(bool value)
 }
 short zoomXmax,zoomYmax,zoomXmin,zoomYmin;
 short zoomCenterX=DISPLAY_RES,zoomCenterY=DISPLAY_RES;
-void C_radar_data::updateZoomRectXY(float ctx, float cty)
+void C_radar_data::setZoomRectXY(float ctx, float cty)
 {
-    /*zoomXmax = ctx*4.0/scale_ppi+ZOOM_SIZE/2;
+    zoomXmax = ctx*4.0/scale_ppi+ZOOM_SIZE/2;
     zoomYmax = cty*4.0/scale_ppi+ZOOM_SIZE/2;
     zoomXmin = ctx*4.0/scale_ppi-ZOOM_SIZE/2;
     zoomYmin = cty*4.0/scale_ppi-ZOOM_SIZE/2;
-    raw_map_init_zoom();*/
+    raw_map_init_zoom();
 }
 void C_radar_data::setZoomRectAR(float ctx, float cty,double sizeKM,double sizeDeg)// unit km
 {
-
-
     double cta,ctr = sqrt(ctx*ctx+cty*cty);
-    if(cty==0)return;
-    cta = atan(ctx/cty)-trueN;
+    if(cty==0)
+    {
+        if(ctx>0)cta = PI_CHIA2;
+        else cta = -PI_CHIA2;
+    }
+    else cta = atan(ctx/cty)-trueN;
     if(cty<0)cta+=PI;
     if(cta<0)cta += PI_NHAN2;
     if(cta>PI_NHAN2)cta-=PI_NHAN2;
@@ -1823,8 +1836,9 @@ void C_radar_data::setZoomRectAR(float ctx, float cty,double sizeKM,double sizeD
     zoom_ar_size_r = sizeKM/sn_scale;
     zoom_ar_a0 = cta-zoom_ar_size_a/2.0;
     zoom_ar_a1 = zoom_ar_a0+zoom_ar_size_a;
+    //if(zoom_ar_a0<0)zoom_ar_a0+=MAX_AZIR;
     zoom_ar_r0 = ctr-zoom_ar_size_r/2.0;
-    //if(zoom_ar_r0 <0)
+    if(zoom_ar_r0 <0)zoom_ar_r0=0;
     zoom_ar_r1 = zoom_ar_r0+zoom_ar_size_r;
     img_zoom_ar = new QImage(zoom_ar_size_r+1,zoom_ar_size_a+1,QImage::Format_ARGB32);
     //img_zoom_ar->// toto:resize
@@ -1834,8 +1848,10 @@ void C_radar_data::setZoomRectAR(float ctx, float cty,double sizeKM,double sizeD
 bool C_radar_data::DrawZoomAR(int a,int r,short val,short dopler,short sled)
 {
     //return true if point is on the edges of the zone
-    if(a<zoom_ar_size_a)a+=MAX_AZIR;
+    //if(a<zoom_ar_size_a)a+=MAX_AZIR;
+    if(!img_zoom_ar)return false;
     int pa= a-zoom_ar_a0;
+    if(pa>=MAX_AZIR)pa-=MAX_AZIR;
     if(pa>zoom_ar_size_a)return false;
     if(pa<0)return false;
     int pr = r-zoom_ar_r0;
@@ -1921,6 +1937,7 @@ void C_radar_data::resetData()
     memset(data_mem.hot_disp,   0,dataLen);
     //memset(data_mem.terrain,    TERRAIN_INIT,dataLen);
     //memset(data_mem.rainLevel,  0,dataLen);
+    //noiseAverage = 30;
     resetSled();
     init_time = 3;
 

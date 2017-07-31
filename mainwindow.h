@@ -346,6 +346,22 @@ private slots:
 
     void on_toolButton_set_command_clicked();
 
+    void on_toolButton_grid_clicked(bool checked);
+
+    void on_toolButton_auto_freq_toggled(bool checked);
+
+    void on_toolButton_set_default_clicked();
+
+//    void on_toolButton_gps_update_auto_2_clicked();
+
+    void on_toolButton_heading_update_clicked();
+
+    void on_toolButton_sled_clicked();
+
+    void on_toolButton_sled_toggled(bool checked);
+
+    void on_toolButton_sled_reset_clicked();
+
 private:
     void initActionsConnections();
     void initGraphicView();
@@ -362,6 +378,7 @@ private:
     void setDistanceUnit(int unit);
     void keyReleaseEvent(QKeyEvent *event);
     void sendToRadarString(QString command);
+    void autoSwitchFreq();
 };
 
 #endif // MAINWINDOW_H
