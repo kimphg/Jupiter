@@ -24900,12 +24900,12 @@
        </property>
        <item>
         <property name="text">
-         <string>Thang 3 màu</string>
+         <string>Thang biên độ</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Thang 1 màu</string>
+         <string>Thang đơn màu</string>
         </property>
        </item>
        <item>

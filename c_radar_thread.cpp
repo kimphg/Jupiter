@@ -1,3 +1,4 @@
+
 #include "c_radar_thread.h"
 #define MAX_IREC 500
 //#include <QGeoCoordinate>
@@ -6,12 +7,39 @@ DataBuff dataB[MAX_IREC];
 short iRec=0,iRead=0;
 bool *pIsDrawn;
 bool *pIsPlaying;
+
 QNmeaPositionInfoSource *geoLocation = NULL;
 //QTimer readDataBuff;
 dataProcessingThread::~dataProcessingThread()
 {
     delete radarData;
     delete arpaData;
+}
+
+bool dataProcessingThread::ProcDataAIS(BYTE *szBuff, int nLeng )
+{
+    C2_Track       nTkNew;                              // New receive Track
+    short nIndex = -1;
+   int nRec;
+    // Connect 2 buffer is fragment
+    if(!m_CLocal.OnLinkBuff(szBuff, nLeng,nRec))
+        return 0;
+    if(!m_CLocal.GetTrackAIS(m_CLocal.m_Buff, m_CLocal.m_Leng, &nTkNew,nRec))
+        return 0;
+    for(ushort i = 0;i<m_AISList.size();i++)
+    {
+        if(m_AISList.at(i).CheckMMSI(nTkNew.m_MMSI))
+        {
+            m_AISList.at(i).Update(&nTkNew);
+            nIndex = i;
+            return true;
+        }
+    }
+    if(nIndex<0)
+    {
+       m_AISList.push_back(nTkNew);
+    }
+    return true;
 }
 void dataProcessingThread::ReadDataBuffer()
 {
@@ -117,7 +145,7 @@ void dataProcessingThread::init()
             QSerialPort *newport = new QSerialPort(this);
             QString qstr = portlist.at(i).portName();
             newport->setPortName(qstr);
-            newport->setBaudRate(QSerialPort::Baud9600);
+            newport->setBaudRate(QSerialPort::Baud38400);
             newport->open(QIODevice::ReadWrite);
             connect(newport, &QSerialPort::readyRead, this, &dataProcessingThread::SerialDataRead);
             serialPorts.push_back(newport);
@@ -163,7 +191,7 @@ void dataProcessingThread::SerialDataRead()
                 serialPorts.erase(it);
                 QSerialPort *newport = new QSerialPort();
                 newport->setPortName(nameport);
-                newport->setBaudRate(QSerialPort::Baud9600);
+                newport->setBaudRate(QSerialPort::Baud38400);
                 newport->open(QIODevice::ReadWrite);
                 geoLocation->setDevice(newport);
                 geoLocation->startUpdates();
@@ -209,6 +237,24 @@ void dataProcessingThread::processSerialData(QByteArray inputData)
               mHeading = s_data.split(',').at(1).toDouble();
               isHeadingAvaible = true;
          }
+    }
+    else
+    {
+
+        //ProcDataAIS((BYTE*)(inputData.data()), inputData.size());
+        QString str = QString::fromLatin1(inputData);
+        QStringList list = str.split('$');
+        int i=0;
+        while( i < list.size())
+        {
+            if(list.at(i).contains("AI"))
+            {
+                QString mstr = "$"+list.at(i);
+                ProcDataAIS((BYTE*)(mstr.toStdString().data()), mstr.size());
+
+            }
+            i++;
+        }
     }
 
 }

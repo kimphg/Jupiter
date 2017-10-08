@@ -6,6 +6,8 @@
 #include <QGeoPositionInfo>
 #include "c_radar_data.h"
 #include "c_arpa_data.h"
+#include "CTrack.h"
+#include "CLocal.h"
 #include <vector>
 #include <QFile>
 #include <QUdpSocket>
@@ -41,7 +43,8 @@ public:
     float   k_vet;
     void SetRadarPort( unsigned short portNumber);
     void SetARPAPort( unsigned short portNumber);
-
+    C2_Local          m_CLocal;
+    C2_TrackLst     m_AISList;
     ~dataProcessingThread();
     dataProcessingThread();
     QTimer commandSendTimer;
@@ -100,6 +103,7 @@ private:
     void listenToRadar();
     void init();
     void processSerialData(QByteArray inputData);
+    bool ProcDataAIS(BYTE *szBuff, int nLeng);
 private slots:
     void ReadDataBuffer();
     void PushCommandQueue();

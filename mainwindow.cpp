@@ -161,11 +161,11 @@ void Mainwindow::drawAisTarget2(QPainter *p, short xAIS, short yAIS)
     QPen penSelectTarger (QColor(0,166,173));
     penSelectTarger.setWidth(0);
 
-    for(uint i=0; i<m_AISList.size(); i++)
+    for(uint i=0; i<processing->m_AISList.size(); i++)
     {
         double fx,fy;
 
-        osmap->ConvWGSToKm(&fx,&fy,m_AISList.at(i).getLon(),m_AISList.at(i).getLat());
+        osmap->ConvWGSToKm(&fx,&fy,processing->m_AISList.at(i).getLon(),processing->m_AISList.at(i).getLat());
 
         short x = (fx*mScale)+scrCtX-dx;
         short y = (fy*mScale)+scrCtY-dy;
@@ -179,7 +179,7 @@ void Mainwindow::drawAisTarget2(QPainter *p, short xAIS, short yAIS)
         //draw ais mark
         QPolygon poly;
         QPoint point;
-        float head = m_AISList.at(i).m_Head*PI_NHAN2/(1<<16);
+        float head = processing->m_AISList.at(i).m_Head*PI_NHAN2/(1<<16);
         point.setX(x+8*sinf(head));
         point.setY(y-8*cosf(head));
         poly<<point;
@@ -199,7 +199,9 @@ void Mainwindow::drawAisTarget2(QPainter *p, short xAIS, short yAIS)
             QFont font = p->font() ;
             font.setPointSize(6);
             p->setFont(font);
-            p->drawText(x+5,y+10,(m_AISList.at(i).m_szName));
+            p->drawText(x+5,y+10,(processing->m_AISList.at(i).m_szName));
+            QString tarMmsi = QString::fromLatin1((const char*)processing->m_AISList.at(i).m_MMSI,9);
+            p->drawText(x+5,y+20,(tarMmsi));
         }
 //        QPushButton *m_button;
 //        m_button = new QPushButton("My Button", this);
@@ -455,7 +457,7 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
             float xAIS = event->x();//(e->x() - scrCtX+dx)/mScale ;//coordinates in  radar xy system
             float yAIS = event->y();//-(e->y() - scrCtY+dy)/mScale;
 
-            for(ushort i=0; i<m_AISList.size(); i++)
+            for(ushort i=0; i<processing->m_AISList.size(); i++)
             {
                 //p->setPen((penTarget));
 //                float mlat, mlong; //kinh do
@@ -464,7 +466,7 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
 //                mlong = m_trackList.at(i).m_Long;
 //                mlong = mlong/bit23*180.0f;
                 double fx,fy;
-                ConvWGSToKm(&fx,&fy,m_AISList.at(i).getLon(),m_AISList.at(i).getLat());
+                ConvWGSToKm(&fx,&fy,processing->m_AISList.at(i).getLon(),processing->m_AISList.at(i).getLat());
                 short x = (fx*mScale)+scrCtX-dx;
                 short y = (fy*mScale)+scrCtY-dy;
 
@@ -1008,10 +1010,11 @@ void Mainwindow::ConvKmToWGS(double x, double y, double *m_Long, double *m_Lat)
 }
 void Mainwindow::drawAisTarget(QPainter *p)
 {
+
     //draw radar  target:
     QPen penTargetRed(QColor(255,50,150));
     penTargetRed.setWidth(0);
-    for(uint i=0;i<m_AISList.size();i++)
+    for(uint i=0;i<processing->m_AISList.size();i++)
     {
             p->setPen(penTargetRed);
 //            short j;
@@ -1021,14 +1024,14 @@ void Mainwindow::drawAisTarget(QPainter *p)
 //            mlat =  mlat/bit23* 180.0f ;
 //            float mlon = m_trackList.at(i).mLong_double;
 //            mlon = mlon/bit23* 180.0f ;
-                ConvWGSToKm(&fx,&fy,m_AISList.at(i).getLon(),m_AISList.at(i).getLat());
+                ConvWGSToKm(&fx,&fy,processing->m_AISList.at(i).getLon(),processing->m_AISList.at(i).getLat());
 
                 short x = (fx*mScale)+scrCtX-dx;
                 short y = (fy*mScale)+scrCtY-dy;
                 //draw ais mark
                 QPolygon poly;
                 QPoint point;
-                float head = m_AISList.at(i).m_Head*PI_NHAN2/(1<<16);
+                float head = processing->m_AISList.at(i).m_Head*PI_NHAN2/(1<<16);
                 point.setX(x+8*sinf(head));
                 point.setY(y-8*cosf(head));
                 poly<<point;
@@ -1048,7 +1051,7 @@ void Mainwindow::drawAisTarget(QPainter *p)
                     QFont font = p->font() ;
                     font.setPointSize(6);
                     p->setFont(font);
-                    p->drawText(x+5,y+10,(m_AISList.at(i).m_szName));
+                    p->drawText(x+5,y+10,(processing->m_AISList.at(i).m_szName));
                 }
 //                p->drawText(x+5,y+5,QString::fromAscii((char*)&m_trackList.at(i).m_MMSI[0],9));
                 //printf("\nj:%d,%d,%d,%f,%f",j,x,y,arpa_data.ais_track_list[i].object_list[j].mlong,arpa_data.ais_track_list[i].object_list[j].mlat);
@@ -1109,7 +1112,7 @@ void Mainwindow::paintEvent(QPaintEvent *event)
     //draw signal
     DrawSignal(&p);
     DrawRadarTargetByPainter(&p);
-    //if(ui->toolButton_ais_show->isChecked())drawAisTarget(&p);
+    if(ui->toolButton_ais_show->isChecked())drawAisTarget(&p);
     //draw cursor
 //    QPen penmousePointer(QColor(0x50ffffff));
 
@@ -1702,10 +1705,7 @@ void Mainwindow::processARPA()
     //            float tRange = (*(list.begin()+3)).toFloat();
     //            arpa_data.adde(tNum,tDistance,tRange);
             }
-            else if(list.at(i).contains("AI"))
-            {
-                ProcDataAIS((BYTE*)(datagram.data()+ dataStart), datagram.size() - dataStart);
-            }
+
             dataStart+= list.at(i).size();
         }
 
@@ -1875,7 +1875,7 @@ void Mainwindow::updateTargetInfo()
     }
     else if(selectedTargetType == AIS){
 
-    C2_Track *selectedTrack = &m_AISList.at(selectedTargetIndex);
+    C2_Track *selectedTrack = &processing->m_AISList.at(selectedTargetIndex);
     double azi,rg;
     double fx,fy;
     ConvWGSToKm(&fx,&fy,selectedTrack->getLon(),selectedTrack->getLat());
@@ -3166,31 +3166,7 @@ void Mainwindow::on_toolButton_export_data_clicked(bool checked)
 {
     pRadar->data_export = checked;
 }
-bool Mainwindow::ProcDataAIS(BYTE *szBuff, int nLeng )
- {
-     C2_Track       nTkNew;                              // New receive Track
-     short nIndex = -1;
-    int nRec;
-     // Connect 2 buffer is fragment
-     if(!m_CLocal.OnLinkBuff(szBuff, nLeng,nRec))
-         return 0;
-     if(!m_CLocal.GetTrackAIS(m_CLocal.m_Buff, m_CLocal.m_Leng, &nTkNew,nRec))
-         return 0;
-     for(ushort i = 0;i<m_AISList.size();i++)
-     {
-         if(m_AISList.at(i).CheckMMSI(nTkNew.m_MMSI))
-         {
-             m_AISList.at(i).Update(&nTkNew);
-             nIndex = i;
-             return true;
-         }
-     }
-     if(nIndex<0)
-     {
-        m_AISList.push_back(nTkNew);
-     }
-     return true;
-}
+
 
 
 
@@ -3210,7 +3186,7 @@ void Mainwindow::on_toolButton_auto_select_toggled(bool checked)
 
 void Mainwindow::on_toolButton_ais_reset_clicked()
 {
-    m_AISList.clear();
+    processing->m_AISList.clear();
 }
 
 
@@ -3741,4 +3717,9 @@ void Mainwindow::on_toolButton_sled_toggled(bool checked)
 void Mainwindow::on_toolButton_sled_reset_clicked()
 {
     pRadar->resetSled();
+}
+
+void Mainwindow::on_toolButton_ais_name_toggled(bool checked)
+{
+
 }

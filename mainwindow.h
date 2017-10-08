@@ -85,8 +85,7 @@ private:
     //QUdpSocket      *udpSocket;//raymarine
 //    QUdpSocket      *udpARPA;//ARPA
     QUdpSocket      *m_udpSocket;//socket for radar control
-    C2_Local          m_CLocal;
-    C2_TrackLst     m_AISList;
+
 
     //
     //CConfig         m_config;
@@ -361,6 +360,8 @@ private slots:
     void on_toolButton_sled_toggled(bool checked);
 
     void on_toolButton_sled_reset_clicked();
+
+    void on_toolButton_ais_name_toggled(bool checked);
 
 private:
     void initActionsConnections();
