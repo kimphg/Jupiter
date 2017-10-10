@@ -398,7 +398,7 @@ C_radar_data::C_radar_data()
     cut_thresh = false;
     filter2of3 = false;
     clk_adc = 0;
-    noiseAverage = 0;
+    noiseAverage = 30;
     noiseVar = 0;
     krain_auto = 0.4;
     kgain_auto  = 2.1;
@@ -758,7 +758,7 @@ void  C_radar_data::getNoiseLevel()
     }
     else
     {
-        noiseAverage = histogram_max_pos;
+        noiseAverage = 31;//histogram_max_pos;
     }
     img_histogram->fill(0);
     for(short i = 0;i<256;i++)
@@ -1154,7 +1154,7 @@ void C_radar_data::ProcessDataFrame()
         {
             rotDir  = Left;
             arcMaxAzi = curAzir;
-            resetData();
+            init_time =2;
 
         }
     }
@@ -1163,6 +1163,7 @@ void C_radar_data::ProcessDataFrame()
         {
             rotDir = Right;
             arcMinAzi = curAzir;
+            init_time =2;
         }
     }
     else if(newAzi ==curAzir)
