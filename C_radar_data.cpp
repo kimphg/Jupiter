@@ -1006,7 +1006,7 @@ void C_radar_data::ProcessData(unsigned short azi)
         //
     }
     //auto threshold
-    if(init_time)return;
+
     short lastazi=azi-1;
     if(lastazi<0)lastazi+=MAX_AZIR;
     memset(&thresh[0],0,RAD_M_PULSE_RES*2);
@@ -1665,6 +1665,7 @@ bool C_radar_data::procObjectManual(object_t* pObject)// !!!
 }
 void C_radar_data::procPix(short proc_azi,short range)//_______signal detected, check 4 last neighbour points for nearby mark_______________//
 {
+    if(init_time)return;
 
     short pr_proc_azi = proc_azi-1;
     if(pr_proc_azi<0)pr_proc_azi+=MAX_AZIR;

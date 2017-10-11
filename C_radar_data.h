@@ -224,12 +224,6 @@ public:
     double                   krain,kgain,ksea,brightness;
     double                   krain_auto,kgain_auto,ksea_auto;
     void setAutorgs( bool aut);
-
-    void setAvtoDetect(bool arg)
-    {
-        init_time = 3;
-        avtodetect = arg;
-    }
     void                    clearPPI();
     float                   temp;
     float                   trueN;
