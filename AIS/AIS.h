@@ -8,7 +8,7 @@
  * http://catb.org/gpsd/AIVDM.html#_types_1_2_and_3_position_report_class_a
  * http://catb.org/gpsd/AIVDM.html#_type_18_standard_class_b_cs_position_report'
  */
-
+//https://www.navcen.uscg.gov/?pageName=AISMessagesAStatic
 class AIS
 {
 public:
