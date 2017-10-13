@@ -74,28 +74,28 @@ void C_ARPA_data::addARPA(short id,float r,float a,float course,float velocity)
     track_list.push_back(newtrack);
     SortTrack();
 }
-void C_ARPA_data::addAIS(std::string id, float mlat, float mlong, float course, float velocity)
-{
-    //printf("\n time:%I64u",QDateTime::currentMSecsSinceEpoch());
+//void C_ARPA_data::addAIS(std::string id, float mlat, float mlong, float course, float velocity)
+//{
+//    //printf("\n time:%I64u",QDateTime::currentMSecsSinceEpoch());
 
-    AIS_object_t newobj;
-    newobj.mlat = mlat;
-    newobj.mlong = mlong;
-    newobj.course = course;
-    newobj.velocity = velocity;
-    newobj.time = QDateTime::currentMSecsSinceEpoch();
-    for(unsigned short i=0;i<ais_track_list.size();i++)
-    {
-        if(ais_track_list[i].id==id)
-        {
-            ais_track_list[i].addObject(&newobj);
+//    AIS_object_t newobj;
+//    newobj.mlat = mlat;
+//    newobj.mlong = mlong;
+//    newobj.course = course;
+//    newobj.velocity = velocity;
+//    newobj.time = QDateTime::currentMSecsSinceEpoch();
+//    for(unsigned short i=0;i<ais_track_list.size();i++)
+//    {
+//        if(ais_track_list[i].id==id)
+//        {
+//            ais_track_list[i].addObject(&newobj);
 
-            return;
-        }
-    }
-    AIS_track newtrack;
-    newtrack.addObject(&newobj);
-    newtrack.id=id;
-    ais_track_list.push_back(newtrack);
+//            return;
+//        }
+//    }
+//    AIS_track newtrack;
+//    newtrack.addObject(&newobj);
+//    newtrack.id=id;
+//    ais_track_list.push_back(newtrack);
 
-}
+//}

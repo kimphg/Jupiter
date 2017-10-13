@@ -218,12 +218,21 @@ void dataProcessingThread::processSerialData(QByteArray inputData)
         QString str = QString::fromLatin1(inputData);
         if(ais_data.ProcessNMEA(str))
         {
-            unsigned long mMMSI = ais_data.get_mmsi();
-            double mSOG = ais_data.get_SOG()/10.0;
-            double mCOG = ais_data.get_COG()/10.0;
-            double mLAT = ais_data.get_latitude()/600000.0;
-            double mLONG = ais_data.get_longitude()/600000.0;
-            mLONG = mLONG;
+            AIS_object_t newAisObj;
+            newAisObj.mName = QString(ais_data.get_shipname());
+            newAisObj.mMMSI = ais_data.get_mmsi();
+            newAisObj.mDst = QString(ais_data.get_destination());
+            ais_data.get_navStatus();
+            ais_data.get_HDG();
+            ais_data.get_shiptype();
+            ais_data.get_to_();
+            newAisObj.mSog = ais_data.get_SOG()/10.0;
+            newAisObj.mCog = ais_data.get_COG()/10.0;
+            newAisObj.mLat = ais_data.get_latitude()/600000.0;
+            newAisObj.mLong = ais_data.get_longitude()/600000.0;
+            newAisObj.mLut = QDateTime::currentMSecsSinceEpoch();
+            m_aisList.push_front(newAisObj);
+//            mLONG = mLONG;
 
         }
 

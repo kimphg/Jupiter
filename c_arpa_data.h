@@ -14,13 +14,13 @@ typedef struct  {
     qint64              time;
 }ARPA_object_t;
 typedef struct  {
-    QString              mName;
+    QString              mName,mDst;
     int                  mMMSI;
     double               mLat;//in deg
     double               mLong;//in deg
     double               mCog;//course
     double               mSog;//speed
-    qint64               mLOTime;//last update time
+    qint64               mLut;//last update time
 }AIS_object_t;
 typedef std::vector<ARPA_object_t> ArpaobjectList;
 class ARPA_track
@@ -48,27 +48,6 @@ public:
     bool            selected;
     unsigned short            lives;
 };
-class AIS_track
-{
-public:
-    AIS_track(){}
-    std::vector<AIS_object_t> object_list;
-    void addObject(AIS_object_t*newobj)
-    {
-        object_list.push_back(*newobj);
-        mlat = newobj->mlat;
-        mlong = newobj->mlong;
-        course = newobj->course ;
-        velocity =  newobj->velocity;
-        lives = 20;
-    }
-    float mlat,mlong;
-    float          course ;
-    float          velocity;
-    std::string           id;
-    bool            selected;
-    unsigned short            lives;
-};
 
 
 class C_ARPA_data
@@ -79,7 +58,7 @@ public:
     void SortTrack();
     void processData(char *data, unsigned short len);
     std::vector<ARPA_track> track_list;
-    std::vector<AIS_track> ais_track_list;
+
     void addARPA(short id, float r, float a, float course, float velocity);
     void addAIS(std::string id, float mlat, float mlong, float course, float velocity);
 };
