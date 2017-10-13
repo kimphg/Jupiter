@@ -117,7 +117,7 @@ private:
     bool ProcDataAIS(BYTE *szBuff, int nLeng );
 public:
 //    void setScaleNM(unsigned short rangeNM);
-    void drawAisTarget2(QPainter *p, short xAIS, short yAIS);
+    void drawAisTarget2(QPainter *p);
 private slots:
     void readBuffer();
     void sync1S();

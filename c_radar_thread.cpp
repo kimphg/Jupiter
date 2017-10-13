@@ -107,7 +107,7 @@ dataProcessingThread::dataProcessingThread()
     //connect(&readSerialTimer, &QTimer::timeout, this, &dataProcessingThread::SerialDataRead);
     //readSerialTimer.start(20);
     init(9600);
-    processSerialData("!AIVDM,1,1,,A,13EoN=0P00NqIS<@6Od00?vN0D1F,0*5D");
+    //processSerialData("!AIVDM,1,1,,A,13EoN=0P00NqIS<@6Od00?vN0D1F,0*5D");
 }
 void dataProcessingThread::init(int serialBaud)
 {
@@ -222,10 +222,10 @@ void dataProcessingThread::processSerialData(QByteArray inputData)
             newAisObj.mName = QString(ais_data.get_shipname());
             newAisObj.mMMSI = ais_data.get_mmsi();
             newAisObj.mDst = QString(ais_data.get_destination());
-            ais_data.get_navStatus();
-            ais_data.get_HDG();
-            ais_data.get_shiptype();
-            ais_data.get_to_();
+            //ais_data.get_navStatus();
+            //ais_data.get_HDG();
+            //ais_data.get_shiptype();
+            //ais_data.get_to();
             newAisObj.mSog = ais_data.get_SOG()/10.0;
             newAisObj.mCog = ais_data.get_COG()/10.0;
             newAisObj.mLat = ais_data.get_latitude()/600000.0;
