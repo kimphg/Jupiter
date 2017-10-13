@@ -30,17 +30,14 @@ SOURCES += main.cpp\
     qcustomgroupbox.cpp \
     qcustomtabwidget.cpp \
     ctarget.cpp \
-    CLocal.cpp \
-    CTrack.cpp \
-    CPoints.cpp \
-    CDefine.cpp \
     jtarget.cpp \
     jgraphictarget.cpp \
     Cmap/cmap.cpp\
     c_config.cpp \
     c_radar_data.cpp \
     c_radar_thread.cpp \
-    dialogdocumentation.cpp
+    dialogdocumentation.cpp \
+    AIS/AIS.cpp
 
 
 HEADERS  += mainwindow.h \
@@ -52,17 +49,14 @@ HEADERS  += mainwindow.h \
     qcustomtabwidget.h \
     pkp.h \
     ctarget.h \
-    CLocal.h \
-    CTrack.h \
-    CPoints.h \
-    CDefine.h \
     jtarget.h \
     jgraphictarget.h \
     Cmap/cmap.h\
     c_config.h \
     c_radar_data.h \
     c_radar_thread.h \
-    dialogdocumentation.h
+    dialogdocumentation.h \
+    AIS/AIS.h
 
 FORMS    += mainwindow.ui \
     dialogdocumentation.ui

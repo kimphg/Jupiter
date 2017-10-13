@@ -16,31 +16,6 @@ dataProcessingThread::~dataProcessingThread()
     delete arpaData;
 }
 
-bool dataProcessingThread::ProcDataAIS(BYTE *szBuff, int nLeng )
-{
-    C2_Track       nTkNew;                              // New receive Track
-    short nIndex = -1;
-   int nRec;
-    // Connect 2 buffer is fragment
-    if(!m_CLocal.OnLinkBuff(szBuff, nLeng,nRec))
-        return 0;
-    if(!m_CLocal.GetTrackAIS(m_CLocal.m_Buff, m_CLocal.m_Leng, &nTkNew,nRec))
-        return 0;
-    for(ushort i = 0;i<m_AISList.size();i++)
-    {
-        if(m_AISList.at(i).CheckMMSI(nTkNew.m_MMSI))
-        {
-            m_AISList.at(i).Update(&nTkNew);
-            nIndex = i;
-            return true;
-        }
-    }
-    if(nIndex<0)
-    {
-       m_AISList.push_back(nTkNew);
-    }
-    return true;
-}
 void dataProcessingThread::ReadDataBuffer()
 {
     if(iRec!=iRead)
@@ -131,10 +106,10 @@ dataProcessingThread::dataProcessingThread()
     readUdpBuffTimer.start(10);
     //connect(&readSerialTimer, &QTimer::timeout, this, &dataProcessingThread::SerialDataRead);
     //readSerialTimer.start(20);
-    init();
-
+    init(9600);
+    processSerialData("!AIVDM,1,1,,A,13EoN=0P00NqIS<@6Od00?vN0D1F,0*5D");
 }
-void dataProcessingThread::init()
+void dataProcessingThread::init(int serialBaud)
 {
     //
     QList<QSerialPortInfo> portlist = QSerialPortInfo::availablePorts();
@@ -145,7 +120,7 @@ void dataProcessingThread::init()
             QSerialPort *newport = new QSerialPort(this);
             QString qstr = portlist.at(i).portName();
             newport->setPortName(qstr);
-            newport->setBaudRate(QSerialPort::Baud38400);
+            newport->setBaudRate(serialBaud);
             newport->open(QIODevice::ReadWrite);
             connect(newport, &QSerialPort::readyRead, this, &dataProcessingThread::SerialDataRead);
             serialPorts.push_back(newport);
@@ -191,7 +166,7 @@ void dataProcessingThread::SerialDataRead()
                 serialPorts.erase(it);
                 QSerialPort *newport = new QSerialPort();
                 newport->setPortName(nameport);
-                newport->setBaudRate(QSerialPort::Baud38400);
+                newport->setBaudRate(9600);
                 newport->open(QIODevice::ReadWrite);
                 geoLocation->setDevice(newport);
                 geoLocation->startUpdates();
@@ -211,8 +186,6 @@ void dataProcessingThread::SerialDataRead()
 }
 void dataProcessingThread::processSerialData(QByteArray inputData)
 {
-
-
     unsigned short len = inputData.length();
     unsigned char* data = (unsigned char*)inputData.data();
     if(isRecording)
@@ -229,32 +202,31 @@ void dataProcessingThread::processSerialData(QByteArray inputData)
         while(newAzi>=360)newAzi-=360;
         centerAzi = newAzi;
     }
-    else if(data[0]==0x24)//NMEA
-    {
-         QString s_data = QString::fromLatin1(inputData.data());
-         if(s_data.contains("HDT"))
-         {
-              mHeading = s_data.split(',').at(1).toDouble();
-              isHeadingAvaible = true;
-         }
-    }
+//    else if(data[0]==0x24)//NMEA
+//    {
+//         QString s_data = QString::fromLatin1(inputData.data());
+//         if(s_data.contains("HDT"))
+//         {
+//              mHeading = s_data.split(',').at(1).toDouble();
+//              isHeadingAvaible = true;
+//         }
+//    }
     else
     {
 
         //ProcDataAIS((BYTE*)(inputData.data()), inputData.size());
         QString str = QString::fromLatin1(inputData);
-        QStringList list = str.split('$');
-        int i=0;
-        while( i < list.size())
+        if(ais_data.ProcessNMEA(str))
         {
-            if(list.at(i).contains("AI"))
-            {
-                QString mstr = "$"+list.at(i);
-                ProcDataAIS((BYTE*)(mstr.toStdString().data()), mstr.size());
+            unsigned long mMMSI = ais_data.get_mmsi();
+            double mSOG = ais_data.get_SOG()/10.0;
+            double mCOG = ais_data.get_COG()/10.0;
+            double mLAT = ais_data.get_latitude()/600000.0;
+            double mLONG = ais_data.get_longitude()/600000.0;
+            mLONG = mLONG;
 
-            }
-            i++;
         }
+
     }
 
 }

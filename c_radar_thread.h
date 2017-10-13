@@ -6,8 +6,7 @@
 #include <QGeoPositionInfo>
 #include "c_radar_data.h"
 #include "c_arpa_data.h"
-#include "CTrack.h"
-#include "CLocal.h"
+#include "AIS/AIS.h"
 #include <vector>
 #include <QFile>
 #include <QUdpSocket>
@@ -27,6 +26,8 @@ struct DataBuff// buffer for data frame
     short len;
     unsigned char data[1500];
 };
+
+
 struct  RadarCommand// radar control commmand
 {
     unsigned char bytes[8];
@@ -43,8 +44,6 @@ public:
     float   k_vet;
     void SetRadarPort( unsigned short portNumber);
     void SetARPAPort( unsigned short portNumber);
-    C2_Local          m_CLocal;
-    C2_TrackLst     m_AISList;
     ~dataProcessingThread();
     dataProcessingThread();
     QTimer commandSendTimer;
@@ -65,7 +64,8 @@ public:
     C_ARPA_data* arpaData;
     void run();
     bool getIsDrawn();
-
+    AIS ais_data;
+    QList<AIS_object_t> m_aisList;
     bool isConnected()
     {
         return bool(connect_timeout);
@@ -101,9 +101,9 @@ private:
     QUdpSocket      *ARPADataSocket;
     double centerAzi;
     void listenToRadar();
-    void init();
+    void init(int serialBaud);
     void processSerialData(QByteArray inputData);
-    bool ProcDataAIS(BYTE *szBuff, int nLeng);
+//    bool ProcDataAIS(BYTE *szBuff, int nLeng);
 private slots:
     void ReadDataBuffer();
     void PushCommandQueue();

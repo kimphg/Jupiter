@@ -14,11 +14,13 @@ typedef struct  {
     qint64              time;
 }ARPA_object_t;
 typedef struct  {
-    float               mlat;//
-    float               mlong;//in km
-    float               course ;
-    float               velocity;
-    qint64              time;
+    QString              mName;
+    int                  mMMSI;
+    double               mLat;//in deg
+    double               mLong;//in deg
+    double               mCog;//course
+    double               mSog;//speed
+    qint64               mLOTime;//last update time
 }AIS_object_t;
 typedef std::vector<ARPA_object_t> ArpaobjectList;
 class ARPA_track
