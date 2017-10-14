@@ -14,6 +14,7 @@
 #include <QtCore>
 #include <QtGui>
 #include "pkp.h"
+#include <dialogaisinfo.h>
 //#include <CLocal.h>
 #include <c_config.h>
 #include <c_radar_thread.h>

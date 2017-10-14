@@ -170,9 +170,9 @@ void dataProcessingThread::SerialDataRead()
                 newport->open(QIODevice::ReadWrite);
                 geoLocation->setDevice(newport);
                 geoLocation->startUpdates();
-//                //connect(&geoLocation, QNmeaPositionInfoSource::positionUpdated(), this, &dataProcessingThread::gpsupdate);
+                //                //connect(&geoLocation, QNmeaPositionInfoSource::positionUpdated(), this, &dataProcessingThread::gpsupdate);
                 connect(geoLocation, SIGNAL(positionUpdated(QGeoPositionInfo)),
-                                this, SLOT(gpsupdate(QGeoPositionInfo)));
+                        this, SLOT(gpsupdate(QGeoPositionInfo)));
                 return;
 
             }
@@ -195,46 +195,27 @@ void dataProcessingThread::processSerialData(QByteArray inputData)
     }
     if(data[0]==0xff)//encoder data
     {
-         mazi = (data[1]<<16) + (data[2]<<8)+(data[3]);
-         realazi1 = (data[4]);
-         realazi2 = (data[5]);
-         newAzi = mazi*360.0/262144.0*3.0;
+        mazi = (data[1]<<16) + (data[2]<<8)+(data[3]);
+        realazi1 = (data[4]);
+        realazi2 = (data[5]);
+        newAzi = mazi*360.0/262144.0*3.0;
         while(newAzi>=360)newAzi-=360;
         centerAzi = newAzi;
     }
-//    else if(data[0]==0x24)//NMEA
-//    {
-//         QString s_data = QString::fromLatin1(inputData.data());
-//         if(s_data.contains("HDT"))
-//         {
-//              mHeading = s_data.split(',').at(1).toDouble();
-//              isHeadingAvaible = true;
-//         }
-//    }
+    //    else if(data[0]==0x24)//NMEA
+    //    {
+    //         QString s_data = QString::fromLatin1(inputData.data());
+    //         if(s_data.contains("HDT"))
+    //         {
+    //              mHeading = s_data.split(',').at(1).toDouble();
+    //              isHeadingAvaible = true;
+    //         }
+    //    }
     else
     {
 
-        //ProcDataAIS((BYTE*)(inputData.data()), inputData.size());
-        QString str = QString::fromLatin1(inputData);
-        if(ais_data.ProcessNMEA(str))
-        {
-            AIS_object_t newAisObj;
-            newAisObj.mName = QString(ais_data.get_shipname());
-            newAisObj.mMMSI = ais_data.get_mmsi();
-            newAisObj.mDst = QString(ais_data.get_destination());
-            //ais_data.get_navStatus();
-            //ais_data.get_HDG();
-            //ais_data.get_shiptype();
-            //ais_data.get_to();
-            newAisObj.mSog = ais_data.get_SOG()/10.0;
-            newAisObj.mCog = ais_data.get_COG()/10.0;
-            newAisObj.mLat = ais_data.get_latitude()/600000.0;
-            newAisObj.mLong = ais_data.get_longitude()/600000.0;
-            newAisObj.mLut = QDateTime::currentMSecsSinceEpoch();
-            m_aisList.push_front(newAisObj);
-//            mLONG = mLONG;
+        processARPAData(inputData);
 
-        }
 
     }
 
@@ -244,9 +225,9 @@ void dataProcessingThread::PushCommandQueue()
     if(radarComQ.size())
     {
         radarSocket->writeDatagram((char*)&radarComQ.front().bytes[0],
-                                    8,
-                                    QHostAddress("192.168.0.44"),2572
-                                    );
+                8,
+                QHostAddress("192.168.0.44"),2572
+                );
         radarComQ.pop();
     }
 }
@@ -316,22 +297,79 @@ void dataProcessingThread::togglePlayPause(bool play)
     isPlaying = play;
 
 }
-void dataProcessingThread::processARPAData()
+QString messageStringbuffer;
+void dataProcessingThread::processARPAData(QByteArray inputdata)
 {
-    while (ARPADataSocket->hasPendingDatagrams()) {
-        isDrawn = false;
-        QByteArray datagram;
-        unsigned short len = ARPADataSocket->pendingDatagramSize();
-        datagram.resize(len);
-        ARPADataSocket->readDatagram(datagram.data(), len);
-        arpaData->processData(datagram.data(),len);
-        if(isRecording)
-        {
-            signRecFile.write((char*)&len,2);
-            signRecFile.write(datagram.data(),len);
-        }
+    messageStringbuffer.append(QString::fromLatin1(inputdata));
+    if(messageStringbuffer.size()>100)messageStringbuffer = "";
 
-    }
+    QStringList strlist = messageStringbuffer.split("\r\n");
+    if(strlist.size() <= 1)return;
+
+    for(int i = 0;i<strlist.size();i++)
+        if(aisMessageHandler.ProcessNMEA(strlist.at(i)))
+        {
+            AIS_object_t newAisObj ;
+            newAisObj.mName = QString::fromLatin1(aisMessageHandler.get_shipname());
+            newAisObj.mMMSI = aisMessageHandler.get_mmsi();
+            newAisObj.mDst = QString(aisMessageHandler.get_destination());
+            newAisObj.mImo = aisMessageHandler.get_imo();
+            newAisObj.mNavStat = aisMessageHandler.get_navStatus();
+            newAisObj.mType = aisMessageHandler.get_shiptype();
+            newAisObj.mBow = aisMessageHandler.get_to_bow();
+            newAisObj.mStern = aisMessageHandler.get_to_stern();
+            newAisObj.mStarboard = aisMessageHandler.get_to_starboard();
+            newAisObj.mPort = aisMessageHandler.get_to_port();
+            newAisObj.mSog = aisMessageHandler.get_SOG()/10.0;
+            newAisObj.mCog = aisMessageHandler.get_COG()/10.0;
+            newAisObj.mLat = aisMessageHandler.get_latitude()/600000.0;
+            newAisObj.mLong = aisMessageHandler.get_longitude()/600000.0;
+            newAisObj.mLut = QDateTime::currentMSecsSinceEpoch();
+            newAisObj.isNewest = true;
+            QMutableListIterator<AIS_object_t> i(m_aisList);
+            int elecount = 0;
+
+            while (i.hasNext())
+            {
+                AIS_object_t obj = i.next();
+                elecount++;
+                if(elecount>3000){i.remove();continue;}
+                if(obj.mMMSI==newAisObj.mMMSI)
+                {
+                    obj.isNewest = false;
+                    if(newAisObj.mName.isEmpty()&&(!obj.mName.isEmpty()))
+                        newAisObj.mName = obj.mName;
+                    if(newAisObj.mLat==0)newAisObj.mLat = obj.mLat;
+                    if(newAisObj.mLong==0)newAisObj.mLong = obj.mLong;
+                    if(newAisObj.mDst.isEmpty())
+                        newAisObj.mDst      = obj.mDst;
+                    if(newAisObj.mImo==0)
+                        newAisObj.mImo      = obj.mImo;
+                    if(newAisObj.mType==0)
+                        newAisObj.mType      = obj.mType;
+                    if(newAisObj.mBow==0)
+                        newAisObj.mBow      = obj.mBow;
+                    if(newAisObj.mStern==0)
+                        newAisObj.mStern      = obj.mStern;
+                    if(newAisObj.mStarboard==0)
+                        newAisObj.mStarboard      = obj.mStarboard;
+                    if(newAisObj.mPort==0)
+                        newAisObj.mPort      = obj.mPort;
+                    if(newAisObj.mSog==0)
+                        newAisObj.mSog      = obj.mSog;
+                    if(newAisObj.mCog==0)
+                        newAisObj.mCog      = obj.mCog;
+                    i.setValue(obj);
+                }
+
+            }
+            m_aisList.push_front(newAisObj);
+
+            //            mLONG = mLONG;
+
+        }
+    messageStringbuffer=strlist.at(strlist.size()-1);
+
     return;
 }
 void dataProcessingThread::processRadarData()
@@ -341,20 +379,20 @@ void dataProcessingThread::processRadarData()
 #define UDP_HEADER_LEN 42
 void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data)
 {
-//    struct tm ltime;
-//    char timestr[16];
-//    time_t local_tv_sec;
+    //    struct tm ltime;
+    //    char timestr[16];
+    //    time_t local_tv_sec;
 
     /*
      * unused variables
      */
-//    (VOID)(param);
-//    (VOID)(pkt_data);
+    //    (VOID)(param);
+    //    (VOID)(pkt_data);
 
     /* convert the timestamp to readable format */
-//    local_tv_sec = header->ts.tv_sec;
-//    localtime_s(&ltime, &local_tv_sec);
-//    strftime( timestr, sizeof timestr, "%H:%M:%S", &ltime);
+    //    local_tv_sec = header->ts.tv_sec;
+    //    localtime_s(&ltime, &local_tv_sec);
+    //    strftime( timestr, sizeof timestr, "%H:%M:%S", &ltime);
 
     if(*pIsPlaying)return;
     if(header->len<1000)return;
@@ -371,13 +409,13 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
     //printf("nhan duoc:%x\n",dataB[iRec].data[0]);
 
     return;
-//    printf("len:%d\n", header->len);
-//    //printf("%.6d len:%d\n", header->ts.tv_usec, header->len);
-//    for(short i=0;i<dataB[iRec].len;i++)
-//    {
-//        printf("%x-",dataB[iRec].data[i]);
-//    }
-//    printf("\n");
+    //    printf("len:%d\n", header->len);
+    //    //printf("%.6d len:%d\n", header->ts.tv_usec, header->len);
+    //    for(short i=0;i<dataB[iRec].len;i++)
+    //    {
+    //        printf("%x-",dataB[iRec].data[i]);
+    //    }
+    //    printf("\n");
 
 }
 QTimer *timer_read_buffer;
@@ -409,18 +447,18 @@ void dataProcessingThread::run()
     }
     d=alldevs;
     if ( (adhandle= pcap_open(d->name,          // name of the device
-                                  65536,            // portion of the packet to capture
-                                                    // 65536 guarantees that the whole packet will be captured on all the link layers
-                                  PCAP_OPENFLAG_PROMISCUOUS,    // promiscuous mode
-                                  1000,             // read timeout
-                                  NULL,             // authentication on the remote machine
-                                  errbuf            // error buffer
-                                  ) ) == NULL)
-        {
-            /* Free the device list */
-            pcap_freealldevs(alldevs);
-            return ;
-        }
+                              65536,            // portion of the packet to capture
+                              // 65536 guarantees that the whole packet will be captured on all the link layers
+                              PCAP_OPENFLAG_PROMISCUOUS,    // promiscuous mode
+                              1000,             // read timeout
+                              NULL,             // authentication on the remote machine
+                              errbuf            // error buffer
+                              ) ) == NULL)
+    {
+        /* Free the device list */
+        pcap_freealldevs(alldevs);
+        return ;
+    }
     printf("\nlistening on %s...\n", d->description);
 
     /* start the capture */
@@ -452,8 +490,8 @@ void dataProcessingThread::run()
 bool dataProcessingThread::getIsDrawn()
 {
 
-       if(!isDrawn){isDrawn = true;return false;}
-       else return true;
+    if(!isDrawn){isDrawn = true;return false;}
+    else return true;
 
 }
 void dataProcessingThread::stopThread()
@@ -483,11 +521,11 @@ void dataProcessingThread::radTxOn()
     //rotation on
     bytes[1] = 0xab;
     //setRotationSpeed(3);
-//    //tx off
-//    command.bytes[0] = 0xaa;
-//    command.bytes[2] = 0x02;
-//    command.bytes[3] = 0x00;
-//    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //    //tx off
+    //    command.bytes[0] = 0xaa;
+    //    command.bytes[2] = 0x02;
+    //    command.bytes[3] = 0x00;
+    //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
 
     //thich nghi
     bytes[0] = 0xaa;
@@ -505,7 +543,7 @@ void dataProcessingThread::radTxOn()
     sendCommand(&bytes[0],7);
     sendCommand(&bytes[0],7);
     //if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-//0x18 - 0xab - 0x01 - 0x0f
+    //0x18 - 0xab - 0x01 - 0x0f
     //dttt 192
     bytes[0] = 0x18;
     bytes[2] = 0x01;
@@ -536,16 +574,16 @@ void dataProcessingThread::radTxOn()
     command.bytes[2] = 0x02;
     command.bytes[3] = 0x00;
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);*/
-//    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-//    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-//    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-//    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-//    //tat thich nghi
-//    command.bytes[0] = 0x1a;
-//    command.bytes[2] = 0x20;
-//    command.bytes[3] = 0x00;
-//    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
-/*
+    //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    //    //tat thich nghi
+    //    command.bytes[0] = 0x1a;
+    //    command.bytes[2] = 0x20;
+    //    command.bytes[3] = 0x00;
+    //    if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
+    /*
     //tx on 1
     command.bytes[0] = 0xaa;
     command.bytes[2] = 0x02;
@@ -567,19 +605,19 @@ void dataProcessingThread::radTxOn()
     if(radarComQ.size()<MAX_COMMAND_QUEUE_SIZE)radarComQ.push(command);
 
 */
-//    if(1){
-//        QFile logFile;
-//        QDateTime now = QDateTime::currentDateTime();
-//        if(!QDir("C:\\logs\\"+now.toString("\\dd.MM\\")).exists())
-//        {
-//            QDir().mkdir("C:\\logs\\"+now.toString("\\dd.MM\\"));
-//        }
-//        logFile.setFileName("C:\\logs\\"+now.toString("\\dd.MM\\")+now.toString("dd.MM-hh.mm.ss")+"_tx_on.log");
+    //    if(1){
+    //        QFile logFile;
+    //        QDateTime now = QDateTime::currentDateTime();
+    //        if(!QDir("C:\\logs\\"+now.toString("\\dd.MM\\")).exists())
+    //        {
+    //            QDir().mkdir("C:\\logs\\"+now.toString("\\dd.MM\\"));
+    //        }
+    //        logFile.setFileName("C:\\logs\\"+now.toString("\\dd.MM\\")+now.toString("dd.MM-hh.mm.ss")+"_tx_on.log");
 
-//        logFile.open(QIODevice::WriteOnly);
-//        //logFile.p
-//        logFile.close();
-//    }
+    //        logFile.open(QIODevice::WriteOnly);
+    //        //logFile.p
+    //        logFile.close();
+    //    }
 
 
 }
@@ -601,18 +639,18 @@ void dataProcessingThread::radTxOff()
     sendCommand(&bytes[0],7);
     sendCommand(&bytes[0],7);
     sendCommand(&bytes[0],7);
-//    if(1)
-//    {
-//        QFile logFile;
-//        QDateTime now = QDateTime::currentDateTime();
-//        if(!QDir("C:\\logs\\"+now.toString("\\dd.MM\\")).exists())
-//        {
-//            QDir().mkdir("C:\\logs\\"+now.toString("\\dd.MM\\"));
-//        }
-//        logFile.setFileName("C:\\logs\\"+now.toString("\\dd.MM\\")+now.toString("dd.MM-hh.mm.ss")+"_tx_off.log");
-//        logFile.open(QIODevice::WriteOnly);
-//        //logFile.p
-//        logFile.close();
+    //    if(1)
+    //    {
+    //        QFile logFile;
+    //        QDateTime now = QDateTime::currentDateTime();
+    //        if(!QDir("C:\\logs\\"+now.toString("\\dd.MM\\")).exists())
+    //        {
+    //            QDir().mkdir("C:\\logs\\"+now.toString("\\dd.MM\\"));
+    //        }
+    //        logFile.setFileName("C:\\logs\\"+now.toString("\\dd.MM\\")+now.toString("dd.MM-hh.mm.ss")+"_tx_off.log");
+    //        logFile.open(QIODevice::WriteOnly);
+    //        //logFile.p
+    //        logFile.close();
 
     //    }
 }

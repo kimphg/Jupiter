@@ -99,3 +99,69 @@ void C_ARPA_data::addARPA(short id,float r,float a,float course,float velocity)
 //    ais_track_list.push_back(newtrack);
 
 //}
+
+AIS_object_t::AIS_object_t()
+{
+
+}
+
+QString AIS_object_t::printData()
+{
+    QString output;
+    output.append(QString::fromUtf8("MMSI:")+QString::number(mMMSI)+"\n");
+    output.append(QString::fromUtf8("IMO:")+QString::number(mImo)+"\n");
+    output.append(QString::fromUtf8("Tên:")+mName+"\n");
+    output.append(QString::fromUtf8("Loại:"));
+    switch(mType/10)
+    {
+    case 2:
+        output.append(QString::fromUtf8("Thủy phi cơ"));
+        break;
+    case 3:
+        if(mType==30)output.append(QString::fromUtf8("Tàu cá"));
+        else if(mType==31||mType==32)output.append(QString::fromUtf8("Tàu kéo"));
+        else output.append(QString::fromUtf8("Thuyền"));
+        break;
+    case 4:
+        output.append(QString::fromUtf8("Tàu cao tốc"));
+        break;
+    case 5:
+        output.append(QString::fromUtf8("Tàu chuyên dụng"));
+        break;
+    case 6:
+        output.append(QString::fromUtf8("Tàu chở khách"));
+        break;
+    case 7:
+        output.append(QString::fromUtf8("Tàu hàng"));
+        break;
+    case 8:
+        output.append(QString::fromUtf8("Tàu chở dầu"));
+        break;
+    default:
+        output.append(QString::fromUtf8("Không xác định"));
+        break;
+    }
+    output.append("("+ QString::number(mType)+")");output.append("\n");
+    output.append(QString::fromUtf8("Kinh độ:")
+                  +QString::number(mLong)
+                  +"\n");
+    output.append(QString::fromUtf8("Vĩ độ:")
+                  +QString::number(mLat)
+                  +"\n");
+    output.append(QString::fromUtf8("Hướng di chuyển:")
+                  + QString::number(mCog)
+                  + "\n");
+    output.append(QString::fromUtf8("Tốc độ:")
+                  + QString::number(mSog)
+                  +"\n");
+    output.append(QString::fromUtf8("Chiều dài:")
+                  + QString::number(mBow+mStern)
+                  + "\n");
+    output.append(QString::fromUtf8("Chiều rộng:")
+                  + QString::number(mPort+mStarboard)
+                  +"\n");
+    output.append(QString::fromUtf8("Điểm đến:")
+                  + mDst
+                  +"\n");
+    return output;
+}

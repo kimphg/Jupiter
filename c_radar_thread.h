@@ -64,7 +64,7 @@ public:
     C_ARPA_data* arpaData;
     void run();
     bool getIsDrawn();
-    AIS ais_data;
+    AIS aisMessageHandler;
     QList<AIS_object_t> m_aisList;
     bool isConnected()
     {
@@ -108,7 +108,7 @@ private slots:
     void ReadDataBuffer();
     void PushCommandQueue();
     void processRadarData();
-    void processARPAData();
+    void processARPAData(QByteArray inputdata);
     void playbackRadarData();
     void SerialDataRead();
     void gpsupdate(QGeoPositionInfo geo);

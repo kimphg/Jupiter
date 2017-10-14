@@ -85,7 +85,7 @@ public:
 
     bool ProcessNMEA(QString data);
 private:
-    void ProcessPayload(const char *AISbitstream, unsigned int fillBits = 0);
+    bool ProcessPayload(const char *AISbitstream, unsigned int fillBits = 0);
 	enum Nmea0183AisParams {
 		AIS_PARAM_U8_REPEAT,
 		AIS_PARAM_U32_MMSI,
@@ -146,7 +146,7 @@ private:
 private:
 	static const uint16_t AisParamLength[AIS_PARAM_MAX];
 	static const struct AisTypeMsgPair AisMsgTypes[];
-	static const struct AisParamPosPair* AisMsgParams[AIS_MSG_MAX];
+    static const struct AisParamPosPair* AisMsgParams[AIS_MSG_MAX];
 
 	static const struct AisParamPosPair AisMsgPosReportClassA[];
 	static const struct AisParamPosPair AisMsgBaseStationReport[];
@@ -185,7 +185,8 @@ private:
 	static const uint8_t destination_strlen = 20; // a bits
 	static const uint8_t callsign_strlen = 7; // a 6 bits
 	static const uint8_t vendorid_strlen = 3; // a 6 bits
-
+    QString payloadFirstHalf;
+    int lastMesID;
 	uint8_t msg[msg_max];
 	unsigned int msgLen;
 	Nmea0183AisMessages msgType;

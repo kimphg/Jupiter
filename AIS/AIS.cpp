@@ -157,8 +157,9 @@ const struct AIS::AisParamPosPair* AIS::AisMsgParams[AIS_MSG_MAX] = {
 AIS::AIS()
 {
     //msglen = 0;
+    lastMesID = -1;
 }
-void AIS::ProcessPayload(const char *AISbitstream, unsigned int fillBits)
+bool AIS::ProcessPayload(const char *AISbitstream, unsigned int fillBits)
 {
     //msglen = 0;
     uint8_t* tmp = (uint8_t*)AISbitstream;
@@ -176,7 +177,12 @@ void AIS::ProcessPayload(const char *AISbitstream, unsigned int fillBits)
     getdata(0,6, &msgNum);  // Will be used a lot
 
     msgType = numericToMessage(msgNum);
+    if(msgType==AIS_MSG_MAX)
+    {
+        return false;// message not supported
+    }
     msgNumeric = msgNum;
+    return true;
 }
 
 
@@ -317,6 +323,7 @@ enum AIS::Nmea0183AisMessages AIS::numericToMessage(uint8_t msgNumeric)
         }
         i++;
     }
+    printf("\nAIS unsupported type:%d",msgNumeric);
     return AIS_MSG_MAX;
 }
 
@@ -462,9 +469,35 @@ bool AIS::ProcessNMEA(QString data)
     QStringList fieldList = data.split(',');
     if(fieldList.size()<7)return false;
     if(!(fieldList.at(0).contains("AIVD")))return false;
+    int numOfSen = fieldList.at(1).toInt();
+    int senNum = fieldList.at(2).toInt();
     int padding = fieldList.at(6).split('*').at(0).toInt();
+    if(numOfSen==1)return ProcessPayload(fieldList.at(5).toStdString().data(),padding);
+    else if(numOfSen==2)
+    {
+        if(senNum==1)
+        {
+            payloadFirstHalf = fieldList.at(5);
+            lastMesID =fieldList.at(3).toInt();
+        }
+        else if(senNum==2)
+        {
+            if(lastMesID==fieldList.at(3).toInt())
+            {
+                payloadFirstHalf += fieldList.at(5);
+                return ProcessPayload(payloadFirstHalf.toStdString().data(),padding);
+                lastMesID=-1;
+            }
 
-    ProcessPayload(fieldList.at(5).toStdString().data(),padding);
+        }
+
+    }
+    else
+    {
+        return false;
+    }
+
+
     return true;
 }
 
