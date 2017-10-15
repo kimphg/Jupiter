@@ -153,24 +153,22 @@ void Mainwindow::sendToRadar(unsigned char* hexdata)
 //ham test ve tu AIS
 void Mainwindow::drawAisTarget(QPainter *p)
 {
-    //draw radar
-    QPen penTarget(QColor(255,50,150));
-    penTarget.setWidth(1);
-
-    //hightlight target
-    QPen penSelectTarger (QColor(0,166,173));
-    penSelectTarger.setWidth(0);
+    //draw targets
+    QPen penTarget(QColor(250,100,250));
+    penTarget.setWidth(2);
+    p->setPen(penTarget);
+    p->setFont(QFont("Times", 8));
     QList<AIS_object_t>::iterator iter = processing->m_aisList.begin();
     while(iter!=processing->m_aisList.end())
     {
         AIS_object_t aisObj = *iter;
         iter++;
-        //if(aisObj.mName.isEmpty())continue;
+
         double fx,fy;
         ConvWGSToKm(&fx,&fy,aisObj.mLong,aisObj.mLat);
         short x = (fx*mScale)+scrCtX-dx;
         short y = (fy*mScale)+scrCtY-dy;
-        p->setPen((penTarget));
+
         if(aisObj.isNewest)
         {
             //draw ais mark
@@ -193,6 +191,8 @@ void Mainwindow::drawAisTarget(QPainter *p)
             point.setY(y-16*cosf(head));
             poly<<point;
             p->drawPolygon(poly);
+            if(ui->toolButton_ais_name->isChecked())
+                p->drawText(x,y,100,20,0,aisObj.mName);
         }
         else
         {
@@ -457,6 +457,8 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
                 {
                     DialogAisInfo *dialog = new DialogAisInfo(this);
                     dialog->setAttribute( Qt::WA_DeleteOnClose, true );
+                    dialog->setWindowFlags(dialog->windowFlags()&(~Qt::WindowContextHelpButtonHint));
+                    dialog->setFixedSize(dialog->width(),dialog->height());
                     dialog->setAisData(&processing->m_aisList,aisObj.mMMSI);
                     dialog->show();
                     break;
@@ -3699,6 +3701,11 @@ void Mainwindow::on_toolButton_sled_reset_clicked()
 }
 
 void Mainwindow::on_toolButton_ais_name_toggled(bool checked)
+{
+
+}
+
+void Mainwindow::on_toolButton_filter2of3_toggled(bool checked)
 {
 
 }

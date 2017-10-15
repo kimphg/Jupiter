@@ -738,7 +738,8 @@ void  C_radar_data::getNoiseLevel()
     }
     short histogram_max_val=0;
     short histogram_max_pos;
-    if(noiseVar==0)noiseVar = sumvar/float(n);else
+    if(noiseVar<7)noiseVar = 7;
+    else
     {
         noiseVar+=(sumvar/float(n)-noiseVar)/2.0f;
     }
@@ -773,6 +774,7 @@ void  C_radar_data::getNoiseLevel()
         img_histogram->setPixel(histogram_max_pos,j,1);
         if(j>50)img_histogram->setPixel(thresh,j,1);
     }
+    //printf("\ntrung binh tap:%f, var:%f",noiseAverage,noiseVar);
 
 }
 void C_radar_data::SetHeaderLen( short len)
@@ -885,10 +887,6 @@ void C_radar_data::ProcessData(unsigned short azi)
                 {
                    a = a*1.2;
                 }
-//                if(data_mem.dopler[azi][r_pos]==data_mem.dopler[azi][r_pos-3])
-//                {
-//                   a = a*1.1;
-//                }
                 if(a>255)a=255;
                 //printf("Result a:%d\n",a);
                 data_mem.level[azi][r_pos] = (unsigned char)a;
@@ -904,7 +902,7 @@ void C_radar_data::ProcessData(unsigned short azi)
     // apply the  threshholding algorithm manualy
     memset(&thresh[0],0,RAD_M_PULSE_RES*2);
 
-    if(doubleFilter)
+    if(doubleFilter)// bo loc nguong rain 2 chieu
     {
         rainLevel = noiseAverage;
         for(short r_pos=range_max-1;r_pos>=0;r_pos--)
@@ -1007,8 +1005,6 @@ void C_radar_data::ProcessData(unsigned short azi)
     }
     //auto threshold
 
-    short lastazi=azi-1;
-    if(lastazi<0)lastazi+=MAX_AZIR;
     memset(&thresh[0],0,RAD_M_PULSE_RES*2);
 
     if(doubleFilter)

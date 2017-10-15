@@ -310,6 +310,7 @@ void dataProcessingThread::processARPAData(QByteArray inputdata)
         if(aisMessageHandler.ProcessNMEA(strlist.at(i)))
         {
             AIS_object_t newAisObj ;
+
             newAisObj.mName = QString::fromLatin1(aisMessageHandler.get_shipname());
             newAisObj.mMMSI = aisMessageHandler.get_mmsi();
             newAisObj.mDst = QString(aisMessageHandler.get_destination());
