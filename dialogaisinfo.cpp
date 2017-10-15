@@ -6,9 +6,7 @@ DialogAisInfo::DialogAisInfo(QWidget *parent) :
     ui(new Ui::DialogAisInfo)
 {
     ui->setupUi(this);
-    connect(this,SIGNAL(closed()), this, SLOT(destroy()));
-    timerId = this->startTimer(500);
-
+    timerId = this->startTimer(1000);
 }
 
 DialogAisInfo::~DialogAisInfo()
