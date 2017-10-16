@@ -311,8 +311,9 @@ void dataProcessingThread::processARPAData(QByteArray inputdata)
         {
             AIS_object_t newAisObj ;
 
-            newAisObj.mName = QString::fromLatin1(aisMessageHandler.get_shipname());
+
             newAisObj.mMMSI = aisMessageHandler.get_mmsi();
+            newAisObj.mName = QString::fromLatin1(aisMessageHandler.get_shipname());
             newAisObj.mDst = QString(aisMessageHandler.get_destination());
             newAisObj.mImo = aisMessageHandler.get_imo();
             newAisObj.mNavStat = aisMessageHandler.get_navStatus();
@@ -329,7 +330,6 @@ void dataProcessingThread::processARPAData(QByteArray inputdata)
             newAisObj.isNewest = true;
             QMutableListIterator<AIS_object_t> i(m_aisList);
             int elecount = 0;
-
             while (i.hasNext())
             {
                 AIS_object_t obj = i.next();
