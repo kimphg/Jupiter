@@ -29,6 +29,7 @@ public:
     double               mSog;//speed
     qint64               mLut;//last update time
     bool                isNewest;
+    bool                isSelected;
 };
 typedef std::vector<ARPA_object_t> ArpaobjectList;
 class ARPA_track

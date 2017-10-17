@@ -155,9 +155,10 @@ void Mainwindow::drawAisTarget(QPainter *p)
 {
     //draw targets
     QPen penTarget(QColor(250,100,250));
-    penTarget.setWidth(2);
-    p->setPen(penTarget);
-    p->setFont(QFont("Times", 8));
+    penTarget.setWidth(1);
+    QPen penSelectedtarget = penTarget;
+    penSelectedtarget.setWidth(2);
+    p->setFont(QFont("Times", 6));
     QList<AIS_object_t>::iterator iter = processing->m_aisList.begin();
     while(iter!=processing->m_aisList.end())
     {
@@ -168,7 +169,7 @@ void Mainwindow::drawAisTarget(QPainter *p)
         ConvWGSToKm(&fx,&fy,aisObj.mLong,aisObj.mLat);
         short x = (fx*mScale)+scrCtX-dx;
         short y = (fy*mScale)+scrCtY-dy;
-
+        if((aisObj.mType/10)==3)continue;
         if(aisObj.isNewest)
         {
             //draw ais mark
@@ -190,9 +191,20 @@ void Mainwindow::drawAisTarget(QPainter *p)
             point.setX(x+16*sinf(head));
             point.setY(y-16*cosf(head));
             poly<<point;
-            p->drawPolygon(poly);
-            if(ui->toolButton_ais_name->isChecked())
-                p->drawText(x,y,100,20,0,aisObj.mName);
+            if(aisObj.isSelected)
+            {
+                p->setPen(penSelectedtarget);
+                p->drawPolygon(poly);
+            }
+            else
+            {
+                p->setPen(penTarget);
+                p->drawPolygon(poly);
+                if(ui->toolButton_ais_name->isChecked())
+                    p->drawText(x,y,100,20,0,aisObj.mName);
+            }
+
+
         }
         else
         {
@@ -441,33 +453,35 @@ void Mainwindow::mousePressEvent(QMouseEvent *event)
         //select ais target
         if(ui->toolButton_ais_show->isChecked())
         {
-            //lay vi tri con tro chuot
-            float xAIS = event->x();//(e->x() - scrCtX+dx)/mScale ;//coordinates in  radar xy system
-            float yAIS = event->y();//-(e->y() - scrCtY+dy)/mScale;
-            QList<AIS_object_t>::iterator iter = processing->m_aisList.begin();
-            while(iter!=processing->m_aisList.end())
-            {
-                AIS_object_t aisObj = *iter;
-                iter++;
-                double fx,fy;
-                ConvWGSToKm(&fx,&fy,aisObj.mLong,aisObj.mLat);
-                short x = (fx*mScale)+scrCtX-dx;
-                short y = (fy*mScale)+scrCtY-dy;
-                if(abs(x-xAIS)<5&&abs(y-yAIS)<5)
-                {
-                    DialogAisInfo *dialog = new DialogAisInfo(this);
-                    dialog->setAttribute( Qt::WA_DeleteOnClose, true );
-                    dialog->setWindowFlags(dialog->windowFlags()&(~Qt::WindowContextHelpButtonHint));
-                    dialog->setFixedSize(dialog->width(),dialog->height());
-                    dialog->setAisData(&processing->m_aisList,aisObj.mMMSI);
-                    dialog->show();
-                    break;
-                }
-            }
-
+            checkClickAIS(event->x(),event->y());
         }
     }
 
+}
+void Mainwindow::checkClickAIS(int xclick, int yclick)
+{
+    QList<AIS_object_t>::iterator iter = processing->m_aisList.begin();
+    while(iter!=processing->m_aisList.end())
+    {
+        AIS_object_t aisObj = *iter;
+        iter++;
+        if(aisObj.isSelected)continue;
+        if(!aisObj.isNewest)continue;
+        double fx,fy;
+        ConvWGSToKm(&fx,&fy,aisObj.mLong,aisObj.mLat);
+        int x = (fx*mScale)+scrCtX-dx;
+        int y = (fy*mScale)+scrCtY-dy;
+        if(abs(x-xclick)<5&&abs(y-yclick)<5)
+        {
+            DialogAisInfo *dialog = new DialogAisInfo(this);
+            dialog->setAttribute( Qt::WA_DeleteOnClose, true );
+            dialog->setWindowFlags(dialog->windowFlags()&(~Qt::WindowContextHelpButtonHint));
+            dialog->setFixedSize(dialog->width(),dialog->height());
+            dialog->setAisData(&processing->m_aisList,aisObj.mMMSI);
+            dialog->show();
+            break;
+        }
+    }
 }
 /*void MainWindow::wheelEvent(QWheelEvent *event)
 {
@@ -3167,7 +3181,7 @@ void Mainwindow::on_toolButton_auto_select_toggled(bool checked)
 
 void Mainwindow::on_toolButton_ais_reset_clicked()
 {
-    //processing->m_AISList.clear();
+    processing->m_aisList.clear();
 }
 
 

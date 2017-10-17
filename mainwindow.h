@@ -383,6 +383,7 @@ private:
     void keyReleaseEvent(QKeyEvent *event);
     void sendToRadarString(QString command);
     void autoSwitchFreq();
+    void checkClickAIS(int xclick, int yclick);
 };
 
 #endif // MAINWINDOW_H

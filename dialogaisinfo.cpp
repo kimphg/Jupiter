@@ -11,7 +11,19 @@ DialogAisInfo::DialogAisInfo(QWidget *parent) :
 
 DialogAisInfo::~DialogAisInfo()
 {
+    QMutableListIterator<AIS_object_t> i(*aisData);
+    while (i.hasNext())
+    {
+        AIS_object_t obj = i.next();
+        if(obj.mMMSI == aisMmsi)
+        {
+            ui->textBrowser->setText(obj.printData());
+            obj.isSelected = false;
+            i.setValue(obj);
+            break;
+        }
 
+    }
     delete ui;
     this->killTimer(timerId);
 }
@@ -29,14 +41,17 @@ void DialogAisInfo::timerEvent(QTimerEvent *event)
 }
 void DialogAisInfo::UpdateData()
 {
-    QList<AIS_object_t>::iterator iter = aisData->begin();
-    while(iter!=aisData->end())
+    QMutableListIterator<AIS_object_t> i(*aisData);
+    while (i.hasNext())
     {
-
-        if((*iter).mMMSI==aisMmsi)
+        AIS_object_t obj = i.next();
+        if(obj.mMMSI == aisMmsi)
         {
-            ui->textBrowser->setText((*iter).printData());break;
+            ui->textBrowser->setText(obj.printData());
+            obj.isSelected = true;
+            i.setValue(obj);
+            break;
         }
-        iter++;
+
     }
 }
