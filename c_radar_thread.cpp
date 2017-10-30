@@ -186,6 +186,7 @@ void dataProcessingThread::SerialDataRead()
 }
 void dataProcessingThread::processSerialData(QByteArray inputData)
 {
+
     unsigned short len = inputData.length();
     unsigned char* data = (unsigned char*)inputData.data();
     if(isRecording)

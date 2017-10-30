@@ -372,7 +372,7 @@ C_radar_data::C_radar_data()
 
         colorTable.push_back((getColor(i,0,0)));
     }
-
+    tb_tap=new unsigned int[MAX_AZIR];
     img_histogram=new QImage(257,101,QImage::Format_Mono);
     img_histogram->fill(0);
     img_ppi = new QImage(DISPLAY_RES*2+1,DISPLAY_RES*2+1,QImage::Format_ARGB32);
@@ -381,6 +381,7 @@ C_radar_data::C_radar_data()
     img_spectre->fill(0);
     img_zoom_ppi = new QImage(ZOOM_SIZE+1,ZOOM_SIZE+1,QImage::Format_ARGB32);
     img_zoom_ar = NULL;
+    tb_tap_k = 1;
     setZoomRectAR(10,10,1.852,10);
     //img_zoom_ar->setColorTable(colorTable);
     img_ppi->fill(Qt::transparent);
@@ -397,6 +398,7 @@ C_radar_data::C_radar_data()
     xl_dopler = false;
     cut_thresh = false;
     filter2of3 = false;
+    is_do_bup_song = false;
     clk_adc = 0;
     noiseAverage = 30;
     noiseVar = 0;
@@ -901,7 +903,19 @@ void C_radar_data::ProcessData(unsigned short azi)
     }
     // apply the  threshholding algorithm manualy
     memset(&thresh[0],0,RAD_M_PULSE_RES*2);
+    //do bup song
+    if(is_do_bup_song)
+    {
+        int r_pos = (double)(tb_tap[azi]*tb_tap[azi])/tb_tap_k;
+        for(short pos=0;pos<range_max;pos++)
+        {
+            if(pos==r_pos)
+            data_mem.level[azi][pos] =255;
+            else
+            data_mem.level[azi][pos] = 0;
+        }
 
+    }
     if(doubleFilter)// bo loc nguong rain 2 chieu
     {
         rainLevel = noiseAverage;
@@ -914,6 +928,7 @@ void C_radar_data::ProcessData(unsigned short azi)
         }
     }
     rainLevel = noiseAverage ;
+
     for(short r_pos=0;r_pos<range_max;r_pos++)
     {
         if(isManualTune&&(!rgs_auto))
@@ -1188,9 +1203,8 @@ void C_radar_data::ProcessDataFrame()
     if(tempType>4)printf("Wrong temperature\n");
     sn_stat = dataBuff[14]<<8|dataBuff[15];
     chu_ky = dataBuff[16]<<8|dataBuff[17];
-    tb_tap = dataBuff[18]<<8|dataBuff[19];
+    tb_tap[newAzi] = dataBuff[18]<<8|dataBuff[19];
     memcpy(command_feedback,&dataBuff[RADAR_COMMAND_FEEDBACK],8);
-
     memcpy(noise_level,&dataBuff[RADAR_COMMAND_FEEDBACK+8],8);
     curAzir = newAzi;
     aziToProcess.push(curAzir);
@@ -1815,6 +1829,12 @@ void C_radar_data::setZoomRectXY(float ctx, float cty)
     zoomXmin = ctx*4.0/scale_ppi-ZOOM_SIZE/2;
     zoomYmin = cty*4.0/scale_ppi-ZOOM_SIZE/2;
     raw_map_init_zoom();
+}
+
+void C_radar_data::setTb_tap_k(double value)
+{
+    tb_tap_k = value;
+    if(tb_tap_k<=0)tb_tap_k=1;
 }
 void C_radar_data::setZoomRectAR(float ctx, float cty,double sizeKM,double sizeDeg)// unit km
 {

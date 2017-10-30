@@ -366,6 +366,10 @@ private slots:
 
     void on_toolButton_filter2of3_toggled(bool checked);
 
+    void on_toolButton_dobupsong_clicked();
+
+    void on_toolButton_dobupsong_toggled(bool checked);
+
 private:
     void initActionsConnections();
     void initGraphicView();

@@ -217,7 +217,10 @@ public:
     short                   curAzir,arcMinAzi,arcMaxAzi,arcWidth;
     void                    setZoomRectAR(float ctx, float cty, double sizeKM, double sizeDeg);
     void                    setZoomRectXY(float ctx, float cty);
-    unsigned short          sn_stat,chu_ky,tb_tap;
+    unsigned int            sn_stat,chu_ky,*tb_tap;
+    double                  tb_tap_k;
+    int                     get_tb_tap(){return tb_tap[curAzir];}
+    bool                    is_do_bup_song;
     bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled,filter2of3;
     bool                    isManualTune,rgs_auto,bo_bang_0,data_export;
     bool                    isSelfRotation;
@@ -324,6 +327,7 @@ public:
     //void drawZoomAR();
     float getNoiseAverage() const;
     void setNoiseAverage(float value);
+    void setTb_tap_k(double value);
 };
 
 //extern C_radar_data radarData;

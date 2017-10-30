@@ -23136,6 +23136,27 @@
        <string notr="true" comment="asd ">Đặt tọa độ tâm đài</string>
       </property>
       <layout class="QFormLayout" name="formLayout_8">
+       <item row="2" column="0" colspan="2">
+        <widget class="QCustomButton" name="toolButton_gps_update">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Cập nhật tọa độ tâm đài</string>
+         </property>
+         <property name="checkable">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
        <item row="5" column="0">
         <widget class="QLabel" name="label_6">
          <property name="font">
@@ -23199,27 +23220,6 @@
          </property>
          <property name="autoFillBackground">
           <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0" colspan="2">
-        <widget class="QCustomButton" name="toolButton_gps_update">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>12</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>Cập nhật tọa độ tâm đài</string>
-         </property>
-         <property name="checkable">
-          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -23893,8 +23893,8 @@
      <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
-        <x>290</x>
-        <y>310</y>
+        <x>280</x>
+        <y>280</y>
         <width>203</width>
         <height>89</height>
        </rect>
@@ -24382,6 +24382,50 @@
          </property>
          <property name="text">
           <string>Cài đặt mặc định</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QCustomGroupBox" name="groupBox_12">
+      <property name="geometry">
+       <rect>
+        <x>290</x>
+        <y>370</y>
+        <width>181</width>
+        <height>111</height>
+       </rect>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="title">
+       <string notr="true" comment="asd ">Kích thước vùng IAD:</string>
+      </property>
+      <layout class="QFormLayout" name="formLayout_9">
+       <item row="0" column="0" colspan="2">
+        <widget class="QCustomButton" name="toolButton_dobupsong">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Đo búp sóng</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="textEdit_dobupsongk">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
         </widget>
        </item>
@@ -36221,7 +36265,7 @@
        <x>210</x>
        <y>160</y>
        <width>671</width>
-       <height>501</height>
+       <height>612</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">

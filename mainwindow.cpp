@@ -2031,10 +2031,10 @@ void Mainwindow::sync1S()//period 1 second
         break;
     }
     ui->label_debug_data->setText("Chu ky: "+QString::number(pRadar->chu_ky));
-    ui->label_he_so_tap->setText(QString::fromUtf8("Hệ số tạp: ")+QString::number(pRadar->tb_tap));
+    ui->label_he_so_tap->setText(QString::fromUtf8("Hệ số tạp: ")+QString::number(pRadar->get_tb_tap()));
     if(ui->toolButton_auto_freq->isChecked())
     {
-        if(pRadar->tb_tap>mMaxTapMayThu)
+        if(pRadar->get_tb_tap()>mMaxTapMayThu)
         {
             this->autoSwitchFreq();
         }
@@ -3722,4 +3722,19 @@ void Mainwindow::on_toolButton_ais_name_toggled(bool checked)
 void Mainwindow::on_toolButton_filter2of3_toggled(bool checked)
 {
 
+}
+
+void Mainwindow::on_toolButton_dobupsong_clicked()
+{
+
+}
+
+void Mainwindow::on_toolButton_dobupsong_toggled(bool checked)
+{
+    pRadar->is_do_bup_song = checked;
+    if(checked)
+    {
+        pRadar->setTb_tap_k(ui->textEdit_dobupsongk->text().toDouble());
+
+    }
 }
