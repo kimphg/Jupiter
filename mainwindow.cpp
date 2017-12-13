@@ -3627,21 +3627,7 @@ void Mainwindow::on_toolButton_advanced_control_clicked()
     }
 }
 
-void Mainwindow::on_toolButton_set_commands_clicked(bool checked)
-{
-    ui->groupBox_control_setting->setHidden(!checked);
-    ui->plainTextEdit_range_0->setPlainText(mR0Command);
-    ui->plainTextEdit_range_1->setPlainText(mR1Command);
-    ui->plainTextEdit_range_2->setPlainText(mR2Command);
-    ui->plainTextEdit_range_3->setPlainText(mR3Command);
-    ui->plainTextEdit_range_4->setPlainText(mR4Command);
-    ui->plainTextEdit_range_5->setPlainText(mR5Command);
-    ui->plainTextEdit_range_6->setPlainText(mR6Command);
-    ui->plainTextEdit_range_7->setPlainText(mR7Command);
-    ui->plainTextEdit_command_rx->setPlainText(mRxCommand);
-    ui->plainTextEdit_command_tx->setPlainText(mTxCommand);
 
-}
 
 void Mainwindow::on_toolButton_set_command_clicked()
 {
@@ -3665,6 +3651,8 @@ void Mainwindow::on_toolButton_set_command_clicked()
     config.setValue("mR7Command",mR7Command);
     config.setValue("mRxCommand",mRxCommand);
     config.setValue("mTxCommand",mTxCommand);
+    ui->groupBox_control_setting->setHidden(true);
+
 }
 
 void Mainwindow::on_toolButton_grid_clicked(bool checked)
@@ -3737,4 +3725,24 @@ void Mainwindow::on_toolButton_dobupsong_toggled(bool checked)
         pRadar->setTb_tap_k(ui->textEdit_dobupsongk->text().toDouble());
 
     }
+}
+
+void Mainwindow::on_toolButton_set_commands_toggled(bool checked)
+{
+
+}
+
+void Mainwindow::on_toolButton_set_commands_clicked()
+{
+    ui->groupBox_control_setting->setHidden(false);
+    ui->plainTextEdit_range_0->setPlainText(mR0Command);
+    ui->plainTextEdit_range_1->setPlainText(mR1Command);
+    ui->plainTextEdit_range_2->setPlainText(mR2Command);
+    ui->plainTextEdit_range_3->setPlainText(mR3Command);
+    ui->plainTextEdit_range_4->setPlainText(mR4Command);
+    ui->plainTextEdit_range_5->setPlainText(mR5Command);
+    ui->plainTextEdit_range_6->setPlainText(mR6Command);
+    ui->plainTextEdit_range_7->setPlainText(mR7Command);
+    ui->plainTextEdit_command_rx->setPlainText(mRxCommand);
+    ui->plainTextEdit_command_tx->setPlainText(mTxCommand);
 }

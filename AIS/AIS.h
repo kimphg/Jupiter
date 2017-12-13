@@ -19,7 +19,6 @@ public:
         AIS_MSG_18_CS_POS_REPORT_CLASS_B,
         AIS_MSG_19_CS_POS_REPORT_EXT_CLASS_B,
         AIS_MSG_24_STATIC_DATA_REPORT,
-
         AIS_MSG_MAX,
     };
 

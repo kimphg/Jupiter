@@ -342,7 +342,7 @@ private slots:
 
     void on_toolButton_advanced_control_clicked();
 
-    void on_toolButton_set_commands_clicked(bool checked);
+//    void on_toolButton_set_commands_clicked(bool checked);
 
     void on_toolButton_set_command_clicked();
 
@@ -369,6 +369,10 @@ private slots:
     void on_toolButton_dobupsong_clicked();
 
     void on_toolButton_dobupsong_toggled(bool checked);
+
+    void on_toolButton_set_commands_toggled(bool checked);
+
+    void on_toolButton_set_commands_clicked();
 
 private:
     void initActionsConnections();
