@@ -172,6 +172,7 @@ void Mainwindow::drawAisTarget(QPainter *p)
         if((aisObj.mType/10)==3)continue;
         if(aisObj.isNewest)
         {
+            //printf("ais draw\n");
             //draw ais mark
             QPolygon poly;
             QPoint point;

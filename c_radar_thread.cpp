@@ -106,7 +106,7 @@ dataProcessingThread::dataProcessingThread()
     readUdpBuffTimer.start(10);
     //connect(&readSerialTimer, &QTimer::timeout, this, &dataProcessingThread::SerialDataRead);
     //readSerialTimer.start(20);
-    init(9600);
+    init(38400);
     //processSerialData("!AIVDM,1,1,,A,13EoN=0P00NqIS<@6Od00?vN0D1F,0*5D");
 }
 void dataProcessingThread::init(int serialBaud)
@@ -216,7 +216,7 @@ void dataProcessingThread::processSerialData(QByteArray inputData)
     {
 
         processARPAData(inputData);
-
+        //printf("arpa ais\n");
 
     }
 
@@ -303,7 +303,7 @@ void dataProcessingThread::processARPAData(QByteArray inputdata)
 {
     messageStringbuffer.append(QString::fromLatin1(inputdata));
     if(messageStringbuffer.size()>100)messageStringbuffer = "";
-
+    printf(inputdata.data());
     QStringList strlist = messageStringbuffer.split("\r\n");
     if(strlist.size() <= 1)return;
 
@@ -314,10 +314,10 @@ void dataProcessingThread::processARPAData(QByteArray inputdata)
 
 
             newAisObj.mMMSI = aisMessageHandler.get_mmsi();
-            if(574098083 == newAisObj.mMMSI)
-            {
-                newAisObj.mMMSI=newAisObj.mMMSI;
-            }//remove later
+//            if(574098083 == newAisObj.mMMSI)
+//            {
+//                newAisObj.mMMSI=newAisObj.mMMSI;
+//            }//remove later
             if(aisMessageHandler.get_type()==AIS::AIS_MSG_24_STATIC_DATA_REPORT)
             {
                 if(aisMessageHandler.get_partno()==0)
