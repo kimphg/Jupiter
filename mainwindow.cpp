@@ -8,7 +8,7 @@
 //#define mapHeight mapWidth
 #define CONST_NM 1.852f// he so chuyen doi tu km sang hai ly
 #define MAX_VIEW_RANGE_KM 50
-
+QStringList                 commandLogList;
 QPixmap                     *pMap=NULL;// painter cho ban do
 QPixmap                     *pViewFrame=NULL;// painter cho ban do
 CMap *osmap ;
@@ -48,6 +48,7 @@ QStringList     warningList;
 QString         strDistanceUnit;
 short selectedTargetIndex;
 mouseMode mouse_mode = MouseNormal;
+DialogCommandLog *cmLog;
 enum drawModes{
     SGN_DIRECT_DRAW,SGN_IMG_DRAW,NOTERR_DRAW
 }drawMode = SGN_IMG_DRAW;
@@ -502,6 +503,7 @@ Mainwindow::Mainwindow(QWidget *parent) :
     //ui->frame_RadarViewOptions->hide();
     QFont font;
     font.setPointSize(12);
+    cmLog = new DialogCommandLog();
     //ui->listTargetWidget->setFont(font);
     //ui->frame_2->setStyleSheet("#frame_2 { border: 2px solid darkgreen; }");
     //ui->frame_3->setStyleSheet("#frame_3 { border: 2px solid darkgreen; }");
@@ -2002,15 +2004,19 @@ void Mainwindow::sync1S()//period 1 second
     // request radar temperature:
     if(radar_state!=DISCONNECTED)
     {
-        processing->radRequestTemp(curTempIndex);
-
-        curTempIndex++;
-        if(curTempIndex>4)curTempIndex=0;
-
-
+        if(ui->toolButton_temp_update->isChecked())
+        {
+            processing->radRequestTemp(curTempIndex);
+            curTempIndex++;
+            if(curTempIndex>4)curTempIndex=0;
+        }
+        QByteArray array(pRadar->getFeedback(), 8);
+        QString commandLog = QString(array.toHex());
+        ui->label_command->setText(commandLog);
+        cmLog->AddString(commandLog);
     }
-    QByteArray array(pRadar->getFeedback(), 8);
-    ui->label_command->setText(QString(array.toHex()));
+
+
     switch(radar_state)
     {
     case DISCONNECTED:
@@ -2096,23 +2102,23 @@ void Mainwindow::sync1S()//period 1 second
         break;
     }
     /*switch((pRadar->rotation_speed)&0x07)
-    {
-    case 0:
-        ui->label_speed->setText(QString::fromUtf8("Dừng quay"));break;
-    case 1:
-        ui->label_speed->setText("5 v/p");break;
-    case 2:
-        ui->label_speed->setText("8 v/p");break;
-    case 3:
-        ui->label_speed->setText("12 v/p");break;
-    case 4:
-        ui->label_speed->setText("15 v/p");break;
-    case 5:
-        ui->label_speed->setText("18 v/p");break;
-    default:
+            {
+            case 0:
+                ui->label_speed->setText(QString::fromUtf8("Dừng quay"));break;
+            case 1:
+                ui->label_speed->setText("5 v/p");break;
+            case 2:
+                ui->label_speed->setText("8 v/p");break;
+            case 3:
+                ui->label_speed->setText("12 v/p");break;
+            case 4:
+                ui->label_speed->setText("15 v/p");break;
+            case 5:
+                ui->label_speed->setText("18 v/p");break;
+            default:
 
-        break;
-    }*/
+                break;
+            }*/
     ui->label_speed_2->setText(QString::number(pRadar->rotation_per_min)+"v/p");
 
 
@@ -2265,62 +2271,62 @@ void Mainwindow::on_actionPlayPause_toggled(bool arg1)
 
 
 /*
-void MainWindow::on_pushButton_clicked()
-{
+        void MainWindow::on_pushButton_clicked()
+        {
 
-    Command_Control new_com;
-    hex2bin(ui->lineEdit_byte_1->text().toStdString().data(),&new_com.bytes[0]);
-    hex2bin(ui->lineEdit_byte_2->text().toStdString().data(),&new_com.bytes[1]);
-    hex2bin(ui->lineEdit_byte_3->text().toStdString().data(),&new_com.bytes[2]);
-    hex2bin(ui->lineEdit_byte_4->text().toStdString().data(),&new_com.bytes[3]);
-    hex2bin(ui->lineEdit_byte_5->text().toStdString().data(),&new_com.bytes[4]);
-    hex2bin(ui->lineEdit_byte_6->text().toStdString().data(),&new_com.bytes[5]);
-    hex2bin(ui->lineEdit_byte_7->text().toStdString().data(),&new_com.bytes[6]);
-    hex2bin(ui->lineEdit_byte_8->text().toStdString().data(),&new_com.bytes[7]);
-    command_queue.push(new_com);
-}
-*/
+            Command_Control new_com;
+            hex2bin(ui->lineEdit_byte_1->text().toStdString().data(),&new_com.bytes[0]);
+            hex2bin(ui->lineEdit_byte_2->text().toStdString().data(),&new_com.bytes[1]);
+            hex2bin(ui->lineEdit_byte_3->text().toStdString().data(),&new_com.bytes[2]);
+            hex2bin(ui->lineEdit_byte_4->text().toStdString().data(),&new_com.bytes[3]);
+            hex2bin(ui->lineEdit_byte_5->text().toStdString().data(),&new_com.bytes[4]);
+            hex2bin(ui->lineEdit_byte_6->text().toStdString().data(),&new_com.bytes[5]);
+            hex2bin(ui->lineEdit_byte_7->text().toStdString().data(),&new_com.bytes[6]);
+            hex2bin(ui->lineEdit_byte_8->text().toStdString().data(),&new_com.bytes[7]);
+            command_queue.push(new_com);
+        }
+        */
 
 void Mainwindow::SendCommandControl()
 {/*
-      if(command_queue.size())
-      {
+              if(command_queue.size())
+              {
 
-          if(pRadar->checkFeedback(&command_queue.front().bytes[0]))// check if the radar has already recieved the command
-          {
+                  if(pRadar->checkFeedback(&command_queue.front().bytes[0]))// check if the radar has already recieved the command
+                  {
 
 
-              command_queue.pop();
-              udpFailure = 0;
+                      command_queue.pop();
+                      udpFailure = 0;
 
-          }
-          else
-          {
-            if(udpFailure<20)//ENVDEP 20*50ms = 1s
-            {udpFailure++;}
-            else{
-                setRadarState( DISCONNECTED);
-                udpFailure = 0;
-            }
-            udpSendSocket->writeDatagram((char*)&command_queue.front().bytes[0],8,QHostAddress("192.168.0.44"),2572);
-            //
-            char xx[3];
-            xx[2]=0;
-            QString str;
-            for(short i =0;i<8;i++)
-            {
-                bin2hex(command_queue.front().bytes[i],&xx[0]);
-                str.append(xx);
-                str.append('-');
-            }
+                  }
+                  else
+                  {
+                    if(udpFailure<20)//ENVDEP 20*50ms = 1s
+                    {udpFailure++;}
+                    else{
+                        setRadarState( DISCONNECTED);
+                        udpFailure = 0;
+                    }
+                    udpSendSocket->writeDatagram((char*)&command_queue.front().bytes[0],8,QHostAddress("192.168.0.44"),2572);
+                    //
+                    char xx[3];
+                    xx[2]=0;
+                    QString str;
+                    for(short i =0;i<8;i++)
+                    {
+                        bin2hex(command_queue.front().bytes[i],&xx[0]);
+                        str.append(xx);
+                        str.append('-');
+                    }
 
-            ui->label_command->setText(str);
-            //printf((const char*)str.data());
-            //
+                    ui->label_command->setText(str);
+                    //printf((const char*)str.data());
+                    //
 
-          }
+                  }
 
-      }*/
+              }*/
 
 }
 
@@ -2346,30 +2352,30 @@ void Mainwindow::on_horizontalSlider_brightness_valueChanged(int value)
 }
 
 /*void MainWindow::on_horizontalSlider_3_valueChanged(int value)
-{
-    switch (value) {
-    case 1:
-        Command_Control new_com;
-        new_com.bytes[0] = 4;
-        new_com.bytes[1] = 0xab;
-        new_com.bytes[2] = 0;
-        new_com.bytes[3] = 0;
-        new_com.bytes[4] = 1;
-        new_com.bytes[5] = 0;
-        new_com.bytes[6] = 0;
-        new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
-        command_queue.push(new_com);
-        break;
-    case 2:
-        printf("2");
-        break;
-    case 3:
-        printf("3");
-        break;
-    default:
-        break;
-    }
-}*/
+        {
+            switch (value) {
+            case 1:
+                Command_Control new_com;
+                new_com.bytes[0] = 4;
+                new_com.bytes[1] = 0xab;
+                new_com.bytes[2] = 0;
+                new_com.bytes[3] = 0;
+                new_com.bytes[4] = 1;
+                new_com.bytes[5] = 0;
+                new_com.bytes[6] = 0;
+                new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
+                command_queue.push(new_com);
+                break;
+            case 2:
+                printf("2");
+                break;
+            case 3:
+                printf("3");
+                break;
+            default:
+                break;
+            }
+        }*/
 
 
 
@@ -2395,16 +2401,16 @@ void Mainwindow::on_actionSector_Select_triggered()
 
 
 /*
-void MainWindow::on_toolButton_14_clicked()
-{
-    //if(event->delta()>0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()+1);
-}
+        void MainWindow::on_toolButton_14_clicked()
+        {
+            //if(event->delta()>0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()+1);
+        }
 
-void MainWindow::on_toolButton_13_clicked()
-{
-    //if(event->delta()<0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()-1);
-}
-*/
+        void MainWindow::on_toolButton_13_clicked()
+        {
+            //if(event->delta()<0)ui->horizontalSlider->setValue(ui->horizontalSlider->value()-1);
+        }
+        */
 void Mainwindow::setScaleRange(double srange)
 {
     if(mDistanceUnit==0)
@@ -2680,38 +2686,38 @@ void Mainwindow::on_horizontalSlider_sea_valueChanged(int value)
 
 
 /*
-void MainWindow::on_pushButton_loadAis_clicked()
-{
-    QString filename = QFileDialog::getOpenFileName(this,    QString::fromUtf8("M? file "), NULL, tr("ISM file (*.txt)"));
-    if(!filename.size())return;
-    QFile gpsfile( filename);
-    if (!gpsfile.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        return ;
-    }
-    QTextStream in(&gpsfile);
-    QString line ;int k=0;
-    line = in.readLine();
-
-    while(!in.atEnd()) {
-        //printf((char*)line.data());
-        QStringList  list = line.split(",");
-
-        if (list[0] == "$GPRMC")
+        void MainWindow::on_pushButton_loadAis_clicked()
         {
+            QString filename = QFileDialog::getOpenFileName(this,    QString::fromUtf8("M? file "), NULL, tr("ISM file (*.txt)"));
+            if(!filename.size())return;
+            QFile gpsfile( filename);
+            if (!gpsfile.open(QIODevice::ReadOnly | QIODevice::Text))
+            {
+                return ;
+            }
+            QTextStream in(&gpsfile);
+            QString line ;int k=0;
+            line = in.readLine();
 
-            float mlat = (*(list.begin()+3)).toFloat()/100.0f +0.0097;
-            float mlong = (*(list.begin()+5)).toFloat()/100.0f + 0.355;
-            arpa_data.addAIS(list[0].toStdString(),mlat,mlong,0,0);
+            while(!in.atEnd()) {
+                //printf((char*)line.data());
+                QStringList  list = line.split(",");
 
-        }line = in.readLine();
-        k=list.size();
-        //printf("size:%d",arpa_data.ais_track_list[0].id.data());
-    }
+                if (list[0] == "$GPRMC")
+                {
 
-}
+                    float mlat = (*(list.begin()+3)).toFloat()/100.0f +0.0097;
+                    float mlong = (*(list.begin()+5)).toFloat()/100.0f + 0.355;
+                    arpa_data.addAIS(list[0].toStdString(),mlat,mlong,0,0);
 
-*/
+                }line = in.readLine();
+                k=list.size();
+                //printf("size:%d",arpa_data.ais_track_list[0].id.data());
+            }
+
+        }
+
+        */
 
 
 void Mainwindow::on_toolButton_exit_clicked()
@@ -2725,32 +2731,32 @@ void Mainwindow::on_toolButton_exit_clicked()
 //}
 
 /*
-void Mainwindow::on_toolButton_tx_toggled(bool checked)
-{
+        void Mainwindow::on_toolButton_tx_toggled(bool checked)
+        {
 
-//    if(checked)
+        //    if(checked)
 
-//    {   //0xaa,0xab,0x00,0x01,0x00,0x00,0x00
-//        unsigned char        bytes[8] = {0xaa,0xab,0x02,0x01,0x00,0x00,0x00};
-//        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-//        bytes[2] = 0x00;//{0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
-//        Sleep(100);
-//        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-//        //ui->toolButton_tx->setChecked(false);
-//    }
-//    else
-//    {
+        //    {   //0xaa,0xab,0x00,0x01,0x00,0x00,0x00
+        //        unsigned char        bytes[8] = {0xaa,0xab,0x02,0x01,0x00,0x00,0x00};
+        //        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        //        bytes[2] = 0x00;//{0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
+        //        Sleep(100);
+        //        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        //        //ui->toolButton_tx->setChecked(false);
+        //    }
+        //    else
+        //    {
 
-//        unsigned char        bytes[8] = {0xaa,0xab,0x02,0x00,0x00,0x00,0x00};
-//        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-//        bytes[2] = 0x00;// = {0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
-//        Sleep(100);
-//        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
-//        //ui->toolButton_tx->setChecked(true);
-//    }
+        //        unsigned char        bytes[8] = {0xaa,0xab,0x02,0x00,0x00,0x00,0x00};
+        //        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        //        bytes[2] = 0x00;// = {0xaa,0xab,0x00,0x01,0x00,0x00,0x00};
+        //        Sleep(100);
+        //        udpSendSocket->writeDatagram((char*)&bytes[0],8,QHostAddress("192.168.0.44"),2572);
+        //        //ui->toolButton_tx->setChecked(true);
+        //    }
 
-}
-*/
+        }
+        */
 
 
 void Mainwindow::on_toolButton_xl_nguong_toggled(bool checked)
@@ -2806,84 +2812,84 @@ void Mainwindow::on_toolButton_open_record_clicked()
 //}
 
 /*
-void Mainwindow::updateTargets()
-{
-    trackList* trackListPt = &pRadar->mTrackList;
+        void Mainwindow::updateTargets()
+        {
+            trackList* trackListPt = &pRadar->mTrackList;
 
-    for(short i = 0;i<targetDisplayList.size();i++)
-    {
-        if(!targetDisplayList.at(i)->isUsed)
-        {
-            continue;
+            for(short i = 0;i<targetDisplayList.size();i++)
+            {
+                if(!targetDisplayList.at(i)->isUsed)
+                {
+                    continue;
 
-            targetDisplayList.at(i)->hide();
+                    targetDisplayList.at(i)->hide();
 
-        }
-        if(trackListPt->at(targetDisplayList.at(i)->trackId).isManual == 0)
-        {
-            targetDisplayList.at(i)->isUsed = false;
-            ui->label_status_warning->setText(QString::fromUtf8("Mất MT số:")+QString::number(i+1));
-            warningList.append(QString::fromUtf8("Mất MT số:")+QString::number(i+1));
-            ui->label_status_warning->setStyleSheet("background-color: rgb(255, 150, 50,255);");
-            targetDisplayList.at(i)->hide();
-            //targetList.at(i)->isLost=true;
-            continue;
-        }
-        float x	= targetDisplayList.at(i)->x*mScale + scrCtX-dx ;
-        float y	= -targetDisplayList.at(i)->y*mScale + scrCtY-dy ;
-        float w = scrCtY-30;
-        float dx = x-scrCtX;
-        float dy = y-scrCtY;
-        if(dx*dx+dy*dy>(w*w))
-        {
-            targetDisplayList.at(i)->hide();
-        }
-        else
-        {
-            targetDisplayList.at(i)->show();
-            targetDisplayList.at(i)->setScrPos(x,y);
-        }
+                }
+                if(trackListPt->at(targetDisplayList.at(i)->trackId).isManual == 0)
+                {
+                    targetDisplayList.at(i)->isUsed = false;
+                    ui->label_status_warning->setText(QString::fromUtf8("Mất MT số:")+QString::number(i+1));
+                    warningList.append(QString::fromUtf8("Mất MT số:")+QString::number(i+1));
+                    ui->label_status_warning->setStyleSheet("background-color: rgb(255, 150, 50,255);");
+                    targetDisplayList.at(i)->hide();
+                    //targetList.at(i)->isLost=true;
+                    continue;
+                }
+                float x	= targetDisplayList.at(i)->x*mScale + scrCtX-dx ;
+                float y	= -targetDisplayList.at(i)->y*mScale + scrCtY-dy ;
+                float w = scrCtY-30;
+                float dx = x-scrCtX;
+                float dy = y-scrCtY;
+                if(dx*dx+dy*dy>(w*w))
+                {
+                    targetDisplayList.at(i)->hide();
+                }
+                else
+                {
+                    targetDisplayList.at(i)->show();
+                    targetDisplayList.at(i)->setScrPos(x,y);
+                }
 
-        if(targetDisplayList.at(i)->clicked)
-        {
+                if(targetDisplayList.at(i)->clicked)
+                {
 
-            selected_target_index = i;
-            targetDisplayList.at(i)->setSelected(true);
-            targetDisplayList.at(i)->clicked = false;
-        }
-        if(targetDisplayList.at(i)->doubleClicked)
-        {
+                    selected_target_index = i;
+                    targetDisplayList.at(i)->setSelected(true);
+                    targetDisplayList.at(i)->clicked = false;
+                }
+                if(targetDisplayList.at(i)->doubleClicked)
+                {
 
-            selected_target_index = i;
-            trackListPt->at((targetDisplayList.at(i)->trackId)).isManual = true;
-            targetDisplayList.at(i)->isManual = true;
-            targetDisplayList.at(i)->doubleClicked = false;
+                    selected_target_index = i;
+                    trackListPt->at((targetDisplayList.at(i)->trackId)).isManual = true;
+                    targetDisplayList.at(i)->isManual = true;
+                    targetDisplayList.at(i)->doubleClicked = false;
+                }
+                if(selected_target_index == i)
+                {
+                    float tmpazi = trackListPt->at(targetDisplayList.at(i)->trackId).estA*DEG_RAD;
+                    if(tmpazi<0)tmpazi+=360;
+                    ui->label_data_id->setText(QString::number(i+1));
+                    ui->label_data_type->setText("Radar");
+                    ui->label_data_range->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).estR*pRadar->scale_ppi/mScale/1.852f,'f',2)+"Nm");
+                    ui->label_data_azi->setText( QString::number(tmpazi,'f',2)+QString::fromLocal8Bit("\260"));
+                    ui->label_data_lat->setText( QString::number((short)targetDisplayList.at(i)->m_lat)+QString::fromLocal8Bit("\260")+QString::number((targetDisplayList.at(i)->m_lat-(short)targetDisplayList.at(i)->m_lat)*60,'f',2)+"'N");
+                    ui->label_data_long->setText(QString::number((short)targetDisplayList.at(i)->m_lon)+QString::fromLocal8Bit("\260")+QString::number((targetDisplayList.at(i)->m_lon-(short)targetDisplayList.at(i)->m_lon)*60,'f',2)+"'E");
+                    ui->label_data_speed->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).speed,'f',2)+"Kn");
+                    ui->label_data_heading->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).head_r*DEG_RAD)+QString::fromLocal8Bit("\260"));
+                    ui->label_data_dopler->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).dopler));
+                }
+                else
+                {
+                    targetDisplayList.at(i)->setSelected(false);// = false;
+                }
+                //printf("\nx:%f y:%f",x,y);
+            }
+            //ui->
+            //t1.setGeometry(400,400,20,20);
+            //targetList.append(t1);
         }
-        if(selected_target_index == i)
-        {
-            float tmpazi = trackListPt->at(targetDisplayList.at(i)->trackId).estA*DEG_RAD;
-            if(tmpazi<0)tmpazi+=360;
-            ui->label_data_id->setText(QString::number(i+1));
-            ui->label_data_type->setText("Radar");
-            ui->label_data_range->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).estR*pRadar->scale_ppi/mScale/1.852f,'f',2)+"Nm");
-            ui->label_data_azi->setText( QString::number(tmpazi,'f',2)+QString::fromLocal8Bit("\260"));
-            ui->label_data_lat->setText( QString::number((short)targetDisplayList.at(i)->m_lat)+QString::fromLocal8Bit("\260")+QString::number((targetDisplayList.at(i)->m_lat-(short)targetDisplayList.at(i)->m_lat)*60,'f',2)+"'N");
-            ui->label_data_long->setText(QString::number((short)targetDisplayList.at(i)->m_lon)+QString::fromLocal8Bit("\260")+QString::number((targetDisplayList.at(i)->m_lon-(short)targetDisplayList.at(i)->m_lon)*60,'f',2)+"'E");
-            ui->label_data_speed->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).speed,'f',2)+"Kn");
-            ui->label_data_heading->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).head_r*DEG_RAD)+QString::fromLocal8Bit("\260"));
-            ui->label_data_dopler->setText(QString::number(trackListPt->at(targetDisplayList.at(i)->trackId).dopler));
-        }
-        else
-        {
-            targetDisplayList.at(i)->setSelected(false);// = false;
-        }
-        //printf("\nx:%f y:%f",x,y);
-    }
-    //ui->
-    //t1.setGeometry(400,400,20,20);
-    //targetList.append(t1);
-}
-*/
+        */
 void Mainwindow::on_toolButton_centerView_clicked()
 {
     dx = 0;
@@ -3100,11 +3106,11 @@ void Mainwindow::on_label_status_warning_clicked()
 void Mainwindow::on_toolButton_delete_target_clicked()
 {
     /*if(targetList.at(selected_target_index)->isLost)
-    {
-        targetList.at(selected_target_index)->hide();
-    }
+            {
+                targetList.at(selected_target_index)->hide();
+            }
 
-    else*/
+            else*/
     //    pRadar->mTrackList.at(targetDisplayList.at(selected_target_index)->trackId).isManual = false;
 }
 
@@ -3201,144 +3207,144 @@ void Mainwindow::on_toolButton_ais_reset_clicked()
 
 void Mainwindow::on_toolButton_auto_adapt_clicked()
 {/*
-    if(config.getRangeView()<=2)
-    {
-        sendToRadarHS("1aab200100000000");// bat thich nghi
-        sendToRadarHS("14abff1100000000");// do trong
-        sendToRadarHS("08ab000000000000");//do phan giai
-        sendToRadarHS("01ab040000000000");//tin hieu dttt32
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("1aab200000000000");//tat thich nghi
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab030500000000");//toc do quay
-        sendToRadarHS("aaab030500000000");//toc do quay
-        sendToRadarHS("aaab030500000000");//toc do quay
+            if(config.getRangeView()<=2)
+            {
+                sendToRadarHS("1aab200100000000");// bat thich nghi
+                sendToRadarHS("14abff1100000000");// do trong
+                sendToRadarHS("08ab000000000000");//do phan giai
+                sendToRadarHS("01ab040000000000");//tin hieu dttt32
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("1aab200000000000");//tat thich nghi
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab030500000000");//toc do quay
+                sendToRadarHS("aaab030500000000");//toc do quay
+                sendToRadarHS("aaab030500000000");//toc do quay
 
-    }
-    else if(config.getRangeView() ==3)
-    {
-        sendToRadarHS("1aab200100000000");// bat thich nghi
-        sendToRadarHS("08ab010000000000");//do phan giai
-        sendToRadarHS("14abff0100000000");// do trong
-        sendToRadarHS("01ab040100000000");//tin hieu dttt64
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("1aab200000000000");//tat thich nghi
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab030400000000");//toc do quay
-        sendToRadarHS("aaab030400000000");//toc do quay
-        sendToRadarHS("aaab030400000000");//toc do quay
-    }
-    else if(config.getRangeView()==4)
-    {
-        sendToRadarHS("1aab200100000000");// bat thich nghi
-        sendToRadarHS("08ab020000000000");//do phan giai 30
-        sendToRadarHS("14abff0100000000");// do trong
-        sendToRadarHS("01ab040200000000");//tin hieu dttt128
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("1aab200000000000");//tat thich nghi
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab030400000000");//toc do quay
-        sendToRadarHS("aaab030400000000");//toc do quay
-        sendToRadarHS("aaab030400000000");//toc do quay
-    }
-    else if(config.getRangeView()==5)
-    {
-        sendToRadarHS("1aab200100000000");// bat thich nghi
-        sendToRadarHS("08ab020000000000");//do phan giai 60
-        sendToRadarHS("14abff0100000000");// do trong
-        sendToRadarHS("01ab040300000000");//tin hieu dttt256
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("1aab200000000000");//tat thich nghi
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab030300000000");//toc do quay
-        sendToRadarHS("aaab030300000000");//toc do quay
-        sendToRadarHS("aaab030300000000");//toc do quay
-    }
-    else if(config.getRangeView()==6)
-    {
-        sendToRadarHS("1aab200100000000");// bat thich nghi
-        sendToRadarHS("08ab030000000000");//do phan giai 90
-        sendToRadarHS("14abff0100000000");// do trong
-        sendToRadarHS("01ab040300000000");//tin hieu dttt256
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("1aab200000000000");//tat thich nghi
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab030200000000");//toc do quay
-        sendToRadarHS("aaab030200000000");//toc do quay
-        sendToRadarHS("aaab030200000000");//toc do quay
-    }
-    else if(config.getRangeView()==7)
-    {
-        sendToRadarHS("1aab200100000000");// bat thich nghi
-        sendToRadarHS("08ab040000000000");//do phan giai 120
-        sendToRadarHS("14abff0100000000");// do trong
-        sendToRadarHS("01ab040300000000");//tin hieu dttt256
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("1aab200000000000");//tat thich nghi
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab030100000000");//toc do quay
-        sendToRadarHS("aaab030100000000");//toc do quay
-        sendToRadarHS("aaab030100000000");//toc do quay
-    }
-    else if(config.getRangeView() ==8)
-    {
-        sendToRadarHS("1aab200100000000");// bat thich nghi
-        sendToRadarHS("08ab050000000000");//do phan giai 150
-        sendToRadarHS("14abff0100000000");// do trong
-        sendToRadarHS("01ab040300000000");//tin hieu dttt256
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("1aab200000000000");//tat thich nghi
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab030100000000");//toc do quay
-        sendToRadarHS("aaab030100000000");//toc do quay
-        sendToRadarHS("aaab030100000000");//toc do quay
-    }
-    else if(config.getRangeView()==9)
-    {
-        sendToRadarHS("1aab200100000000");// bat thich nghi
-        sendToRadarHS("08ab060000000000");//do phan giai 180
-        sendToRadarHS("14abff0100000000");// do trong
-        sendToRadarHS("01ab040300000000");//tin hieu dttt256
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("aaab020000000000");//tat phat
-        sendToRadarHS("1aab200000000000");//tat thich nghi
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab020100000000");//bat phat
-        sendToRadarHS("aaab030100000000");//toc do quay
-        sendToRadarHS("aaab030100000000");//toc do quay
-        sendToRadarHS("aaab030100000000");//toc do quay
-    }
-    pRadar->resetTrack();*/
+            }
+            else if(config.getRangeView() ==3)
+            {
+                sendToRadarHS("1aab200100000000");// bat thich nghi
+                sendToRadarHS("08ab010000000000");//do phan giai
+                sendToRadarHS("14abff0100000000");// do trong
+                sendToRadarHS("01ab040100000000");//tin hieu dttt64
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("1aab200000000000");//tat thich nghi
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab030400000000");//toc do quay
+                sendToRadarHS("aaab030400000000");//toc do quay
+                sendToRadarHS("aaab030400000000");//toc do quay
+            }
+            else if(config.getRangeView()==4)
+            {
+                sendToRadarHS("1aab200100000000");// bat thich nghi
+                sendToRadarHS("08ab020000000000");//do phan giai 30
+                sendToRadarHS("14abff0100000000");// do trong
+                sendToRadarHS("01ab040200000000");//tin hieu dttt128
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("1aab200000000000");//tat thich nghi
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab030400000000");//toc do quay
+                sendToRadarHS("aaab030400000000");//toc do quay
+                sendToRadarHS("aaab030400000000");//toc do quay
+            }
+            else if(config.getRangeView()==5)
+            {
+                sendToRadarHS("1aab200100000000");// bat thich nghi
+                sendToRadarHS("08ab020000000000");//do phan giai 60
+                sendToRadarHS("14abff0100000000");// do trong
+                sendToRadarHS("01ab040300000000");//tin hieu dttt256
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("1aab200000000000");//tat thich nghi
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab030300000000");//toc do quay
+                sendToRadarHS("aaab030300000000");//toc do quay
+                sendToRadarHS("aaab030300000000");//toc do quay
+            }
+            else if(config.getRangeView()==6)
+            {
+                sendToRadarHS("1aab200100000000");// bat thich nghi
+                sendToRadarHS("08ab030000000000");//do phan giai 90
+                sendToRadarHS("14abff0100000000");// do trong
+                sendToRadarHS("01ab040300000000");//tin hieu dttt256
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("1aab200000000000");//tat thich nghi
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab030200000000");//toc do quay
+                sendToRadarHS("aaab030200000000");//toc do quay
+                sendToRadarHS("aaab030200000000");//toc do quay
+            }
+            else if(config.getRangeView()==7)
+            {
+                sendToRadarHS("1aab200100000000");// bat thich nghi
+                sendToRadarHS("08ab040000000000");//do phan giai 120
+                sendToRadarHS("14abff0100000000");// do trong
+                sendToRadarHS("01ab040300000000");//tin hieu dttt256
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("1aab200000000000");//tat thich nghi
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab030100000000");//toc do quay
+                sendToRadarHS("aaab030100000000");//toc do quay
+                sendToRadarHS("aaab030100000000");//toc do quay
+            }
+            else if(config.getRangeView() ==8)
+            {
+                sendToRadarHS("1aab200100000000");// bat thich nghi
+                sendToRadarHS("08ab050000000000");//do phan giai 150
+                sendToRadarHS("14abff0100000000");// do trong
+                sendToRadarHS("01ab040300000000");//tin hieu dttt256
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("1aab200000000000");//tat thich nghi
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab030100000000");//toc do quay
+                sendToRadarHS("aaab030100000000");//toc do quay
+                sendToRadarHS("aaab030100000000");//toc do quay
+            }
+            else if(config.getRangeView()==9)
+            {
+                sendToRadarHS("1aab200100000000");// bat thich nghi
+                sendToRadarHS("08ab060000000000");//do phan giai 180
+                sendToRadarHS("14abff0100000000");// do trong
+                sendToRadarHS("01ab040300000000");//tin hieu dttt256
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("aaab020000000000");//tat phat
+                sendToRadarHS("1aab200000000000");//tat thich nghi
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab020100000000");//bat phat
+                sendToRadarHS("aaab030100000000");//toc do quay
+                sendToRadarHS("aaab030100000000");//toc do quay
+                sendToRadarHS("aaab030100000000");//toc do quay
+            }
+            pRadar->resetTrack();*/
     //    for(short i = 0;i<targetDisplayList.size();i++)
     //    {
     //        targetDisplayList.at(i)->deleteLater();
@@ -3746,4 +3752,16 @@ void Mainwindow::on_toolButton_set_commands_clicked()
     ui->plainTextEdit_range_7->setPlainText(mR7Command);
     ui->plainTextEdit_command_rx->setPlainText(mRxCommand);
     ui->plainTextEdit_command_tx->setPlainText(mTxCommand);
+}
+
+void Mainwindow::on_toolButton_command_log_toggled(bool checked)
+{
+    if(checked)
+    {
+        cmLog->show();
+    }
+    else
+    {
+        cmLog->hide();
+    }
 }

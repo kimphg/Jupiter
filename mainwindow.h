@@ -25,7 +25,7 @@
 #include <QHostAddress>
 #include <jtarget.h>
 #include "Cmap/cmap.h"
-
+#include "dialogcommandlog.h"
 //#include <jviewport.h>
 //#include "ctarget.h"
 //#include "radarcontroldialog.h"
@@ -373,6 +373,8 @@ private slots:
     void on_toolButton_set_commands_toggled(bool checked);
 
     void on_toolButton_set_commands_clicked();
+
+    void on_toolButton_command_log_toggled(bool checked);
 
 private:
     void initActionsConnections();

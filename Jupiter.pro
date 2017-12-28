@@ -38,7 +38,8 @@ SOURCES += main.cpp\
     c_radar_thread.cpp \
     dialogdocumentation.cpp \
     AIS/AIS.cpp \
-    dialogaisinfo.cpp
+    dialogaisinfo.cpp \
+    dialogcommandlog.cpp
 
 
 HEADERS  += mainwindow.h \
@@ -58,11 +59,13 @@ HEADERS  += mainwindow.h \
     c_radar_thread.h \
     dialogdocumentation.h \
     AIS/AIS.h \
-    dialogaisinfo.h
+    dialogaisinfo.h \
+    dialogcommandlog.h
 
 FORMS    += mainwindow.ui \
     dialogdocumentation.ui \
-    dialogaisinfo.ui
+    dialogaisinfo.ui \
+    dialogcommandlog.ui
 #win32:CONFIG(release, debug|release): LIBS += -L$$PWD/shapelib/ -lshapelib
 #else:unix: LIBS += -L$$PWD\shapelib\ -lshapelib
 #INCLUDEPATH += $$PWD/shapelib
