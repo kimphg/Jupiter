@@ -228,7 +228,7 @@ public:
     double                   krain_auto,kgain_auto,ksea_auto;
     void setAutorgs( bool aut);
     void                    clearPPI();
-    float                   temp;
+    unsigned char           temp;
     float                   trueN;
     DataOverLay             dataOver;
     unsigned char           noise_level[8];

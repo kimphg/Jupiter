@@ -42,7 +42,7 @@ short                       mousePointerX,mousePointerY,mouseX,mouseY;
 bool                        isScaleChanged =true;
 double                      mScale;
 double                      centerAzi=0;
-double                      temperature[5];
+double                      temperature[255];
 int         curTempIndex = 0;
 double      rangeRatio = 1;
 CConfig         config;
@@ -1939,62 +1939,20 @@ void Mainwindow::sync1S()//period 1 second
         if(ui->label_status_warning->isHidden())ui->label_status_warning->setHidden(false);
         else ui->label_status_warning->setHidden(true);
     }
-    //    int n = 32*256.0f/((pRadar->noise_level[0]*256 + pRadar->noise_level[1]));
-    //    int m = 256.0f*((pRadar->noise_level[2]*256 + pRadar->noise_level[3]))
-    //            /((pRadar->noise_level[4]*256 + pRadar->noise_level[5]));
 
-
-    //display target list:
-    /*for(uint i=0;i<trackListPt->size();i++)
-    {
-        if(trackListPt->at(i).state==0)
-        {
-            QList<QListWidgetItem *> items = (ui->listTargetWidget->findItems(QString::number(i+1),Qt::MatchStartsWith));
-            if(items.size())delete items[0];
-            continue;
-        }
-        QList<QListWidgetItem *> items = (ui->listTargetWidget->findItems(QString::number(i+1),Qt::MatchStartsWith));
-        QString str;
-        float targetSpeed = trackListPt->at(i).velocity*3600*signsize/scale/CONST_NM;//mile per hours
-        // check track parameters
-
-        if(targetSpeed>TARGET_MAX_SPEED)
-        {
-            //pRadar->deleteTrack(i);
-            continue;
-        }//
-        if(trackListPt->at(i).tclass==RED_OBJ)
-        {
-            str.append(QString::number(i+1)+":");
-            str.append(QString::number(trackListPt->at(i).estR*signsize/scale/CONST_NM,'f',2,3)+" | ");
-            str.append(QString::number((short)(trackListPt->at(i).estA*57.2957795f),'f',2,3)+" | ");
-            str.append(QString::number((short)(targetSpeed),'f',2,4)+" | ");
-            str.append(QString::number((short)(trackListPt->at(i).course*57.2957795f),'f',2,3)+" | ");
-            if(items.size())
-            {
-                (items[0])->setText(str);
-            }else
-            {
-                ui->listTargetWidget->addItem(str);
-            }
-        }
-
-    }*/
 
     if(isScaleChanged ) {
 
         pRadar->setScalePPI(mScale);
         isScaleChanged = false;
     }
-    //update signal code:
-
-    //display time
     showTime();
     // display radar temperature:
     temperature[pRadar->tempType] = pRadar->temp;
+
     ui->label_noiseAverrage->setText(QString::number(pRadar->getNoiseAverage(),'f',1));
-    ui->label_temp->setText(QString::number(ui->comboBox_temp_type->currentIndex())
-                            +"|"+QString::number(temperature[ui->comboBox_temp_type->currentIndex()],'f',0)
+    ui->label_temp->setText(QString::number(pRadar->tempType)
+                            +"|"+QString::number(pRadar->temp,'f',0)
             + QString::fromLocal8Bit("\260 C"));
     // request radar temperature:
     if(radar_state!=DISCONNECTED)
@@ -2121,10 +2079,11 @@ void Mainwindow::sync1S()//period 1 second
 }
 void Mainwindow::setRadarState(radarSate radarState)
 {
-
-    radar_state = radarState;
-    //display radar state
-    on_label_status_warning_clicked();
+    if(radar_state!=radarState)
+    {
+        radar_state = radarState;
+        on_label_status_warning_clicked();
+    }
 }
 
 void Mainwindow::on_actionTx_On_triggered()

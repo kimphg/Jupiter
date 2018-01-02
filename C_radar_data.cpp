@@ -1198,7 +1198,7 @@ void C_radar_data::ProcessDataFrame()
         resetData();
 
     }
-    temp = dataBuff[3]/4.0f;//
+    temp = dataBuff[3];//
     tempType = dataBuff[2];
     if(tempType>4)printf("Wrong temperature\n");
     sn_stat = dataBuff[14]<<8|dataBuff[15];

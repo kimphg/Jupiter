@@ -303,7 +303,7 @@ void dataProcessingThread::processARPAData(QByteArray inputdata)
 {
     messageStringbuffer.append(QString::fromLatin1(inputdata));
     if(messageStringbuffer.size()>100)messageStringbuffer = "";
-    printf(inputdata.data());
+    //printf(inputdata.data());
     QStringList strlist = messageStringbuffer.split("\r\n");
     if(strlist.size() <= 1)return;
 
