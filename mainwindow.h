@@ -376,6 +376,8 @@ private slots:
 
     void on_toolButton_command_log_toggled(bool checked);
 
+    void on_toolButton_exit_2_clicked();
+
 private:
     void initActionsConnections();
     void initGraphicView();

@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "statuswindow.h"
 #include "ui_mainwindow.h"
 
 //#include "gdal/ogr/ogrsf_frmts/ogrsf_frmts.h"
@@ -12,6 +13,7 @@ QStringList                 commandLogList;
 QPixmap                     *pMap=NULL;// painter cho ban do
 QPixmap                     *pViewFrame=NULL;// painter cho ban do
 CMap *osmap ;
+StatusWindow                *mstatWin;
 double                      mTrueN2,mTrueN;
 int                         mRangeLevel = 0;
 int                         mDistanceUnit=0;//0:NM;1:KM
@@ -1796,14 +1798,7 @@ void MainWindow::sendFrame(const char* hexdata,QHostAddress host,int port )
 */
 void Mainwindow::on_actionExit_triggered()
 {
-    //    OnExitDialog *dlg = new OnExitDialog(this);
-    //    dlg->setModal(true);
-    //    dlg->setAttribute(Qt::WA_DeleteOnClose);
-    //    //dlg->setWindowFlags(Qt::WindowMinMaxButtonsHint);
-    //    dlg->show();
 
-    //    connect(dlg, SIGNAL(accepted()),this, SLOT(ExitProgram()));
-    //    //
     processing->stopThread();
     processing->wait();
     ExitProgram();
@@ -2129,7 +2124,7 @@ void Mainwindow::setRadarState(radarSate radarState)
 
     radar_state = radarState;
     //display radar state
-
+    on_label_status_warning_clicked();
 }
 
 void Mainwindow::on_actionTx_On_triggered()
@@ -3659,6 +3654,7 @@ void Mainwindow::on_toolButton_set_command_clicked()
     config.setValue("mRxCommand",mRxCommand);
     config.setValue("mTxCommand",mTxCommand);
     ui->groupBox_control_setting->setHidden(true);
+    ui->toolButton_set_commands->setChecked(false);
 
 }
 
@@ -3764,4 +3760,10 @@ void Mainwindow::on_toolButton_command_log_toggled(bool checked)
     {
         cmLog->hide();
     }
+}
+
+void Mainwindow::on_toolButton_exit_2_clicked()
+{
+    mstatWin = new StatusWindow;
+    mstatWin->show();
 }

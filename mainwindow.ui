@@ -25528,7 +25528,7 @@
      <rect>
       <x>550</x>
       <y>10</y>
-      <width>151</width>
+      <width>161</width>
       <height>171</height>
      </rect>
     </property>
@@ -25599,6 +25599,24 @@
        </property>
        <property name="text">
         <string>Tắt máy</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QCustomButton" name="toolButton_exit_2">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Kiểm tra trạng thái</string>
        </property>
       </widget>
      </item>
@@ -36301,9 +36319,9 @@
      <property name="geometry">
       <rect>
        <x>210</x>
-       <y>160</y>
+       <y>170</y>
        <width>671</width>
-       <height>612</height>
+       <height>481</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
