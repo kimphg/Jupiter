@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1119</width>
-    <height>600</height>
+    <width>939</width>
+    <height>504</height>
    </rect>
   </property>
   <property name="font">
@@ -24,9 +24,14 @@
      <rect>
       <x>20</x>
       <y>20</y>
-      <width>931</width>
-      <height>531</height>
+      <width>891</width>
+      <height>461</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="title">
      <string>Trạng thái các mô đun</string>
@@ -34,19 +39,21 @@
     <widget class="QFrame" name="frame_5">
      <property name="geometry">
       <rect>
-       <x>250</x>
+       <x>270</x>
        <y>340</y>
        <width>271</width>
-       <height>61</height>
+       <height>71</height>
       </rect>
      </property>
      <property name="font">
       <font>
-       <pointsize>16</pointsize>
+       <pointsize>12</pointsize>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(85, 170, 127);</string>
+      <string notr="true">background-color: rgb(85, 170, 127);
+border: 2px solid darkgreen;
+</string>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -55,11 +62,54 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_5">
-      <item row="0" column="0">
+      <property name="leftMargin">
+       <number>2</number>
+      </property>
+      <property name="topMargin">
+       <number>2</number>
+      </property>
+      <property name="rightMargin">
+       <number>2</number>
+      </property>
+      <property name="bottomMargin">
+       <number>2</number>
+      </property>
+      <property name="spacing">
+       <number>2</number>
+      </property>
+      <item row="1" column="1">
+       <widget class="QLabel" name="label_res_receiver">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>--</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_123">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Hệ số K.đại
+(52-&gt;58dBm):</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="2">
        <widget class="QLabel" name="label_5">
         <property name="font">
          <font>
-          <pointsize>16</pointsize>
+          <pointsize>12</pointsize>
          </font>
         </property>
         <property name="text">
@@ -77,17 +127,19 @@
       <rect>
        <x>20</x>
        <y>50</y>
-       <width>211</width>
-       <height>101</height>
+       <width>181</width>
+       <height>91</height>
       </rect>
      </property>
      <property name="font">
       <font>
-       <pointsize>16</pointsize>
+       <pointsize>12</pointsize>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(85, 170, 127);</string>
+      <string notr="true">background-color: rgb(85, 170, 127);
+border: 2px solid darkgreen;
+</string>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -96,34 +148,62 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
+      <property name="leftMargin">
+       <number>2</number>
+      </property>
+      <property name="topMargin">
+       <number>2</number>
+      </property>
+      <property name="rightMargin">
+       <number>2</number>
+      </property>
+      <property name="bottomMargin">
+       <number>2</number>
+      </property>
+      <property name="spacing">
+       <number>2</number>
+      </property>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_128">
         <property name="font">
          <font>
-          <pointsize>16</pointsize>
+          <pointsize>12</pointsize>
          </font>
         </property>
         <property name="text">
-         <string>Mô đun tạo
-dao động chuẩn</string>
+         <string>C.suất ra
+ (4-&gt;10dBm):</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_7">
+      <item row="0" column="0" colspan="2">
+       <widget class="QLabel" name="label">
         <property name="font">
          <font>
-          <pointsize>16</pointsize>
+          <pointsize>12</pointsize>
          </font>
         </property>
         <property name="text">
-         <string>(DDS)</string>
+         <string>Mô đun 
+tổ hợp tần số (DDS)</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="label_res_dds_out">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>--</string>
         </property>
        </widget>
       </item>
@@ -132,19 +212,21 @@ dao động chuẩn</string>
     <widget class="QFrame" name="frame_4">
      <property name="geometry">
       <rect>
-       <x>450</x>
-       <y>60</y>
-       <width>141</width>
+       <x>420</x>
+       <y>190</y>
+       <width>201</width>
        <height>71</height>
       </rect>
      </property>
      <property name="font">
       <font>
-       <pointsize>16</pointsize>
+       <pointsize>12</pointsize>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(85, 170, 127);</string>
+      <string notr="true">background-color: rgb(85, 170, 127);
+border: 2px solid darkgreen;
+</string>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -153,19 +235,61 @@ dao động chuẩn</string>
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
-      <item row="0" column="0">
+      <property name="leftMargin">
+       <number>2</number>
+      </property>
+      <property name="topMargin">
+       <number>2</number>
+      </property>
+      <property name="rightMargin">
+       <number>2</number>
+      </property>
+      <property name="bottomMargin">
+       <number>2</number>
+      </property>
+      <property name="spacing">
+       <number>2</number>
+      </property>
+      <item row="0" column="0" colspan="2">
        <widget class="QLabel" name="label_4">
         <property name="font">
          <font>
-          <pointsize>16</pointsize>
+          <pointsize>12</pointsize>
          </font>
         </property>
         <property name="text">
-         <string>Trộn tần 2
-(VCO2)</string>
+         <string>Mô đun VCO2</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_127">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>C.suất ra
+(4-&gt;10dBm):</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="label_vco2_output">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>--</string>
         </property>
        </widget>
       </item>
@@ -174,19 +298,21 @@ dao động chuẩn</string>
     <widget class="QFrame" name="frame_3">
      <property name="geometry">
       <rect>
-       <x>270</x>
-       <y>60</y>
-       <width>141</width>
+       <x>200</x>
+       <y>190</y>
+       <width>201</width>
        <height>71</height>
       </rect>
      </property>
      <property name="font">
       <font>
-       <pointsize>16</pointsize>
+       <pointsize>12</pointsize>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(85, 170, 127);</string>
+      <string notr="true">background-color: rgb(85, 170, 127);
+border: 2px solid darkgreen;
+</string>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -195,19 +321,61 @@ dao động chuẩn</string>
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="0" column="0">
+      <property name="leftMargin">
+       <number>2</number>
+      </property>
+      <property name="topMargin">
+       <number>2</number>
+      </property>
+      <property name="rightMargin">
+       <number>2</number>
+      </property>
+      <property name="bottomMargin">
+       <number>2</number>
+      </property>
+      <property name="spacing">
+       <number>2</number>
+      </property>
+      <item row="0" column="0" colspan="2">
        <widget class="QLabel" name="label_3">
         <property name="font">
          <font>
-          <pointsize>16</pointsize>
+          <pointsize>12</pointsize>
          </font>
         </property>
         <property name="text">
-         <string>Trộn tần 1
- (VCO1)</string>
+         <string>Mô đun VCO1</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_129">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>C.suất ra
+(4-&gt;10dBm):</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="label_vco2_output_2">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>7dBm</string>
         </property>
        </widget>
       </item>
@@ -217,13 +385,20 @@ dao động chuẩn</string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>260</y>
+       <y>310</y>
        <width>201</width>
-       <height>141</height>
+       <height>81</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(200, 200, 50);</string>
+      <string notr="true">background-color: rgb(200, 200, 50);
+border: 2px;
+border-color: rgb(100,100,10);</string>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -232,17 +407,16 @@ dao động chuẩn</string>
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0">
+      <item row="0" column="0" colspan="2">
        <widget class="QLabel" name="label_2">
         <property name="font">
          <font>
-          <pointsize>16</pointsize>
+          <pointsize>12</pointsize>
          </font>
         </property>
         <property name="text">
          <string>Mô đun điều khiển
-và xử lý tín hiệu
-(DSP)</string>
+và XLTH (DSP)</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -254,19 +428,21 @@ và xử lý tín hiệu
     <widget class="QFrame" name="frame_6">
      <property name="geometry">
       <rect>
-       <x>630</x>
-       <y>50</y>
-       <width>231</width>
-       <height>91</height>
+       <x>620</x>
+       <y>20</y>
+       <width>251</width>
+       <height>151</height>
       </rect>
      </property>
      <property name="font">
       <font>
-       <pointsize>16</pointsize>
+       <pointsize>12</pointsize>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(85, 170, 127);</string>
+      <string notr="true">background-color: rgb(85, 170, 127);
+border: 2px solid darkgreen;
+</string>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -275,15 +451,113 @@ và xử lý tín hiệu
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_6">
-      <item row="0" column="0">
+      <property name="leftMargin">
+       <number>2</number>
+      </property>
+      <property name="topMargin">
+       <number>2</number>
+      </property>
+      <property name="rightMargin">
+       <number>2</number>
+      </property>
+      <property name="bottomMargin">
+       <number>2</number>
+      </property>
+      <property name="spacing">
+       <number>2</number>
+      </property>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_125">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>C.suất vào
+(-15 -&gt; -5dBm):</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="label_res_trans_temp">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>--</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="2">
        <widget class="QLabel" name="label_6">
         <property name="font">
          <font>
-          <pointsize>16</pointsize>
+          <pointsize>12</pointsize>
          </font>
         </property>
         <property name="text">
          <string>Mô đun phát</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLabel" name="label_trans_output">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>--</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_126">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>C.suất ra
+(80-&gt;100W):</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLabel" name="label_trans_input">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>--</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_124">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Nhiệt độ():</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -295,11 +569,16 @@ và xử lý tín hiệu
     <widget class="Line" name="line">
      <property name="geometry">
       <rect>
-       <x>230</x>
+       <x>200</x>
        <y>90</y>
-       <width>41</width>
+       <width>51</width>
        <height>20</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -308,11 +587,16 @@ và xử lý tín hiệu
     <widget class="Line" name="line_2">
      <property name="geometry">
       <rect>
-       <x>480</x>
-       <y>130</y>
+       <x>460</x>
+       <y>260</y>
        <width>20</width>
-       <height>211</height>
+       <height>81</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
      </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -322,10 +606,15 @@ và xử lý tín hiệu
      <property name="geometry">
       <rect>
        <x>320</x>
-       <y>130</y>
+       <y>260</y>
        <width>20</width>
-       <height>211</height>
+       <height>81</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
      </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -334,11 +623,16 @@ và xử lý tín hiệu
     <widget class="Line" name="line_4">
      <property name="geometry">
       <rect>
-       <x>570</x>
+       <x>620</x>
        <y>240</y>
        <width>20</width>
        <height>131</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
      </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -353,6 +647,11 @@ và xử lý tín hiệu
        <height>51</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -361,18 +660,20 @@ và xử lý tín hiệu
      <property name="geometry">
       <rect>
        <x>670</x>
-       <y>190</y>
+       <y>210</y>
        <width>161</width>
        <height>91</height>
       </rect>
      </property>
      <property name="font">
       <font>
-       <pointsize>16</pointsize>
+       <pointsize>12</pointsize>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(200, 200, 50);</string>
+      <string notr="true">background-color: rgb(200, 200, 50);
+border: 2px;
+border-color: rgb(100,100,10);</string>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -385,7 +686,7 @@ và xử lý tín hiệu
        <widget class="QLabel" name="label_8">
         <property name="font">
          <font>
-          <pointsize>16</pointsize>
+          <pointsize>12</pointsize>
          </font>
         </property>
         <property name="text">
@@ -410,11 +711,13 @@ thu phát</string>
      </property>
      <property name="font">
       <font>
-       <pointsize>16</pointsize>
+       <pointsize>12</pointsize>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(200, 200, 50);</string>
+      <string notr="true">background-color: rgb(200, 200, 50);
+border: 2px;
+border-color: rgb(100,100,10);</string>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -427,7 +730,7 @@ thu phát</string>
        <widget class="QLabel" name="label_9">
         <property name="font">
          <font>
-          <pointsize>16</pointsize>
+          <pointsize>12</pointsize>
          </font>
         </property>
         <property name="text">
@@ -443,11 +746,16 @@ thu phát</string>
     <widget class="Line" name="line_6">
      <property name="geometry">
       <rect>
-       <x>410</x>
+       <x>360</x>
        <y>90</y>
-       <width>41</width>
+       <width>101</width>
        <height>20</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -456,11 +764,16 @@ thu phát</string>
     <widget class="Line" name="line_7">
      <property name="geometry">
       <rect>
-       <x>590</x>
+       <x>570</x>
        <y>90</y>
-       <width>41</width>
+       <width>51</width>
        <height>20</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -469,11 +782,16 @@ thu phát</string>
     <widget class="Line" name="line_8">
      <property name="geometry">
       <rect>
-       <x>730</x>
-       <y>140</y>
+       <x>740</x>
+       <y>170</y>
        <width>20</width>
-       <height>51</height>
+       <height>41</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
      </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -482,11 +800,16 @@ thu phát</string>
     <widget class="Line" name="line_9">
      <property name="geometry">
       <rect>
-       <x>520</x>
+       <x>540</x>
        <y>360</y>
-       <width>61</width>
+       <width>91</width>
        <height>20</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -495,11 +818,16 @@ thu phát</string>
     <widget class="Line" name="line_10">
      <property name="geometry">
       <rect>
-       <x>580</x>
+       <x>630</x>
        <y>230</y>
-       <width>91</width>
+       <width>41</width>
        <height>20</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -509,10 +837,15 @@ thu phát</string>
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>150</y>
+       <y>140</y>
        <width>20</width>
-       <height>111</height>
+       <height>171</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
      </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -523,13 +856,192 @@ thu phát</string>
       <rect>
        <x>220</x>
        <y>360</y>
-       <width>31</width>
+       <width>51</width>
        <height>20</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
+    </widget>
+    <widget class="QFrame" name="frame_9">
+     <property name="geometry">
+      <rect>
+       <x>250</x>
+       <y>70</y>
+       <width>111</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(200, 200, 50);
+border: 2px;
+border-color: rgb(100,100,10);</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_9">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_10">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Bộ trộn 1</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QFrame" name="frame_10">
+     <property name="geometry">
+      <rect>
+       <x>460</x>
+       <y>70</y>
+       <width>111</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(200, 200, 50);
+border: 2px;
+border-color: rgb(100,100,10);</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_10">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Bộ trộn 2</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="Line" name="line_13">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>120</y>
+       <width>20</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+    </widget>
+    <widget class="Line" name="line_14">
+     <property name="geometry">
+      <rect>
+       <x>500</x>
+       <y>120</y>
+       <width>20</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+    </widget>
+    <widget class="QFrame" name="frame_11">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>400</y>
+       <width>211</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(200, 200, 50);
+border: 2px;
+border-color: rgb(100,100,10);</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_11">
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_res_main_temp">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>--</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_1256">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>N.độ hệ thống(độ C):</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </widget>
   </widget>

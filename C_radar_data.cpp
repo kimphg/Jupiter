@@ -372,7 +372,8 @@ C_radar_data::C_radar_data()
 
         colorTable.push_back((getColor(i,0,0)));
     }
-    tb_tap=new unsigned int[MAX_AZIR];
+    hsTap = 0;
+    tb_tap=new unsigned short[MAX_AZIR];
     img_histogram=new QImage(257,101,QImage::Format_Mono);
     img_histogram->fill(0);
     img_ppi = new QImage(DISPLAY_RES*2+1,DISPLAY_RES*2+1,QImage::Format_ARGB32);
@@ -1198,8 +1199,8 @@ void C_radar_data::ProcessDataFrame()
         resetData();
 
     }
-    temp = dataBuff[3];//
-    tempType = dataBuff[2];
+    moduleVal = dataBuff[3];//
+    tempType = dataBuff[2]&0x0f;
     if(tempType>4)printf("Wrong temperature\n");
     sn_stat = dataBuff[14]<<8|dataBuff[15];
     chu_ky = dataBuff[16]<<8|dataBuff[17];
@@ -1829,6 +1830,13 @@ void C_radar_data::setZoomRectXY(float ctx, float cty)
     zoomXmin = ctx*4.0/scale_ppi-ZOOM_SIZE/2;
     zoomYmin = cty*4.0/scale_ppi-ZOOM_SIZE/2;
     raw_map_init_zoom();
+}
+
+
+int C_radar_data::get_tb_tap(){
+
+    hsTap += ((tb_tap[curAzir])-hsTap)/5.0;
+    return int(hsTap);
 }
 
 void C_radar_data::setTb_tap_k(double value)

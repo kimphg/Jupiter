@@ -138,7 +138,7 @@ void Mainwindow::sendToRadarString(QString command)
     }
 
 }
-void Mainwindow::sendToRadarHS(const char* hexdata)
+void Mainwindow::sendToRadarHS(const char* hexdata)//todo:move to radar class
 {
     short len = strlen(hexdata)/2+1;
     unsigned char* sendBuff = new unsigned char[len];
@@ -148,10 +148,7 @@ void Mainwindow::sendToRadarHS(const char* hexdata)
 }
 void Mainwindow::sendToRadar(unsigned char* hexdata)
 {
-
     m_udpSocket->writeDatagram((char*)hexdata,8,QHostAddress("192.168.0.44"),2572);
-    //printf("\a");
-
 }
 //ham test ve tu AIS
 void Mainwindow::drawAisTarget(QPainter *p)
@@ -1948,12 +1945,12 @@ void Mainwindow::sync1S()//period 1 second
     }
     showTime();
     // display radar temperature:
-    temperature[pRadar->tempType] = pRadar->temp;
+    temperature[pRadar->tempType] = pRadar->moduleVal;
 
     ui->label_noiseAverrage->setText(QString::number(pRadar->getNoiseAverage(),'f',1));
     ui->label_temp->setText(QString::number(pRadar->tempType)
-                            +"|"+QString::number(pRadar->temp,'f',0)
-            + QString::fromLocal8Bit("\260 C"));
+                            +"|"+QString::number(pRadar->moduleVal,'f',0)
+                            + QString::fromLocal8Bit("\260 C"));
     // request radar temperature:
     if(radar_state!=DISCONNECTED)
     {
@@ -1963,7 +1960,7 @@ void Mainwindow::sync1S()//period 1 second
             curTempIndex++;
             if(curTempIndex>4)curTempIndex=0;
         }
-        QByteArray array(pRadar->getFeedback(), 8);
+        QByteArray array((char*)pRadar->getFeedback(), 8);
         QString commandLog = QString(array.toHex());
         ui->label_command->setText(commandLog);
         cmLog->AddString(commandLog);
@@ -1991,6 +1988,9 @@ void Mainwindow::sync1S()//period 1 second
         break;
     }
     ui->label_debug_data->setText("Chu ky: "+QString::number(pRadar->chu_ky));
+    unsigned int chuKy = 1000000/(pRadar->chu_ky*(pow(2,pRadar->clk_adc))/10.0);
+
+    ui->label_sn_freq->setText(QString::number(chuKy));
     ui->label_he_so_tap->setText(QString::fromUtf8("Hệ số tạp: ")+QString::number(pRadar->get_tb_tap()));
     if(ui->toolButton_auto_freq->isChecked())
     {
@@ -1999,32 +1999,33 @@ void Mainwindow::sync1S()//period 1 second
             this->autoSwitchFreq();
         }
     }
+    int value;
     switch((pRadar->sn_stat>>8)&0x07)
     {
     case 4:
         ui->label_sn_type->setText("DTTT");
         //ui->label_sn_param->setText(QString::number(32<<());
-        if(((pRadar->sn_stat)&0x07)==0)
+        if(((pRadar->sn_stat)&0xff)==0)
         {
             ui->label_sn_param->setText("32");
         }
-        else if(((pRadar->sn_stat)&0x07)==1)
+        else if(((pRadar->sn_stat)&0xff)==1)
         {
             ui->label_sn_param->setText("48");
         }
-        else if(((pRadar->sn_stat)&0x07)==2)
+        else if(((pRadar->sn_stat)&0xff)==2)
         {
             ui->label_sn_param->setText("64");
         }
-        else if(((pRadar->sn_stat)&0x07)==3)
+        else if(((pRadar->sn_stat)&0xff)==3)
         {
             ui->label_sn_param->setText("96");
         }
-        else if(((pRadar->sn_stat)&0x07)==4)
+        else if(((pRadar->sn_stat)&0xff)==4)
         {
             ui->label_sn_param->setText("128");
         }
-        else if(((pRadar->sn_stat)&0x07)==5)
+        else if(((pRadar->sn_stat)&0xff)==5)
         {
             ui->label_sn_param->setText("192");
 
@@ -2036,22 +2037,36 @@ void Mainwindow::sync1S()//period 1 second
         break;
     case 0:
         ui->label_sn_type->setText(QString::fromUtf8("Xung đơn"));
-        ui->label_sn_param->setText(QString::number((((pRadar->sn_stat)&0x07))));
+        ui->label_sn_param->setText(QString::number((((pRadar->sn_stat)&0xff))));
         break;
     case 2:
         ui->label_sn_type->setText(QString::fromUtf8("Mã M"));
-        ui->label_sn_param->setText(QString::number((((pRadar->sn_stat)&0x07))));
+        value = ((pRadar->sn_stat)&0xff);
+        if(value<5)
+        {
+            ui->label_sn_param->setText(QString::number(16*pow(2,value)));
+
+            ui->label_sn_pulsew->setText(QString::number(((16*pow(2,value))*(pow(2,pRadar->clk_adc))/10.0),'f',1));
+        }
+        else
+        {
+            ui->label_sn_param->setText(QString::number(16*pow(2,value-5))+"x2");
+            ui->label_sn_pulsew->setText(QString::number(((32*(value-5))*(pow(2,pRadar->clk_adc))/10.0),'f',1));
+        }
+
         break;
     case 3:
-        ui->label_sn_type->setText(QString::fromUtf8("Mã ngẫu nhiên"));
-        ui->label_sn_param->setText(QString::number((((pRadar->sn_stat)&0x07))));
+        ui->label_sn_type->setText(QString::fromUtf8("Mã 2 pha"));//todo:change back to "ma ngau nhien" later
+        value = ((pRadar->sn_stat)&0xff);
+        ui->label_sn_param->setText(QString::number(value-15.0));
+        ui->label_sn_pulsew->setText(QString::number(((value-15.0)*(pow(2,pRadar->clk_adc))/10.0),'f',1));
         break;
     case 1:
         ui->label_sn_type->setText(QString::fromUtf8("Mã baker"));
-        ui->label_sn_param->setText(QString::number((((pRadar->sn_stat)&0x07))));
+        ui->label_sn_param->setText(QString::number((((pRadar->sn_stat)&0xff))));
         break;
     default:
-        ui->label_sn_param->setText(QString::number(((pRadar->sn_stat)&0x07)));
+        ui->label_sn_param->setText(QString::number(((pRadar->sn_stat)&0xff)));
         break;
     }
     /*switch((pRadar->rotation_speed)&0x07)
@@ -2072,7 +2087,7 @@ void Mainwindow::sync1S()//period 1 second
 
                 break;
             }*/
-    ui->label_speed_2->setText(QString::number(pRadar->rotation_per_min)+"v/p");
+    ui->label_speed_2->setText(QString::number(pRadar->rotation_per_min,'f',1)+"v/p");
 
 
 
@@ -3723,6 +3738,7 @@ void Mainwindow::on_toolButton_command_log_toggled(bool checked)
 
 void Mainwindow::on_toolButton_exit_2_clicked()
 {
-    mstatWin = new StatusWindow;
+    mstatWin = new StatusWindow(processing);
+
     mstatWin->show();
 }

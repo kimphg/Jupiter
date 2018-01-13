@@ -217,9 +217,10 @@ public:
     short                   curAzir,arcMinAzi,arcMaxAzi,arcWidth;
     void                    setZoomRectAR(float ctx, float cty, double sizeKM, double sizeDeg);
     void                    setZoomRectXY(float ctx, float cty);
-    unsigned int            sn_stat,chu_ky,*tb_tap;
+    unsigned int            sn_stat,chu_ky;
+    unsigned short          *tb_tap;
     double                  tb_tap_k;
-    int                     get_tb_tap(){return tb_tap[curAzir];}
+    int                     get_tb_tap();
     bool                    is_do_bup_song;
     bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled,filter2of3;
     bool                    isManualTune,rgs_auto,bo_bang_0,data_export;
@@ -228,7 +229,7 @@ public:
     double                   krain_auto,kgain_auto,ksea_auto;
     void setAutorgs( bool aut);
     void                    clearPPI();
-    unsigned char           temp;
+    unsigned char           moduleVal;
     float                   trueN;
     DataOverLay             dataOver;
     unsigned char           noise_level[8];
@@ -271,10 +272,10 @@ public:
     void        setProcessing(bool onOff);
     //bool        getDataOverload(){if(isDataTooLarge) {isDataTooLarge =false;return true;} else return false;}
     bool        checkFeedback(unsigned char* command);
-    char* getFeedback()
+    unsigned char* getFeedback()
     {
 
-        return (char*)&command_feedback[0];
+        return (unsigned char*)&command_feedback[0];
     }
     void        resetTrack();
     void SetHeaderLen(short len);
@@ -296,6 +297,7 @@ public:
     double getArcMaxAziRad() const;
     double getArcMinAziRad() const;
 private:
+    float hsTap ;
     QVector<QRgb> colorTable;
     double      selfRotationDazi;
     double      selfRotationAzi;

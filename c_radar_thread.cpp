@@ -77,6 +77,7 @@ double dataProcessingThread::getCenterAzi() const
 }
 dataProcessingThread::dataProcessingThread()
 {
+    failureCount = 0;
     isHeadingAvaible=false;
     centerAzi = 0;
     isXuLyThuCap = false;
@@ -101,7 +102,7 @@ dataProcessingThread::dataProcessingThread()
         }
     }
     connect(&commandSendTimer, &QTimer::timeout, this, &dataProcessingThread::PushCommandQueue);
-    commandSendTimer.start(200);
+    commandSendTimer.start(100);
     connect(&readUdpBuffTimer, &QTimer::timeout, this, &dataProcessingThread::ReadDataBuffer);
     readUdpBuffTimer.start(10);
     //connect(&readSerialTimer, &QTimer::timeout, this, &dataProcessingThread::SerialDataRead);
@@ -221,15 +222,46 @@ void dataProcessingThread::processSerialData(QByteArray inputData)
     }
 
 }
+bool dataProcessingThread::checkFeedback()
+{
+    unsigned char * pFeedBack = radarData->getFeedback();
+    unsigned char * command = &radarComQ.front().bytes[0];
+    if(   (pFeedBack[0]==command[0])
+          &&(pFeedBack[1]==command[1])
+          &&(pFeedBack[2]==command[2])
+          &&(pFeedBack[3]==command[3])
+          &&(pFeedBack[4]==command[4])
+          &&(pFeedBack[5]==command[5])
+          &&(pFeedBack[6]==command[6])
+          )
+    {
+        return true;
+    }
+    else return false;
+}
 void dataProcessingThread::PushCommandQueue()
 {
     if(radarComQ.size())
     {
+        if(checkFeedback())
+        {
+            radarComQ.pop();
+            failureCount = 0;
+        }
+        else
+        {
+            failureCount++;
+            if(failureCount>3)
+            {
+                radarComQ.pop();
+                failureCount = 0;
+            }
+        }
         radarSocket->writeDatagram((char*)&radarComQ.front().bytes[0],
                 8,
                 QHostAddress("192.168.0.44"),2572
                 );
-        radarComQ.pop();
+
     }
 }
 void dataProcessingThread::playbackRadarData()

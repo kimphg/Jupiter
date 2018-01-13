@@ -49,6 +49,7 @@ public:
     QTimer commandSendTimer;
     QTimer readUdpBuffTimer;
     QTimer readSerialTimer;
+
     void PlaybackFile();
     void startRecord(QString fileName);
     void stopRecord();
@@ -88,7 +89,7 @@ signals:
     void HeadingDataReceived(double heading);
 private:
     double mHeading ;
-
+    unsigned char failureCount;
     bool  isDrawn;
     bool isXuLyThuCap;
     RadarCommandQueue radarComQ;
@@ -103,7 +104,8 @@ private:
     void listenToRadar();
     void init(int serialBaud);
     void processSerialData(QByteArray inputData);
-//    bool ProcDataAIS(BYTE *szBuff, int nLeng);
+    //    bool ProcDataAIS(BYTE *szBuff, int nLeng);
+    bool checkFeedback();
 private slots:
     void ReadDataBuffer();
     void PushCommandQueue();
