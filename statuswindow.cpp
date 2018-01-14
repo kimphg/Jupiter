@@ -47,11 +47,11 @@ void StatusWindow::sendReq()
 bool StatusWindow::receiveRes()
 {
     QString resVal;
-    double hsTap = mRadar->radarData->get_tb_tap();
+    double hsTap = mRadar->mRadarData->get_tb_tap();
     hsTap = 20*log10(hsTap/165.0)+77.0;
     ui->label_res_receiver->setText(QString::number(hsTap,'f',1));
-    int resModId = mRadar->radarData->tempType;
-    unsigned char * pFeedBack = mRadar->radarData->getFeedback();
+    int resModId = mRadar->mRadarData->tempType;
+    unsigned char * pFeedBack = mRadar->mRadarData->getFeedback();
     if(   (pFeedBack[0]==command[0])
           &&(pFeedBack[1]==command[1])
           &&(pFeedBack[2]==command[2])
@@ -63,7 +63,7 @@ bool StatusWindow::receiveRes()
        )
     {
         ansTrue = false;
-        double x =mRadar->radarData->moduleVal;
+        double x =mRadar->mRadarData->moduleVal;
         switch (resModId) {
         case 0:
             if(paramId==0xaa)

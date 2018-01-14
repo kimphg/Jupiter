@@ -1,4 +1,4 @@
-
+#include "c_config.h"
 #include "c_radar_thread.h"
 #define MAX_IREC 500
 //#include <QGeoCoordinate>
@@ -7,12 +7,12 @@ DataBuff dataB[MAX_IREC];
 short iRec=0,iRead=0;
 bool *pIsDrawn;
 bool *pIsPlaying;
-
+extern CConfig         mGlobbalConfig;
 QNmeaPositionInfoSource *geoLocation = NULL;
 //QTimer readDataBuff;
 dataProcessingThread::~dataProcessingThread()
 {
-    delete radarData;
+    delete mRadarData;
     delete arpaData;
 }
 
@@ -32,10 +32,27 @@ void dataProcessingThread::ReadDataBuffer()
         DataBuff *pData = &dataBuff[iRead];
         if(nread>400)
         {
-            radarData->resetData();
+            mRadarData->resetData();
             break;
         }
-        radarData->assembleDataFrame(&pData->data[0],pData->len);
+        mRadarData->assembleDataFrame(&pData->data[0],pData->len);
+        //read encoder
+        if(mRadarData->isEncoderAzi)
+        {
+            if(mEncoderPort.isOpen())
+            {
+                while(1)
+                {
+                    QString str(mEncoderPort.readLine());
+                    if(str.size()==0)break;
+                    int value = str.toInt();
+                    value = (value*MAX_AZIR)/5400;
+                    mRadarData->mEncoderAzi = value;
+                }
+
+            }
+        }
+
         if(isRecording)
         {
             signRecFile.write((char*)&pData->len,2);
@@ -68,7 +85,7 @@ bool dataProcessingThread::getIsXuLyThuCap() const
 void dataProcessingThread::setIsXuLyThuCap(bool value)
 {
     isXuLyThuCap = value;
-    radarData->setIsVtorih(isXuLyThuCap);
+    mRadarData->setIsVtorih(isXuLyThuCap);
 }
 
 double dataProcessingThread::getCenterAzi() const
@@ -90,7 +107,7 @@ dataProcessingThread::dataProcessingThread()
     playRate = 10;
     arpaData = new C_ARPA_data();
     isRecording = false;
-    radarData = new C_radar_data();
+    mRadarData = new C_radar_data();
     isPlaying = false;
     radarSocket = new QUdpSocket(this);
     int port = 8000;
@@ -100,6 +117,7 @@ dataProcessingThread::dataProcessingThread()
         {
             break;
         }
+        port++;
     }
     connect(&commandSendTimer, &QTimer::timeout, this, &dataProcessingThread::PushCommandQueue);
     commandSendTimer.start(100);
@@ -107,12 +125,28 @@ dataProcessingThread::dataProcessingThread()
     readUdpBuffTimer.start(10);
     //connect(&readSerialTimer, &QTimer::timeout, this, &dataProcessingThread::SerialDataRead);
     //readSerialTimer.start(20);
-    init(38400);
+    initSerialComm();
     //processSerialData("!AIVDM,1,1,,A,13EoN=0P00NqIS<@6Od00?vN0D1F,0*5D");
 }
-void dataProcessingThread::init(int serialBaud)
+void dataProcessingThread::SerialEncoderRead()
 {
-    //
+
+}
+void dataProcessingThread::initSerialComm()
+{
+    int serialBaud = 1000000;
+    //baurate 1Mbps for highspeed encoder
+    QString SerialEncoder1Mb =  mGlobbalConfig.getString("serialEncoder1Mb");
+    //mEncoderPort = new QSerialPort(this);
+    QString qstr = SerialEncoder1Mb;
+    mEncoderPort.setPortName(qstr);
+    mEncoderPort.setBaudRate(serialBaud);
+    if(mEncoderPort.open(QIODevice::ReadWrite))
+    {
+        mRadarData->isEncoderAzi = mGlobbalConfig.getInt("isSerialEncoderEnable");
+    }
+    // baudrate at 38400 standart for low speed encoder and ais
+    serialBaud = 38400;
     QList<QSerialPortInfo> portlist = QSerialPortInfo::availablePorts();
     for(int i = 0;i<portlist.size();i++)
     {
@@ -125,7 +159,6 @@ void dataProcessingThread::init(int serialBaud)
             newport->open(QIODevice::ReadWrite);
             connect(newport, &QSerialPort::readyRead, this, &dataProcessingThread::SerialDataRead);
             serialPorts.push_back(newport);
-
         }
     }
     printf("Serial available:%d\n",portlist.size());
@@ -154,8 +187,6 @@ void dataProcessingThread::SerialDataRead()
 {
     for(std::vector<QSerialPort*>::iterator it = serialPorts.begin() ; it != serialPorts.end(); ++it)
     {
-
-
         QByteArray responseData = (*it)->readAll();
         if(!geoLocation)
         {
@@ -224,7 +255,7 @@ void dataProcessingThread::processSerialData(QByteArray inputData)
 }
 bool dataProcessingThread::checkFeedback()
 {
-    unsigned char * pFeedBack = radarData->getFeedback();
+    unsigned char * pFeedBack = mRadarData->getFeedback();
     unsigned char * command = &radarComQ.front().bytes[0];
     if(   (pFeedBack[0]==command[0])
           &&(pFeedBack[1]==command[1])
@@ -277,14 +308,14 @@ void dataProcessingThread::playbackRadarData()
             if(!signRepFile.read((char*)&len,2))
             {
                 signRepFile.seek(0);
-                radarData->SelfRotationReset();
+                mRadarData->SelfRotationReset();
                 //togglePlayPause(false);
                 return;
             }
             QByteArray buff;
             buff.resize(len);
             signRepFile.read(buff.data(),len);
-            if(len>500)radarData->assembleDataFrame((unsigned char*)buff.data(),buff.size());
+            if(len>500)mRadarData->assembleDataFrame((unsigned char*)buff.data(),buff.size());
             else processSerialData(buff);
             if(isRecording)
             {

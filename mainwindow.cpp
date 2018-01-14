@@ -45,7 +45,7 @@ double                      centerAzi=0;
 double                      temperature[255];
 int         curTempIndex = 0;
 double      rangeRatio = 1;
-CConfig         config;
+extern CConfig         mGlobbalConfig;
 QStringList     warningList;
 QString         strDistanceUnit;
 short selectedTargetIndex;
@@ -1253,7 +1253,7 @@ void Mainwindow::SaveBinFile()
 void Mainwindow::setDistanceUnit(int unit)//0:NM, 1:KM
 {
     mDistanceUnit = unit;
-    config.setValue("mDistanceUnit",mDistanceUnit);
+    mGlobbalConfig.setValue("mDistanceUnit",mDistanceUnit);
     if(mDistanceUnit==0)
     {
         rangeRatio = 1.852;
@@ -1272,39 +1272,39 @@ void Mainwindow::setDistanceUnit(int unit)//0:NM, 1:KM
 }
 void Mainwindow::InitSetting()
 {
-    mMaxTapMayThu = config.getInt("mMaxTapMayThu");
-    mRangeLevel = config.getInt("mRangeLevel");
+    mMaxTapMayThu = mGlobbalConfig.getInt("mMaxTapMayThu");
+    mRangeLevel = mGlobbalConfig.getInt("mRangeLevel");
     assert(mRangeLevel>=0&&mRangeLevel<8);
-    setDistanceUnit(config.getInt("mDistanceUnit"));
+    setDistanceUnit(mGlobbalConfig.getInt("mDistanceUnit"));
     assert(mDistanceUnit>=0&&mDistanceUnit<2);
-    mR0Command = config.getString("mR0Command");
-    mR1Command = config.getString("mR1Command");
-    mR2Command = config.getString("mR2Command");
-    mR3Command = config.getString("mR3Command");
-    mR4Command = config.getString("mR4Command");
-    mR5Command = config.getString("mR5Command");
-    mR6Command = config.getString("mR6Command");
-    mR7Command = config.getString("mR7Command");
-    mRxCommand = config.getString("mRxCommand");
-    mTxCommand = config.getString("mTxCommand");
-    mTrueN2 = config.getDouble("mTrueN2");
-    mTrueN = config.getDouble("mTrueN");
+    mR0Command = mGlobbalConfig.getString("mR0Command");
+    mR1Command = mGlobbalConfig.getString("mR1Command");
+    mR2Command = mGlobbalConfig.getString("mR2Command");
+    mR3Command = mGlobbalConfig.getString("mR3Command");
+    mR4Command = mGlobbalConfig.getString("mR4Command");
+    mR5Command = mGlobbalConfig.getString("mR5Command");
+    mR6Command = mGlobbalConfig.getString("mR6Command");
+    mR7Command = mGlobbalConfig.getString("mR7Command");
+    mRxCommand = mGlobbalConfig.getString("mRxCommand");
+    mTxCommand = mGlobbalConfig.getString("mTxCommand");
+    mTrueN2 = mGlobbalConfig.getDouble("mTrueN2");
+    mTrueN = mGlobbalConfig.getDouble("mTrueN");
 
     pRadar->setTrueN(mTrueN);
-    ui->textEdit_heading->setText(config.getString("mTrueN"));
-    ui->textEdit_heading_2->setText(config.getString("mTrueN2"));
-    mZoomSizeAz = config.getDouble("mZoomSizeAz");
+    ui->textEdit_heading->setText(mGlobbalConfig.getString("mTrueN"));
+    ui->textEdit_heading_2->setText(mGlobbalConfig.getString("mTrueN2"));
+    mZoomSizeAz = mGlobbalConfig.getDouble("mZoomSizeAz");
     ui->textEdit_size_ar_a->setText(QString::number(mZoomSizeAz));
-    mZoomSizeRg = config.getDouble("mZoomSizeRg");
+    mZoomSizeRg = mGlobbalConfig.getDouble("mZoomSizeRg");
     ui->textEdit_size_ar_r->setText(QString::number(mZoomSizeRg));
     pRadar->setTrueN(mTrueN);
     //load map
     osmap = new CMap();
-    SetGPS(config.getDouble("mLat"), config.getDouble("mLon"));
+    SetGPS(mGlobbalConfig.getDouble("mLat"), mGlobbalConfig.getDouble("mLon"));
     osmap->setCenterPos(mLat,mLon);
     osmap->setImgSize(height(),height());
     osmap->SetType(0);
-    mMapOpacity = config.getDouble("mMapOpacity");
+    mMapOpacity = mGlobbalConfig.getDouble("mMapOpacity");
     //config.setMapOpacity(value/50.0);
     ui->horizontalSlider_map_brightness->setValue(mMapOpacity*50);
     ui->toolButton_xl_nguong_3->setChecked(true);
@@ -1637,7 +1637,7 @@ void Mainwindow::InitTimer()
     t2 = new QThread();
 
     processing = new dataProcessingThread();
-    pRadar = processing->radarData;
+    pRadar = processing->mRadarData;
     connect(&syncTimer1s, SIGNAL(timeout()), this, SLOT(sync1S()));
     syncTimer1s.start(1000);
     connect(&syncTimer5p, SIGNAL(timeout()), this, SLOT(sync5p()));
@@ -2921,7 +2921,7 @@ void Mainwindow::on_toolButton_send_command_clicked()
 void Mainwindow::on_toolButton_zoom_in_clicked()
 {
     if(mRangeLevel >0) mRangeLevel-=1;
-    config.setValue("mRangeLevel",mRangeLevel);
+    mGlobbalConfig.setValue("mRangeLevel",mRangeLevel);
     UpdateScale();
     DrawMap();
 }
@@ -2929,7 +2929,7 @@ void Mainwindow::on_toolButton_zoom_in_clicked()
 void Mainwindow::on_toolButton_zoom_out_clicked()
 {
     if(mRangeLevel <7) mRangeLevel+=1;
-    config.setValue("mRangeLevel",mRangeLevel);
+    mGlobbalConfig.setValue("mRangeLevel",mRangeLevel);
     UpdateScale();
     DrawMap();
 }
@@ -2958,8 +2958,8 @@ void Mainwindow::SetGPS(double lat,double lon)
 {
     mLat = lat;
     mLon = lon;
-    config.setValue("mLat",mLat);
-    config.setValue("mLon",mLon);
+    mGlobbalConfig.setValue("mLat",mLat);
+    mGlobbalConfig.setValue("mLon",mLon);
     ui->text_latInput_2->setText(QString::number(mLat,'f',5));
     ui->text_longInput_2->setText(QString::number(mLon,'f',5));
     osmap->setCenterPos(mLat, mLon);
@@ -2979,8 +2979,8 @@ void Mainwindow::on_toolButton_set_heading_clicked()
 
     mTrueN = ui->textEdit_heading->text().toFloat();
     mTrueN2 = ui->textEdit_heading_2->text().toFloat();
-    config.setValue("mTrueN",mTrueN);
-    config.setValue("mTrueN2",mTrueN2);
+    mGlobbalConfig.setValue("mTrueN",mTrueN);
+    mGlobbalConfig.setValue("mTrueN2",mTrueN2);
     pRadar->setTrueN(mTrueN);
 
 }
@@ -3431,7 +3431,7 @@ void Mainwindow::on_comboBox_3_currentIndexChanged(int index)
 void Mainwindow::on_horizontalSlider_map_brightness_valueChanged(int value)
 {
     mMapOpacity = value/50.0;
-    config.setValue("mMapOpacity",mMapOpacity);
+    mGlobbalConfig.setValue("mMapOpacity",mMapOpacity);
     DrawMap();
 }
 
@@ -3574,8 +3574,8 @@ void Mainwindow::on_toolButton_gps_update_auto_clicked()
     double lat,lon;
     if(processing->getPosition(&lat,&lon))
     {
-        config.setValue("mLat",lat);
-        config.setValue("mLon",lon);
+        mGlobbalConfig.setValue("mLat",lat);
+        mGlobbalConfig.setValue("mLon",lon);
         SetGPS(lat, lon);
     }
     else
@@ -3591,8 +3591,8 @@ void Mainwindow::on_toolButton_set_zoom_ar_size_clicked()
 {
     mZoomSizeRg = ui->textEdit_size_ar_r->text().toDouble();
     mZoomSizeAz = ui->textEdit_size_ar_a->text().toDouble();
-    config.setValue("mZoomSizeRg",mZoomSizeRg);
-    config.setValue("mZoomSizeAz",mZoomSizeAz);
+    mGlobbalConfig.setValue("mZoomSizeRg",mZoomSizeRg);
+    mGlobbalConfig.setValue("mZoomSizeAz",mZoomSizeAz);
 }
 
 void Mainwindow::on_toolButton_advanced_control_clicked()
@@ -3617,16 +3617,16 @@ void Mainwindow::on_toolButton_set_command_clicked()
     mR7Command = ui->plainTextEdit_range_7->toPlainText();
     mRxCommand = ui->plainTextEdit_command_rx->toPlainText();
     mTxCommand = ui->plainTextEdit_command_tx->toPlainText();
-    config.setValue("mR0Command",mR0Command);
-    config.setValue("mR1Command",mR1Command);
-    config.setValue("mR2Command",mR2Command);
-    config.setValue("mR3Command",mR3Command);
-    config.setValue("mR4Command",mR4Command);
-    config.setValue("mR5Command",mR5Command);
-    config.setValue("mR6Command",mR6Command);
-    config.setValue("mR7Command",mR7Command);
-    config.setValue("mRxCommand",mRxCommand);
-    config.setValue("mTxCommand",mTxCommand);
+    mGlobbalConfig.setValue("mR0Command",mR0Command);
+    mGlobbalConfig.setValue("mR1Command",mR1Command);
+    mGlobbalConfig.setValue("mR2Command",mR2Command);
+    mGlobbalConfig.setValue("mR3Command",mR3Command);
+    mGlobbalConfig.setValue("mR4Command",mR4Command);
+    mGlobbalConfig.setValue("mR5Command",mR5Command);
+    mGlobbalConfig.setValue("mR6Command",mR6Command);
+    mGlobbalConfig.setValue("mR7Command",mR7Command);
+    mGlobbalConfig.setValue("mRxCommand",mRxCommand);
+    mGlobbalConfig.setValue("mTxCommand",mTxCommand);
     ui->groupBox_control_setting->setHidden(true);
     ui->toolButton_set_commands->setChecked(false);
 
@@ -3644,7 +3644,7 @@ void Mainwindow::on_toolButton_auto_freq_toggled(bool checked)
 
 void Mainwindow::on_toolButton_set_default_clicked()
 {
-    config.setDefault();
+    mGlobbalConfig.setDefault();
 }
 
 
@@ -3653,7 +3653,7 @@ void Mainwindow::on_toolButton_heading_update_clicked()
 {
     if(processing->isHeadingAvaible)
     {
-        mTrueN = processing->getHeading()+config.getDouble("mTrueN3");
+        mTrueN = processing->getHeading()+mGlobbalConfig.getDouble("mTrueN3");
         if(mTrueN>=360)mTrueN-=360;
         ui->label_compass_value->setText(QString::number(processing->getHeading(),'f',1));
         ui->textEdit_heading->setText(QString::number(mTrueN));

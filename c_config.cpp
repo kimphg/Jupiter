@@ -1,6 +1,6 @@
 
 #include "c_config.h"
-
+CConfig         mGlobbalConfig;
 
 void CConfig::setValue(QString key, double value)
 {
@@ -31,7 +31,11 @@ QString CConfig::getString(QString key)
 {
     if(hashData.find(key)!=hashData.end())
     return hashData.value(key);
-    else return QString::number(0);
+    else
+    {
+        hashData.insert(key,"0");
+        return QString::number(0);
+    }
 }
 
 CConfig::CConfig(void)

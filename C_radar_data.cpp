@@ -384,11 +384,12 @@ C_radar_data::C_radar_data()
     img_zoom_ar = NULL;
     tb_tap_k = 1;
     setZoomRectAR(10,10,1.852,10);
+    mEncoderAzi = 0;
     //img_zoom_ar->setColorTable(colorTable);
     img_ppi->fill(Qt::transparent);
     isSelfRotation = false;
     isProcessing = true;
-
+    isEncoderAzi  =false;
     isManualTune = false;
     isVtorih = true;
     rgs_auto = false;
@@ -1147,7 +1148,11 @@ void C_radar_data::SelfRotationOff()
 void C_radar_data::ProcessDataFrame()
 {
     int newAzi;
-    if(isSelfRotation)
+    if(isEncoderAzi)
+    {
+        newAzi = mEncoderAzi;
+    }
+    else if(isSelfRotation)
     {
         selfRotationAzi-=selfRotationDazi;
         if(selfRotationAzi>=MAX_AZIR)selfRotationAzi = 0;

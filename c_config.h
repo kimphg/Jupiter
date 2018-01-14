@@ -32,4 +32,5 @@ private:
     void readFile();
     void SaveToFile();
 };
+
 #endif

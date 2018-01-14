@@ -61,7 +61,7 @@ public:
     void loadRecordDataFile(QString fileName);
     void togglePlayPause(bool play);
 
-    C_radar_data* radarData;
+    C_radar_data* mRadarData;
     C_ARPA_data* arpaData;
     void run();
     bool getIsDrawn();
@@ -88,6 +88,7 @@ public:
 signals:
     void HeadingDataReceived(double heading);
 private:
+    QSerialPort mEncoderPort;
     double mHeading ;
     unsigned char failureCount;
     bool  isDrawn;
@@ -102,7 +103,7 @@ private:
     QUdpSocket      *ARPADataSocket;
     double centerAzi;
     void listenToRadar();
-    void init(int serialBaud);
+    void initSerialComm();
     void processSerialData(QByteArray inputData);
     //    bool ProcDataAIS(BYTE *szBuff, int nLeng);
     bool checkFeedback();
@@ -114,6 +115,7 @@ private slots:
     void playbackRadarData();
     void SerialDataRead();
     void gpsupdate(QGeoPositionInfo geo);
+    void SerialEncoderRead();
 public slots:
     void StopProcessing();
 };
