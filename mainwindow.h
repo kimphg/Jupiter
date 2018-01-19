@@ -87,7 +87,10 @@ private:
 //    QUdpSocket      *udpARPA;//ARPA
     QUdpSocket      *m_udpSocket;//socket for radar control
 
-
+    QString                     mTxCommand,mRxCommand;
+    QString                     mR0Command,mR1Command,mR2Command,mR3Command,
+                                mR4Command,mR5Command,mR6Command,mR7Command;
+    QString                     mFreq1Command,mFreq2Command,mFreq3Command,mFreq4Command,mFreq5Command,mFreq6Command;
     //
     //CConfig         m_config;
     //CpView  *       m_view;
@@ -381,6 +384,10 @@ private slots:
     void on_toolButton_selfRotation_2_toggled(bool checked);
 
     void on_toolButton_selfRotation_clicked();
+
+    void on_toolButton_tx_2_toggled(bool checked);
+
+    void on_toolButton_tx_2_clicked(bool checked);
 
 private:
     void initActionsConnections();

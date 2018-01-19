@@ -23,9 +23,7 @@ double                      mLat=DEFAULT_LAT,mLon = DEFAULT_LONG;
 dataProcessingThread        *processing;// thread xu ly du lieu radar
 C_radar_data                *pRadar;
 QThread                     *t2,*t1;
-QString                     mTxCommand,mRxCommand;
-QString                     mR0Command,mR1Command,mR2Command,mR3Command,
-mR4Command,mR5Command,mR6Command,mR7Command;
+
 double                      mMapOpacity;
 int                         mMaxTapMayThu=18;
 //Q_vnmap                     vnmap;
@@ -3527,45 +3525,33 @@ void Mainwindow::on_toolButton_setRangeUnit_clicked()
 
 void Mainwindow::on_toolButton_tx_2_clicked()
 {
-    sendToRadarHS("aaab010222474e");
-    sendToRadarHS("aaab010222474e");
-    sendToRadarHS("aaab010222474e");
+    sendToRadarString(mFreq1Command);
 
 }
 
 void Mainwindow::on_toolButton_tx_3_clicked()
 {
-    sendToRadarHS("aaab010221484e");
-    sendToRadarHS("aaab010221484e");
-    sendToRadarHS("aaab010221484e");
+    sendToRadarString(mFreq2Command);
 }
 
 void Mainwindow::on_toolButton_tx_4_clicked()
 {
-    sendToRadarHS("aaab010221b14e");
-    sendToRadarHS("aaab010221b14e");
-    sendToRadarHS("aaab010221b14e");
+    sendToRadarString(mFreq3Command);
 }
 
 void Mainwindow::on_toolButton_tx_5_clicked()
 {
-    sendToRadarHS("aaab010222884e");
-    sendToRadarHS("aaab010222884e");
-    sendToRadarHS("aaab010222884e");
+    sendToRadarString(mFreq4Command);
 }
 
 void Mainwindow::on_toolButton_tx_6_clicked()
 {
-    sendToRadarHS("aaab010222ce4e");
-    sendToRadarHS("aaab010222ce4e");
-    sendToRadarHS("aaab010222ce4e");
+    sendToRadarString(mFreq5Command);
 }
 
 void Mainwindow::on_toolButton_tx_7_clicked()
 {
-    sendToRadarHS("aaab0102230f4e");
-    sendToRadarHS("aaab0102230f4e");
-    sendToRadarHS("aaab0102230f4e");
+    sendToRadarString(mFreq6Command);
 }
 
 void Mainwindow::on_toolButton_gps_update_auto_clicked()
@@ -3626,6 +3612,20 @@ void Mainwindow::on_toolButton_set_command_clicked()
     mGlobbalConfig.setValue("mR7Command",mR7Command);
     mGlobbalConfig.setValue("mRxCommand",mRxCommand);
     mGlobbalConfig.setValue("mTxCommand",mTxCommand);
+    //
+    mFreq1Command =  ui->plainTextEdit_freq_1->toPlainText();
+    mFreq2Command =  ui->plainTextEdit_freq_2->toPlainText();
+    mFreq3Command =  ui->plainTextEdit_freq_3->toPlainText();
+    mFreq4Command =  ui->plainTextEdit_freq_4->toPlainText();
+    mFreq5Command =  ui->plainTextEdit_freq_5->toPlainText();
+    mFreq6Command =  ui->plainTextEdit_freq_6->toPlainText();
+    //
+    mGlobbalConfig.setValue("mFreq1Command",mFreq1Command);
+    mGlobbalConfig.setValue("mFreq2Command",mFreq2Command);
+    mGlobbalConfig.setValue("mFreq3Command",mFreq3Command);
+    mGlobbalConfig.setValue("mFreq4Command",mFreq4Command);
+    mGlobbalConfig.setValue("mFreq5Command",mFreq5Command);
+    mGlobbalConfig.setValue("mFreq6Command",mFreq6Command);
     ui->groupBox_control_setting->setHidden(true);
     ui->toolButton_set_commands->setChecked(false);
 
@@ -3756,6 +3756,16 @@ void Mainwindow::on_toolButton_selfRotation_2_toggled(bool checked)
 }
 
 void Mainwindow::on_toolButton_selfRotation_clicked()
+{
+
+}
+
+void Mainwindow::on_toolButton_tx_2_toggled(bool checked)
+{
+
+}
+
+void Mainwindow::on_toolButton_tx_2_clicked(bool checked)
 {
 
 }

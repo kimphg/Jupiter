@@ -132,6 +132,7 @@ dataProcessingThread::dataProcessingThread()
 QString str="";
 void dataProcessingThread::SerialEncoderRead()
 {
+    if(!mEncoderPort.isOpen())return;
     QByteArray ba = mEncoderPort.readAll();
     if(!ba.size())return;
     if(!mRadarData->isEncoderAzi)return;
