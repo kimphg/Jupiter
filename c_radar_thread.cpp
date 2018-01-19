@@ -37,21 +37,22 @@ void dataProcessingThread::ReadDataBuffer()
         }
         mRadarData->assembleDataFrame(&pData->data[0],pData->len);
         //read encoder
-        if(mRadarData->isEncoderAzi)
-        {
-            if(mEncoderPort.isOpen())
-            {
-                while(1)
-                {
-                    QString str(mEncoderPort.readLine());
-                    if(str.size()==0)break;
-                    int value = str.toInt();
-                    value = (value*MAX_AZIR)/5400;
-                    mRadarData->mEncoderAzi = value;
-                }
+//        if(mRadarData->isEncoderAzi)
+//        {
+//            if(mEncoderPort.isOpen())
+//            {
+//                while(1)
+//                {
+//                    QString str(mEncoderPort.readLine());
+//                    if(str.size()==0)break;
+//                    int value = str.toInt();
+//                    value = (value*MAX_AZIR)/5400;
+//                    if(value>MAX_AZIR)value-=MAX_AZIR;
+//                    mRadarData->mEncoderAzi = value;
+//                }
 
-            }
-        }
+//            }
+//        }
 
         if(isRecording)
         {
@@ -88,15 +89,15 @@ void dataProcessingThread::setIsXuLyThuCap(bool value)
     mRadarData->setIsVtorih(isXuLyThuCap);
 }
 
-double dataProcessingThread::getCenterAzi() const
+double dataProcessingThread::getSelsynAzi() const
 {
-    return centerAzi;
+    return selsynEncoderAzi;
 }
 dataProcessingThread::dataProcessingThread()
 {
     failureCount = 0;
     isHeadingAvaible=false;
-    centerAzi = 0;
+    selsynEncoderAzi = 0;
     isXuLyThuCap = false;
     dataBuff = &dataB[0];
     iRec=0;iRead=0;
@@ -128,9 +129,31 @@ dataProcessingThread::dataProcessingThread()
     initSerialComm();
     //processSerialData("!AIVDM,1,1,,A,13EoN=0P00NqIS<@6Od00?vN0D1F,0*5D");
 }
+QString str="";
 void dataProcessingThread::SerialEncoderRead()
 {
+    QByteArray ba = mEncoderPort.readAll();
+    if(!ba.size())return;
+    if(!mRadarData->isEncoderAzi)return;
+    str.append(ba);
+    QStringList strList = str.split('$');
+    if(strList.size()>2)
+    {
+        QStringList lsstrData = strList.at(1).split('*');
+        if(lsstrData.size()==2)
+        {
 
+            int value = lsstrData.at(0).toInt();
+            int value2 = lsstrData.at(1).toInt();
+            if(value==value2)
+            {
+                if(value>0&&value<MAX_AZIR)mRadarData->setSelfRotationAzi(value);
+            }
+        }
+        str="";
+        //str.remove(0,strList.at(0).size()+strList.at(1).size()+1);
+        //SerialEncoderRead();
+    }
 }
 void dataProcessingThread::initSerialComm()
 {
@@ -141,9 +164,13 @@ void dataProcessingThread::initSerialComm()
     QString qstr = SerialEncoder1Mb;
     mEncoderPort.setPortName(qstr);
     mEncoderPort.setBaudRate(serialBaud);
+
+    mEncoderPort.setFlowControl(QSerialPort::NoFlowControl);
     if(mEncoderPort.open(QIODevice::ReadWrite))
     {
         mRadarData->isEncoderAzi = mGlobbalConfig.getInt("isSerialEncoderEnable");
+        //connect(&mEncoderPort, &QSerialPort::readyRead, this, &dataProcessingThread::SerialEncoderRead);
+        printf("\nencoder connected");
     }
     // baudrate at 38400 standart for low speed encoder and ais
     serialBaud = 38400;
@@ -157,7 +184,7 @@ void dataProcessingThread::initSerialComm()
             newport->setPortName(qstr);
             newport->setBaudRate(serialBaud);
             newport->open(QIODevice::ReadWrite);
-            connect(newport, &QSerialPort::readyRead, this, &dataProcessingThread::SerialDataRead);
+            //connect(newport, &QSerialPort::readyRead, this, &dataProcessingThread::SerialDataRead);
             serialPorts.push_back(newport);
         }
     }
@@ -233,7 +260,7 @@ void dataProcessingThread::processSerialData(QByteArray inputData)
         realazi2 = (data[5]);
         newAzi = mazi*360.0/262144.0*3.0;
         while(newAzi>=360)newAzi-=360;
-        centerAzi = newAzi;
+        selsynEncoderAzi = newAzi;
     }
     //    else if(data[0]==0x24)//NMEA
     //    {

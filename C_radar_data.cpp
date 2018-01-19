@@ -450,8 +450,26 @@ double C_radar_data::getArcMinAziRad() const
     if(result>PI_NHAN2)result-=PI_NHAN2;
     return (result );
 }
+
+double C_radar_data::getSelfRotationAzi() const
+{
+    return selfRotationAzi;
+}
+
+void C_radar_data::setSelfRotationAzi(int value)
+{
+    selfRotationAzi = value;
+
+}
 double C_radar_data::getCurAziRad() const
 {
+    if(isEncoderAzi)
+    {
+        double result = (trueN+(double)selfRotationAzi/(double)MAX_AZIR*PI_NHAN2);
+        if(result>PI_NHAN2)result-=PI_NHAN2;
+
+        return ( result);
+    }
     double result = (trueN+(double)curAzir/(double)MAX_AZIR*PI_NHAN2);
     if(result>PI_NHAN2)result-=PI_NHAN2;
     return ( result);
@@ -1137,20 +1155,23 @@ void C_radar_data::SelfRotationOn( double dazi)
 void C_radar_data::SelfRotationReset()
 {
     //selfRotationAzi = 0;
-    selfRotationAzi = curAzir;
+    selfRotationAzi = 0;
 }
 void C_radar_data::SelfRotationOff()
 {
     isSelfRotation = false;
 }
 
-
-void C_radar_data::ProcessDataFrame()
+int C_radar_data::getNewAzi()
 {
     int newAzi;
     if(isEncoderAzi)
     {
-        newAzi = mEncoderAzi;
+
+        selfRotationAzi-=selfRotationDazi;
+        if(selfRotationAzi>=MAX_AZIR)selfRotationAzi -= MAX_AZIR;
+        if(selfRotationAzi<0)selfRotationAzi += MAX_AZIR;
+        newAzi = selfRotationAzi;
     }
     else if(isSelfRotation)
     {
@@ -1163,6 +1184,14 @@ void C_radar_data::ProcessDataFrame()
     {
         newAzi = (0xfff & (dataBuff[4] << 8 | dataBuff[5]))>>1;
     }
+    if(newAzi>MAX_AZIR||newAzi<0)
+        return 0;
+    return newAzi;
+}
+void C_radar_data::ProcessDataFrame()
+{
+    int newAzi = getNewAzi();
+
     int leftAzi = curAzir-1;if(leftAzi<0)leftAzi+=MAX_AZIR;
     int rightAzi = curAzir +1; if(rightAzi>=MAX_AZIR)rightAzi-=MAX_AZIR;
     if(newAzi == leftAzi )

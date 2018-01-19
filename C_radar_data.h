@@ -328,11 +328,14 @@ private:
     void decodeData(int azi);
     //void initZoomAR(int a0, int r0);
     bool DrawZoomAR(int a,int r,short val,short dopler,short sled);
+    int getNewAzi();
 public:
     //void drawZoomAR();
     float getNoiseAverage() const;
     void setNoiseAverage(float value);
     void setTb_tap_k(double value);
+    double getSelfRotationAzi() const;
+    void setSelfRotationAzi(int value);
 };
 
 //extern C_radar_data radarData;

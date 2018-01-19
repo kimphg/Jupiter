@@ -1475,7 +1475,7 @@ void Mainwindow::DrawViewFrame(QPainter* p)
     p->drawArc(rect,16*((-maxazi+90)),dazi*16);
 
     //plot center azi
-    centerAzi = processing->getCenterAzi()+mTrueN2 ;
+    centerAzi = processing->getSelsynAzi()+mTrueN2 ;
     if(centerAzi>360)centerAzi-=360;
     if(CalcAziContour(centerAzi,&point[0],&point[2],&point[1],height()-70))
     {
@@ -1632,8 +1632,6 @@ void Mainwindow::readBuffer()
 }
 void Mainwindow::InitTimer()
 {
-
-
     t2 = new QThread();
 
     processing = new dataProcessingThread();
@@ -1924,6 +1922,7 @@ void Mainwindow::autoSwitchFreq()
 }
 void Mainwindow::sync1S()//period 1 second
 {
+    processing->SerialEncoderRead();
     this->updateTargetInfo();
     if(processing->isConnected())
         setRadarState(CONNECTED);
@@ -3741,4 +3740,22 @@ void Mainwindow::on_toolButton_exit_2_clicked()
     mstatWin = new StatusWindow(processing);
 
     mstatWin->show();
+}
+
+void Mainwindow::on_toolButton_selfRotation_2_toggled(bool checked)
+{
+    pRadar->isEncoderAzi  = checked;
+    if(checked)
+    {
+        double rate = ui->lineEdit_selfRotationRate->text().toDouble();
+        rate = rate/MAX_AZIR;
+        pRadar->SelfRotationOn(rate);
+    }
+    else
+        pRadar->SelfRotationOff();
+}
+
+void Mainwindow::on_toolButton_selfRotation_clicked()
+{
+
 }

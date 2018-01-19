@@ -378,6 +378,10 @@ private slots:
 
     void on_toolButton_exit_2_clicked();
 
+    void on_toolButton_selfRotation_2_toggled(bool checked);
+
+    void on_toolButton_selfRotation_clicked();
+
 private:
     void initActionsConnections();
     void initGraphicView();

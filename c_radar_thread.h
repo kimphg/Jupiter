@@ -77,7 +77,7 @@ public:
     bool getIsXuLyThuCap() const;
     void setIsXuLyThuCap(bool value);
 
-    double getCenterAzi() const;
+    double getSelsynAzi() const;
     double newAzi;
     unsigned int mazi;
     unsigned int realazi1,realazi2;
@@ -101,7 +101,7 @@ private:
     std::vector<QSerialPort*>     serialPorts;
     QUdpSocket      *radarSocket;
     QUdpSocket      *ARPADataSocket;
-    double centerAzi;
+    double selsynEncoderAzi;
     void listenToRadar();
     void initSerialComm();
     void processSerialData(QByteArray inputData);
@@ -115,8 +115,9 @@ private slots:
     void playbackRadarData();
     void SerialDataRead();
     void gpsupdate(QGeoPositionInfo geo);
-    void SerialEncoderRead();
+
 public slots:
+    void SerialEncoderRead();
     void StopProcessing();
 };
 
