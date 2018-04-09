@@ -16112,7 +16112,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -34317,8 +34317,8 @@
       <rect>
        <x>10</x>
        <y>160</y>
-       <width>481</width>
-       <height>461</height>
+       <width>491</width>
+       <height>451</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout_10">
@@ -37866,7 +37866,7 @@
        <x>510</x>
        <y>160</y>
        <width>371</width>
-       <height>261</height>
+       <height>398</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout_11">

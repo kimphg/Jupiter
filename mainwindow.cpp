@@ -1285,6 +1285,12 @@ void Mainwindow::InitSetting()
     mR7Command = mGlobbalConfig.getString("mR7Command");
     mRxCommand = mGlobbalConfig.getString("mRxCommand");
     mTxCommand = mGlobbalConfig.getString("mTxCommand");
+    mFreq1Command = mGlobbalConfig.getString("mFreq1Command");
+    mFreq2Command = mGlobbalConfig.getString("mFreq2Command");
+    mFreq3Command = mGlobbalConfig.getString("mFreq3Command");
+    mFreq4Command = mGlobbalConfig.getString("mFreq4Command");
+    mFreq5Command = mGlobbalConfig.getString("mFreq5Command");
+    mFreq6Command = mGlobbalConfig.getString("mFreq6Command");
     mTrueN2 = mGlobbalConfig.getDouble("mTrueN2");
     mTrueN = mGlobbalConfig.getDouble("mTrueN");
 
@@ -3721,6 +3727,12 @@ void Mainwindow::on_toolButton_set_commands_clicked()
     ui->plainTextEdit_range_7->setPlainText(mR7Command);
     ui->plainTextEdit_command_rx->setPlainText(mRxCommand);
     ui->plainTextEdit_command_tx->setPlainText(mTxCommand);
+    ui->plainTextEdit_freq_1->setPlainText(mFreq1Command);
+    ui->plainTextEdit_freq_2->setPlainText(mFreq2Command);
+    ui->plainTextEdit_freq_3->setPlainText(mFreq3Command);
+    ui->plainTextEdit_freq_4->setPlainText(mFreq4Command);
+    ui->plainTextEdit_freq_5->setPlainText(mFreq5Command);
+    ui->plainTextEdit_freq_6->setPlainText(mFreq6Command);
 }
 
 void Mainwindow::on_toolButton_command_log_toggled(bool checked)
