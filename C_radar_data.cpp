@@ -365,6 +365,7 @@ void track_t::setManual(bool isMan)
 
 C_radar_data::C_radar_data()
 {
+    range_max = 1500;
     imgMode = VALUE_ORANGE_BLUE;
     brightness = 1.5;
     for(int i=0;i<255;i++)
@@ -738,7 +739,7 @@ void C_radar_data::drawAzi(short azi)
 
 void  C_radar_data::getNoiseLevel()
 {
-
+    return;//todo: remove later
     int sumvar = 0;
     int n = 0;
     memset(histogram,0,256);
@@ -759,7 +760,7 @@ void  C_radar_data::getNoiseLevel()
         }
     }
     short histogram_max_val=0;
-    short histogram_max_pos;
+    short histogram_max_pos=0;
     if(noiseVar<7)noiseVar = 7;
     else
     {
@@ -1144,6 +1145,44 @@ void C_radar_data::ProcessData(unsigned short azi)
         }
     }
     return ;
+}
+void C_radar_data::processSocketData(unsigned char* data,short len)
+{
+
+    //clk_adc = 1;
+    //isClkAdcChanged = true;
+
+    //moduleVal = dataBuff[3];//
+    //tempType = dataBuff[2]&0x0f;
+    //if(tempType>4)printf("Wrong temperature\n");
+    //sn_stat = dataBuff[14]<<8|dataBuff[15];
+    //chu_ky = dataBuff[16]<<8|dataBuff[17];
+    //tb_tap[newAzi] = dataBuff[18]<<8|dataBuff[19];
+    //memcpy(command_feedback,&dataBuff[RADAR_COMMAND_FEEDBACK],8);
+    //memcpy(noise_level,&dataBuff[RADAR_COMMAND_FEEDBACK+8],8);
+    if(len<4128)
+        return;
+    int newAzi  = ((data[2]<<8)|data[3])/2;
+    if(newAzi>=2048||newAzi<0)
+        return;
+    if(curAzir==newAzi)return;
+    curAzir = newAzi;
+
+    //decodeData(curAzir);
+    /*for(short r_pos = 0;r_pos<range_max;r_pos++)
+    {
+        data_mem.level[curAzir][r_pos] = data[34+r_pos];
+        data_mem.dopler[curAzir][r_pos] = data[34+r_pos+2048];
+    }*/
+    memcpy(&data_mem.level[curAzir][0],data+34,range_max);
+    memcpy(&data_mem.dopler[curAzir][0],data+34+2048,range_max);
+    aziToProcess.push(curAzir);
+    if(!((unsigned char)(curAzir<<3)))
+    {
+        //procTracks(curAzir);
+        getNoiseLevel();
+    }
+    return;
 }
 void C_radar_data::SelfRotationOn( double dazi)
 {
