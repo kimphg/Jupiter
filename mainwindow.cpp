@@ -671,12 +671,6 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
         p->drawText(centerX-rad+2,centerY+2,100,20,0,QString::number(i*ringStep)+strDistanceUnit);
     }
 
-
-
-    //p.drawEllipse(QPoint(centerX,centerY),(int)(20*CONST_NM*scale),(int)(20*CONST_NM*scale));
-    //p.drawEllipse(QPoint(centerX,centerY),(int)(5*CONST_NM*scale),(short)(5*CONST_NM*scale));
-    //pen.setWidth(1);
-    //p->setPen(pen);
     short theta;
     short gridR = ringStep*1.852f*mScale*7;
     for(theta=0;theta<360;theta+=90){
@@ -1468,16 +1462,16 @@ void Mainwindow::DrawViewFrame(QPainter* p)
     //ve phuong vi ang ten
     QPoint point[6];//,point1,point2,pointA,pointB;
 
-    double azi = rad2deg(pRadar->getCurAziRad());
-    double minazi = rad2deg(pRadar->getArcMinAziRad());
-    double maxazi = rad2deg(pRadar->getArcMaxAziRad());
-    if(maxazi<minazi)minazi-=360.0;
-    double dazi = maxazi-minazi;
+    double aziDeg = rad2deg(pRadar->getCurAziRad());
+    //double minazi = rad2deg(pRadar->getArcMinAziRad());
+    //double maxazi = rad2deg(pRadar->getArcMaxAziRad());
+    //if(maxazi<minazi)minazi-=360.0;
+    //double dazi = maxazi-minazi;
     //drwa arc
-    QRect rect(scrCtX-dx-50,scrCtY-dy-50,100,100);
+    /*QRect rect(scrCtX-dx-50,scrCtY-dy-50,100,100);
     p->setPen(QPen(Qt::white,2,Qt::DashLine));
     p->drawArc(rect,16*((-maxazi+90)),dazi*16);
-
+*/
     //plot center azi
     centerAzi = processing->getSelsynAzi()+mTrueN2 ;
     if(centerAzi>360)centerAzi-=360;
@@ -1495,16 +1489,8 @@ void Mainwindow::DrawViewFrame(QPainter* p)
         //                        Qt::AlignHCenter|Qt::AlignVCenter,
         //                        QString::number(azi,'f',2));
     }
-    //plot cur azi
-    if(CalcAziContour(azi,&point[0],&point[1],&point[2],height()-70))
-    {
-        p->setPen(QPen(Qt::red,4));
-        p->drawLine(point[2],point[0]);
-        //            p->drawText(point2.x()-25,point0.y()-10,50,20,
-        //                        Qt::AlignHCenter|Qt::AlignVCenter,
-        //                        QString::number(azi,'f',2));
-    }
 
+    //draw view frame
     if(mouse_mode&MouseDrag)
     {
         pViewFrame->fill(Qt::transparent);
@@ -1538,7 +1524,8 @@ void Mainwindow::DrawViewFrame(QPainter* p)
         pt.setFont(font);
 
         //short theta;
-        for(short theta=0;theta<360;theta+=10){
+        for(short theta=0;theta<360;theta+=10)
+        {
 
             if(CalcAziContour(theta,&point[0],&point[1],&point[2],d))
             {
@@ -1548,10 +1535,20 @@ void Mainwindow::DrawViewFrame(QPainter* p)
                         QString::number(theta));
             }
 
+
         }
 
     }
     p->drawPixmap(0,0,*pViewFrame);
+    //plot cur azi
+    if(CalcAziContour(aziDeg,&point[0],&point[1],&point[2],height()-70))
+    {
+        p->setPen(QPen(Qt::red,4));
+        p->drawLine(point[2],point[1]);
+        CalcAziContour(3,&point[0],&point[1],&point[2],height()-70);
+        p->drawText(point[0],QString::number(aziDeg,'f',1));
+
+    }
     //HDC dc = ui->tabWidget->getDC();
 }
 //void Mainwindow::setScaleNM(unsigned short rangeNM)
@@ -1813,10 +1810,7 @@ void Mainwindow::ExitProgram()
 #endif
 }
 
-void Mainwindow::on_actionConnect_triggered()
-{
 
-}
 void Mainwindow::sync5p()//period 10 second
 {
 
@@ -2104,55 +2098,8 @@ void Mainwindow::setRadarState(radarSate radarState)
     }
 }
 
-void Mainwindow::on_actionTx_On_triggered()
-{
-    //sendFrame("aaab030200000000", QHostAddress("192.168.0.44"),2573);
-    //on_actionRotateStart_toggled(true);
-    //    Command_Control new_com;
-    //    new_com.bytes[0] = 0xaa;
-    //    new_com.bytes[1] = 0xab;
-    //    new_com.bytes[2] = 0x02;
-    //    new_com.bytes[3] = 0x01;
-    //    new_com.bytes[4] = 0x00;
-    //    new_com.bytes[5] = 0x00;
-    //    new_com.bytes[6] = 0x00;
-    //    new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
-    //    command_queue.push(new_com);
-    //    new_com.bytes[0] = 0xaa;
-    //    new_com.bytes[1] = 0xab;
-    //    new_com.bytes[2] = 0x00;
-    //    new_com.bytes[3] = 0x01;
-    //    new_com.bytes[4] = 0x00;
-    //    new_com.bytes[5] = 0x00;
-    //    new_com.bytes[6] = 0x00;
-    //    new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
-    //    command_queue.push(new_com);
 
-}
 
-void Mainwindow::on_actionTx_Off_triggered()
-{
-    //    //on_actionRotateStart_toggled(false);
-    //    Command_Control new_com;
-    //    new_com.bytes[0] = 0xaa;
-    //    new_com.bytes[1] = 0xab;
-    //    new_com.bytes[2] = 0x00;
-    //    new_com.bytes[3] = 0x00;
-    //    new_com.bytes[4] = 0x00;
-    //    new_com.bytes[5] = 0x00;
-    //    new_com.bytes[6] = 0x00;
-    //    new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
-    //    command_queue.push(new_com);
-    //    new_com.bytes[0] = 0xaa;
-    //    new_com.bytes[1] = 0xab;
-    //    new_com.bytes[2] = 0x02;
-    //    new_com.bytes[3] = 0x00;
-    //    new_com.bytes[4] = 0x00;
-    //    new_com.bytes[5] = 0x00;
-    //    new_com.bytes[6] = 0x00;
-    //    new_com.bytes[7] = 0;//new_com.bytes[0]+new_com.bytes[1]+new_com.bytes[2]+new_com.bytes[3]+new_com.bytes[4]+new_com.bytes[5]+new_com.bytes[6];
-    //    command_queue.push(new_com);
-}
 
 void Mainwindow::on_actionRecording_toggled(bool arg1)
 {

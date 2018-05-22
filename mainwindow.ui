@@ -14213,7 +14213,7 @@
        <x>210</x>
        <y>90</y>
        <width>141</width>
-       <height>151</height>
+       <height>156</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
@@ -20678,7 +20678,7 @@
         <rect>
          <x>220</x>
          <y>20</y>
-         <width>281</width>
+         <width>283</width>
          <height>171</height>
         </rect>
        </property>
@@ -23934,7 +23934,7 @@
         <x>300</x>
         <y>270</y>
         <width>203</width>
-        <height>120</height>
+        <height>125</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -25550,18 +25550,15 @@
       <x>550</x>
       <y>10</y>
       <width>161</width>
-      <height>171</height>
+      <height>191</height>
      </rect>
     </property>
     <property name="title">
      <string>Điều khiển ra đa</string>
     </property>
     <layout class="QGridLayout" name="gridLayout_14">
-     <item row="2" column="0">
-      <widget class="QCustomButton" name="toolButton_tx_off">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
+     <item row="3" column="0">
+      <widget class="QCustomButton" name="toolButton_exit_2">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -25574,10 +25571,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Tắt phát</string>
-       </property>
-       <property name="checkable">
-        <bool>false</bool>
+        <string>K. tra trạng thái</string>
        </property>
       </widget>
      </item>
@@ -25605,7 +25599,31 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="0">
+     <item row="2" column="0">
+      <widget class="QCustomButton" name="toolButton_tx_off">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Tắt phát</string>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
       <widget class="QCustomButton" name="toolButton_exit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -25620,24 +25638,6 @@
        </property>
        <property name="text">
         <string>Tắt máy</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QCustomButton" name="toolButton_exit_2">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Kiểm tra trạng thái</string>
        </property>
       </widget>
      </item>
@@ -34318,7 +34318,7 @@
        <x>10</x>
        <y>160</y>
        <width>491</width>
-       <height>451</height>
+       <height>604</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout_10">
@@ -37866,7 +37866,7 @@
        <x>510</x>
        <y>160</y>
        <width>371</width>
-       <height>398</height>
+       <height>452</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout_11">

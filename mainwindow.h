@@ -133,9 +133,8 @@ private slots:
     void on_actionExit_triggered();
     void UpdateRadarData();
     void PlaybackRecFile();
-    void on_actionConnect_triggered();
-    void on_actionTx_On_triggered();
-    void on_actionTx_Off_triggered();
+//    void on_actionTx_On_triggered();
+//    void on_actionTx_Off_triggered();
     void on_actionRecording_toggled(bool arg1);
     void on_actionOpen_rec_file_triggered();
     void on_actionOpen_map_triggered();
