@@ -336,7 +336,6 @@ public:
     void setTb_tap_k(double value);
     double getSelfRotationAzi() const;
     void setSelfRotationAzi(int value);
-    void processSocketData(unsigned char *data, short len);
 };
 
 //extern C_radar_data radarData;

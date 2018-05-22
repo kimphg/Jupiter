@@ -3,8 +3,7 @@
 #define MAX_IREC 500
 //#include <QGeoCoordinate>
 #include <QNmeaPositionInfoSource>
-//DataBuff dataB[MAX_IREC];
-uchar udpFrameBuffer[MAX_IREC][4128];
+DataBuff dataB[MAX_IREC];
 short iRec=0,iRead=0;
 bool *pIsDrawn;
 bool *pIsPlaying;
@@ -36,8 +35,24 @@ void dataProcessingThread::ReadDataBuffer()
             mRadarData->resetData();
             break;
         }
-        isDrawn = false;
-        mRadarData->processSocketData(&data[0],4128);
+        mRadarData->assembleDataFrame(&pData->data[0],pData->len);
+        //read encoder
+//        if(mRadarData->isEncoderAzi)
+//        {
+//            if(mEncoderPort.isOpen())
+//            {
+//                while(1)
+//                {
+//                    QString str(mEncoderPort.readLine());
+//                    if(str.size()==0)break;
+//                    int value = str.toInt();
+//                    value = (value*MAX_AZIR)/5400;
+//                    if(value>MAX_AZIR)value-=MAX_AZIR;
+//                    mRadarData->mEncoderAzi = value;
+//                }
+
+//            }
+//        }
 
         if(isRecording)
         {
@@ -96,8 +111,8 @@ dataProcessingThread::dataProcessingThread()
     mRadarData = new C_radar_data();
     isPlaying = false;
     radarSocket = new QUdpSocket(this);
-    int port = 34567;
-    while(port<34700)
+    int port = 8000;
+    while(port<9000)
     {
         if(radarSocket->bind(port))
         {
@@ -109,7 +124,6 @@ dataProcessingThread::dataProcessingThread()
     commandSendTimer.start(100);
     connect(&readUdpBuffTimer, &QTimer::timeout, this, &dataProcessingThread::ReadDataBuffer);
     readUdpBuffTimer.start(10);
-
     //connect(&readSerialTimer, &QTimer::timeout, this, &dataProcessingThread::SerialDataRead);
     //readSerialTimer.start(20);
     initSerialComm();
@@ -521,22 +535,73 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
     //    printf("\n");
 
 }
+QTimer *timer_read_buffer;
 void dataProcessingThread::run()
 {
 
-    while(true)
+    //init();
+    pcap_if_t *alldevs;
+    pcap_if_t *d;
+    pcap_t *adhandle;
+    char errbuf[PCAP_ERRBUF_SIZE];
+    //
+    /* Retrieve the device list on the local machine */
+    if (pcap_findalldevs_ex((char*)PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
     {
-        while(radarSocket->hasPendingDatagrams())
+        //isRunning = false;
+        printf( errbuf); return;
+    }
+    //isRunning = true;
+    int i = 0;
+    /* Print the list */
+    for(d=alldevs; d; d=d->next)
+    {
+        printf("%d. %s", ++i, d->name);
+        if (d->description)
+            printf(" (%s)\n", d->description);
+        else
+            printf(" (No description available)\n");
+    }
+    d=alldevs;
+    if ( (adhandle= pcap_open(d->name,          // name of the device
+                              65536,            // portion of the packet to capture
+                              // 65536 guarantees that the whole packet will be captured on all the link layers
+                              PCAP_OPENFLAG_PROMISCUOUS,    // promiscuous mode
+                              1000,             // read timeout
+                              NULL,             // authentication on the remote machine
+                              errbuf            // error buffer
+                              ) ) == NULL)
+    {
+        /* Free the device list */
+        pcap_freealldevs(alldevs);
+        return ;
+    }
+    printf("\nlistening on %s...\n", d->description);
+
+    /* start the capture */
+    pcap_loop(adhandle, 0, packet_handler, NULL);
+    return;
+    //__________
+    /*setPriority(QThread::TimeCriticalPriority);
+    while  (true)
+    {
+        if(radarDataSocket->hasPendingDatagrams())
         {
-            int len = radarSocket->pendingDatagramSize();
-            radarSocket->readDatagram((char*)&udpFrameBuffer[iRec][0],len);
             iRec++;
+            if(iRec>=MAX_IREC)iRec = 0;
+            dataBuff[iRec].len = radarDataSocket->pendingDatagramSize();
+            radarDataSocket->readDatagram((char*)&dataBuff[iRec].data[0], dataBuff[iRec].len);
+             isDrawn = false;
+            if(isRecording)
+            {
+                signRecFile.write((char*)&dataBuff[iRec].len,2);
+                signRecFile.write((char*)&dataBuff[iRec].data[0],dataBuff[iRec].len);
+
+            }
 
         }
-        //sleep(1);
-
-    }
-
+        else { usleep(100);}
+    }*/
 }
 
 bool dataProcessingThread::getIsDrawn()
