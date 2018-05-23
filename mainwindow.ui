@@ -475,7 +475,7 @@
    <widget class="QCustomGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>1490</x>
+      <x>1440</x>
       <y>930</y>
       <width>211</width>
       <height>141</height>
@@ -24563,10 +24563,10 @@
    <widget class="QCustomGroupBox" name="groupBox_11">
     <property name="geometry">
      <rect>
-      <x>1710</x>
-      <y>930</y>
-      <width>201</width>
-      <height>141</height>
+      <x>1660</x>
+      <y>970</y>
+      <width>251</width>
+      <height>101</height>
      </rect>
     </property>
     <property name="title">
@@ -25557,24 +25557,6 @@
      <string>Điều khiển ra đa</string>
     </property>
     <layout class="QGridLayout" name="gridLayout_14">
-     <item row="3" column="0">
-      <widget class="QCustomButton" name="toolButton_exit_2">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>K. tra trạng thái</string>
-       </property>
-      </widget>
-     </item>
      <item row="1" column="0">
       <widget class="QCustomButton" name="toolButton_tx">
        <property name="enabled">
@@ -25623,7 +25605,7 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
+     <item row="3" column="0">
       <widget class="QCustomButton" name="toolButton_exit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -27668,10 +27650,10 @@
    <widget class="QCustomGroupBox" name="groupBox_6">
     <property name="geometry">
      <rect>
-      <x>1620</x>
+      <x>1660</x>
       <y>720</y>
-      <width>291</width>
-      <height>211</height>
+      <width>251</width>
+      <height>251</height>
      </rect>
     </property>
     <property name="autoFillBackground">
@@ -33375,6 +33357,24 @@
        </property>
       </widget>
      </item>
+     <item row="7" column="0">
+      <widget class="QCustomButton" name="toolButton_exit_2">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>K. tra trạng thái</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
    <widget class="QCustomGroupBox" name="groupBox_control_setting">
@@ -33383,7 +33383,7 @@
       <x>550</x>
       <y>290</y>
       <width>891</width>
-      <height>631</height>
+      <height>581</height>
      </rect>
     </property>
     <property name="title">
@@ -33837,10 +33837,10 @@
     <widget class="QCustomButton" name="toolButton_set_command">
      <property name="geometry">
       <rect>
-       <x>610</x>
-       <y>570</y>
-       <width>171</width>
-       <height>41</height>
+       <x>600</x>
+       <y>510</y>
+       <width>281</width>
+       <height>51</height>
       </rect>
      </property>
      <property name="text">
@@ -34318,7 +34318,7 @@
        <x>10</x>
        <y>160</y>
        <width>491</width>
-       <height>604</height>
+       <height>401</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout_10">
@@ -37866,7 +37866,7 @@
        <x>510</x>
        <y>160</y>
        <width>371</width>
-       <height>452</height>
+       <height>331</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout_11">

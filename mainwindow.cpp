@@ -1545,7 +1545,7 @@ void Mainwindow::DrawViewFrame(QPainter* p)
     {
         p->setPen(QPen(Qt::red,4));
         p->drawLine(point[2],point[1]);
-        CalcAziContour(3,&point[0],&point[1],&point[2],height()-70);
+        CalcAziContour(1,&point[0],&point[1],&point[2],height()-70);
         p->drawText(point[0],QString::number(aziDeg,'f',1));
 
     }
