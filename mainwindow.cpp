@@ -14,7 +14,7 @@ QPixmap                     *pMap=NULL;// painter cho ban do
 QPixmap                     *pViewFrame=NULL;// painter cho ban do
 CMap *osmap ;
 StatusWindow                *mstatWin;
-double                      mTrueN2,mTrueN;
+double                      mTrueN2,mTrueN,mHeadingBase;
 int                         mRangeLevel = 0;
 int                         mDistanceUnit=0;//0:NM;1:KM
 double                      mZoomSizeRg = 2;
@@ -1287,10 +1287,12 @@ void Mainwindow::InitSetting()
     mFreq6Command = mGlobbalConfig.getString("mFreq6Command");
     mTrueN2 = mGlobbalConfig.getDouble("mTrueN2");
     mTrueN = mGlobbalConfig.getDouble("mTrueN");
+    mHeadingBase = mGlobbalConfig.getDouble("mHeadingBase");
 
     pRadar->setTrueN(mTrueN);
     ui->textEdit_heading->setText(mGlobbalConfig.getString("mTrueN"));
     ui->textEdit_heading_2->setText(mGlobbalConfig.getString("mTrueN2"));
+    ui->textEdit_heading_base->setText(mGlobbalConfig.getString("mHeadingBase"));
     mZoomSizeAz = mGlobbalConfig.getDouble("mZoomSizeAz");
     ui->textEdit_size_ar_a->setText(QString::number(mZoomSizeAz));
     mZoomSizeRg = mGlobbalConfig.getDouble("mZoomSizeRg");
@@ -1540,6 +1542,15 @@ void Mainwindow::DrawViewFrame(QPainter* p)
 
     }
     p->drawPixmap(0,0,*pViewFrame);
+    //plot heading base azi
+    if(CalcAziContour(mHeadingBase+mTrueN,&point[0],&point[1],&point[2],height()-70))
+    {
+        p->setPen(QPen(Qt::cyan,6));
+        p->drawLine(point[2],point[1]);
+        CalcAziContour(1,&point[0],&point[1],&point[2],height()-70);
+        p->drawText(point[0],QString::number(aziDeg,'f',1));
+
+    }
     //plot cur azi
     if(CalcAziContour(aziDeg,&point[0],&point[1],&point[2],height()-70))
     {
@@ -1549,6 +1560,7 @@ void Mainwindow::DrawViewFrame(QPainter* p)
         p->drawText(point[0],QString::number(aziDeg,'f',1));
 
     }
+
     //HDC dc = ui->tabWidget->getDC();
 }
 //void Mainwindow::setScaleNM(unsigned short rangeNM)
@@ -2929,6 +2941,8 @@ void Mainwindow::on_toolButton_set_heading_clicked()
 
     mTrueN = ui->textEdit_heading->text().toFloat();
     mTrueN2 = ui->textEdit_heading_2->text().toFloat();
+    mHeadingBase = ui->textEdit_heading_base->text().toFloat();
+    mGlobbalConfig.setValue("mHeadingBase",mHeadingBase);
     mGlobbalConfig.setValue("mTrueN",mTrueN);
     mGlobbalConfig.setValue("mTrueN2",mTrueN2);
     pRadar->setTrueN(mTrueN);
