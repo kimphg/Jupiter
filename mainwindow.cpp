@@ -11,7 +11,6 @@
 #define MAX_VIEW_RANGE_KM 50
 QStringList                 commandLogList;
 QPixmap                     *pMap=NULL;// painter cho ban do
-QPixmap                     *pViewFrame=NULL;// painter cho ban do
 CMap *osmap ;
 StatusWindow                *mstatWin;
 double                      mTrueN2,mTrueN,mHeadingBase;
@@ -23,7 +22,10 @@ double                      mLat=DEFAULT_LAT,mLon = DEFAULT_LONG;
 dataProcessingThread        *processing;// thread xu ly du lieu radar
 C_radar_data                *pRadar;
 QThread                     *t2,*t1;
-
+QPen penBackground(QBrush(QColor(40 ,60 ,100,255)),60);
+QPen penOuterGrid4(QBrush(QColor(255,255,50 ,255)),4);
+QPen penOuterGrid2(QBrush(QColor(255,255,50 ,255)),2);
+QPen mGridViewPen1(QBrush(QColor(150,150,150,255)),1);
 double                      mMapOpacity;
 int                         mMaxTapMayThu=18;
 //Q_vnmap                     vnmap;
@@ -501,6 +503,7 @@ Mainwindow::Mainwindow(QWidget *parent) :
     QFont font;
     font.setPointSize(12);
     cmLog = new DialogCommandLog();
+
     //ui->listTargetWidget->setFont(font);
     //ui->frame_2->setStyleSheet("#frame_2 { border: 2px solid darkgreen; }");
     //ui->frame_3->setStyleSheet("#frame_3 { border: 2px solid darkgreen; }");
@@ -646,19 +649,19 @@ void Mainwindow::DrawMap()
 void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
 {
     //return;
-    QPen pen(QColor(150,150,150,0xff));
+
     p->setCompositionMode(QPainter::CompositionMode_Plus);
-    pen.setStyle(Qt::DashLine);
+    mGridViewPen1.setStyle(Qt::DashLine);
     QFont font;
     font.setPointSize(10);
     p->setFont(font);
     p->setBrush(QBrush(Qt::NoBrush));
-    p->setPen(pen);
+    p->setPen(mGridViewPen1);
     p->drawLine(centerX-5,centerY,centerX+5,centerY);
     p->drawLine(centerX,centerY-5,centerX,centerY+5);
     //pen.setColor(QColor(30,90,150,120));
-    pen.setWidth(1);
-    p->setPen(pen);
+    mGridViewPen1.setWidth(1);
+    p->setPen(mGridViewPen1);
     for(short i = 1;i<8;i++)
     {
         int rad = i*ringStep*rangeRatio*mScale;
@@ -1364,10 +1367,10 @@ void Mainwindow::InitSetting()
     UpdateScale();
 
 
-    //vnmap.setUp(config.m_config.lat(), config.m_config.lon(), 200,config.m_config.mapFilename.data());
+    //init view settings and variables
     if(pMap)delete pMap;
     pMap = new QPixmap(height(),height());
-    pViewFrame = new QPixmap(width(),height());
+    mDViewFrame = height()-50;
     setMouseMode(MouseDrag,true);
     DrawMap();
     update();
@@ -1446,6 +1449,7 @@ bool Mainwindow::CalcAziContour(double theta, QPoint *point0,QPoint *point1,QPoi
     return true;
 
 }
+QPoint points[6];
 void Mainwindow::DrawViewFrame(QPainter* p)
 {
 
@@ -1462,7 +1466,7 @@ void Mainwindow::DrawViewFrame(QPainter* p)
         }
     }
     //ve phuong vi ang ten
-    QPoint point[6];//,point1,point2,pointA,pointB;
+    //,point1,point2,pointA,pointB;
 
     double aziDeg = rad2deg(pRadar->getCurAziRad());
     //double minazi = rad2deg(pRadar->getArcMinAziRad());
@@ -1473,112 +1477,75 @@ void Mainwindow::DrawViewFrame(QPainter* p)
     /*QRect rect(scrCtX-dx-50,scrCtY-dy-50,100,100);
     p->setPen(QPen(Qt::white,2,Qt::DashLine));
     p->drawArc(rect,16*((-maxazi+90)),dazi*16);
-*/
-    //plot center azi
-    centerAzi = processing->getSelsynAzi()+mTrueN2 ;
-    if(centerAzi>360)centerAzi-=360;
-    if(CalcAziContour(centerAzi,&point[0],&point[2],&point[1],height()-70))
-    {
-        p->setPen(QPen(Qt::yellow,8,Qt::SolidLine,Qt::FlatCap,Qt::MiterJoin));
-        //            p->drawLine(point2,point0);
-        CalcAziContour(centerAzi-10,&point[0],&point[3],&point[5],height());
-        CalcAziContour(centerAzi+10,&point[2],&point[3],&point[5],height());
-        ui->label_debug->setText(QString::number(processing->mazi)
-                                 +":"+QString::number(processing->realazi1)
-                                 +":"+QString::number(processing->realazi2));
-        p->drawPolyline(&point[0],3);
-        //            p->drawText(point2.x()-25,point0.y()-10,50,20,
-        //                        Qt::AlignHCenter|Qt::AlignVCenter,
-        //                        QString::number(azi,'f',2));
-    }
+    */
+
 
     //draw view frame
-    if(mouse_mode&MouseDrag)
+    if(false)
     {
-        pViewFrame->fill(Qt::transparent);
-        QPainter pt(pViewFrame);
-        pt.setRenderHint(QPainter::Antialiasing);
-        //draw view frame
-        short d = height()-50;
-        QPen penBackground(QColor(40,60,100,255));
         short linewidth = 0.6*height();
-        penBackground.setWidth(linewidth/10);
-        pt.setPen(penBackground);
+        //penBackground.setWidth(linewidth/10);
+        p->setPen(penBackground);
         for (short i=linewidth/12;i<linewidth;i+=linewidth/6)
         {
-            pt.drawEllipse(-i/2+(scrCtX-scrCtY)+25,-i/2+25,d+i,d+i);
+            p->drawEllipse(-i/2+(scrCtX-scrCtY)+25,-i/2+25,mDViewFrame+i,mDViewFrame+i);
         }
-        penBackground.setWidth(0);
-        pt.setPen(penBackground);
-        pt.setBrush(QColor(40,60,100,255));
-        pt.drawRect(scrCtX+scrCtY,0,width()-scrCtX-scrCtY,height());
-        pt.drawRect(0,0,scrCtX-scrCtY,height());
-        pt.setBrush(Qt::NoBrush);
-
-        QPen pengrid(QColor(255,255,50,255));
-        pengrid.setWidth(4);
-        pt.setPen(pengrid);
-        pt.drawEllipse(scrCtX-scrCtY+25,25,d,d);
-        pengrid.setWidth(2);
-        pt.setPen(pengrid);
-        QFont font = pt.font() ;
-        font.setPointSize(10);
-        pt.setFont(font);
+        //p->setPen(penBackground);
+        p->setBrush(QColor(40,60,100,255));
+        p->drawRect(scrCtX+scrCtY,0,width()-scrCtX-scrCtY,height());
+        p->drawRect(0,0,scrCtX-scrCtY,height());
+        p->setBrush(Qt::NoBrush);
+        p->setPen(penOuterGrid4);
+        p->drawEllipse(scrCtX-scrCtY+25,25,mDViewFrame,mDViewFrame);
+        p->setPen(penOuterGrid2);
+        QFont font10 = p->font() ;
+        font10.setPointSize(10);
+        p->setFont(font10);
 
         //short theta;
         for(short theta=0;theta<360;theta+=10)
         {
-
-            if(CalcAziContour(theta,&point[0],&point[1],&point[2],d))
+            if(CalcAziContour(theta,&points[0],&points[1],&points[2],mDViewFrame))
             {
-                pt.drawLine(point[1],point[2]);
-                pt.drawText(point[0].x()-25,point[0].y()-10,50,20,
+                p->drawLine(points[1],points[2]);
+                p->drawText(points[0].x()-25,points[0].y()-10,50,20,
                         Qt::AlignHCenter|Qt::AlignVCenter,
                         QString::number(theta));
             }
-
-
         }
 
     }
-    p->drawPixmap(0,0,*pViewFrame);
     //plot heading base azi
-    if(CalcAziContour(mHeadingBase+mTrueN,&point[0],&point[1],&point[2],height()-70))
+    if(CalcAziContour(mHeadingBase+mTrueN,&points[0],&points[1],&points[2],height()-70))
     {
         p->setPen(QPen(Qt::cyan,6));
-        p->drawLine(point[2],point[1]);
-        CalcAziContour(1,&point[0],&point[1],&point[2],height()-70);
-        p->drawText(point[0],QString::number(aziDeg,'f',1));
+        p->drawLine(points[2],points[1]);
+        p->drawText(720,60,200,20,0,"Heading: "+QString::number(mHeadingBase+mTrueN,'f',1));
 
     }
     //plot cur azi
-    if(CalcAziContour(aziDeg,&point[0],&point[1],&point[2],height()-70))
+    if(CalcAziContour(aziDeg,&points[0],&points[1],&points[2],height()-70))
     {
         p->setPen(QPen(Qt::red,4));
-        p->drawLine(point[2],point[1]);
-        CalcAziContour(1,&point[0],&point[1],&point[2],height()-70);
-        p->drawText(point[0],QString::number(aziDeg,'f',1));
+        p->drawLine(points[2],points[1]);
+        //draw text
+        p->drawText(720,20,200,20,0,"Antenna: "+QString::number(aziDeg,'f',1));
 
     }
 
-    //HDC dc = ui->tabWidget->getDC();
-}
-//void Mainwindow::setScaleNM(unsigned short rangeNM)
-//{
-//    float oldScale = mScale;
-//    mScale = (float)height()/((float)rangeNM*CONST_NM)*0.7f;
-//    //printf("scale:%f- %d",scale,rangeNM);
-//    isScaleChanged = true;// scale*SIGNAL_RANGE_KM/2048.0f;
+    // text of center azi
+    //plot center azi
+    centerAzi = processing->getSelsynAzi()+mTrueN2 ;
+    if(centerAzi>360)centerAzi-=360;
+    if(CalcAziContour(centerAzi,&points[0],&points[2],&points[1],height()-70))
+    {
+        p->setPen(QPen(Qt::yellow,8,Qt::SolidLine,Qt::FlatCap,Qt::MiterJoin));
+        p->drawLine(points[2],points[0]);
+        p->drawText(720,40,200,20,0,"Sector:  "+QString::number(centerAzi+mTrueN,'f',1));
+    }
 
-//    dyMax = MAX_VIEW_RANGE_KM*mScale;
-//    dxMax = dyMax;
-//    dx =short(mScale/oldScale*dx);
-//    dy =short(mScale/oldScale*dy);
-//    DrawMap();
-//    /*currMaxRange = (sqrtf(dx*dx+dy*dy)+scrCtY)/signsize;
-//    if(currMaxRange>RADAR_MAX_RESOLUTION)currMaxRange = RADAR_MAX_RESOLUTION;*/
-//    isScreenUp2Date = false;
-//}
+}
+
 short waittimer =0;
 void Mainwindow::DisplayClkAdc(int clk)
 {
@@ -1804,13 +1771,13 @@ void MainWindow::sendFrame(const char* hexdata,QHostAddress host,int port )
     delete[] sendBuff;
 }
 */
-void Mainwindow::on_actionExit_triggered()
-{
+//void Mainwindow::on_actionExit_triggered()
+//{
 
-    processing->stopThread();
-    processing->wait();
-    ExitProgram();
-}
+//    processing->stopThread();
+//    processing->wait();
+//    ExitProgram();
+//}
 void Mainwindow::ExitProgram()
 {
     //config.SaveToFile();
@@ -1932,7 +1899,7 @@ void Mainwindow::autoSwitchFreq()
 }
 void Mainwindow::sync1S()//period 1 second
 {
-    processing->SerialEncoderRead();
+    //processing->SerialEncoderRead();
     this->updateTargetInfo();
     if(processing->isConnected())
         setRadarState(CONNECTED);
@@ -2653,7 +2620,7 @@ void Mainwindow::on_horizontalSlider_sea_valueChanged(int value)
 
 void Mainwindow::on_toolButton_exit_clicked()
 {
-    on_actionExit_triggered();
+    //on_actionExit_triggered();
 }
 
 //void Mainwindow::on_toolButton_setting_clicked()
@@ -3290,15 +3257,15 @@ void Mainwindow::on_toolButton_set_header_size_clicked()
     pRadar->SetHeaderLen(ui->textEdit_header_len->text().toInt());
 }
 
-void Mainwindow::on_toolButton_xl_nguong_clicked()
-{
+//void Mainwindow::on_toolButton_xl_nguong_clicked()
+//{
 
-}
+//}
 
-void Mainwindow::on_toolButton_xl_nguong_clicked(bool checked)
-{
+//void Mainwindow::on_toolButton_xl_nguong_clicked(bool checked)
+//{
 
-}
+//}
 
 void Mainwindow::on_toolButton_filter2of3_2_clicked(bool checked)
 {

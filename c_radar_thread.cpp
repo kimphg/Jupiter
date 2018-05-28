@@ -129,7 +129,7 @@ dataProcessingThread::dataProcessingThread()
     initSerialComm();
     //processSerialData("!AIVDM,1,1,,A,13EoN=0P00NqIS<@6Od00?vN0D1F,0*5D");
 }
-QString str="";
+/*QString str="";
 void dataProcessingThread::SerialEncoderRead()
 {
     if(!mEncoderPort.isOpen())return;
@@ -155,7 +155,7 @@ void dataProcessingThread::SerialEncoderRead()
         //str.remove(0,strList.at(0).size()+strList.at(1).size()+1);
         //SerialEncoderRead();
     }
-}
+}*/
 void dataProcessingThread::initSerialComm()
 {
     int serialBaud = 1000000;

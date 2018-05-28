@@ -117,7 +117,7 @@ private slots:
     void gpsupdate(QGeoPositionInfo geo);
 
 public slots:
-    void SerialEncoderRead();
+//    void SerialEncoderRead();
     void StopProcessing();
 };
 

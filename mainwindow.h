@@ -119,6 +119,7 @@ public slots:
 private:
     void setRadarState(radarSate radarState);
     bool ProcDataAIS(BYTE *szBuff, int nLeng );
+    short mDViewFrame;
 public:
 //    void setScaleNM(unsigned short rangeNM);
     void drawAisTarget2(QPainter *p);
@@ -130,7 +131,7 @@ private slots:
     void gpsOption();
     void processFrame();
     void processARPA();
-    void on_actionExit_triggered();
+//    void on_actionExit_triggered();
     void UpdateRadarData();
     void PlaybackRecFile();
 //    void on_actionTx_On_triggered();
@@ -275,9 +276,9 @@ private slots:
 
     void on_toolButton_set_header_size_clicked();
 
-    void on_toolButton_xl_nguong_clicked();
+//    void on_toolButton_xl_nguong_clicked();
 
-    void on_toolButton_xl_nguong_clicked(bool checked);
+//    void on_toolButton_xl_nguong_clicked(bool checked);
 
     void on_toolButton_filter2of3_2_clicked(bool checked);
 
