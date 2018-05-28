@@ -1481,7 +1481,7 @@ void Mainwindow::DrawViewFrame(QPainter* p)
 
 
     //draw view frame
-    if(false)
+    if(true)
     {
         short linewidth = 0.6*height();
         //penBackground.setWidth(linewidth/10);
