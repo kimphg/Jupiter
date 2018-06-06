@@ -373,7 +373,7 @@ C_radar_data::C_radar_data()
         colorTable.push_back((getColor(i,0,0)));
     }
     hsTap = 0;
-    tb_tap=new unsigned short[MAX_AZIR];
+    he_so_tap_recv=new unsigned short[MAX_AZIR];
     img_histogram=new QImage(257,101,QImage::Format_Mono);
     img_histogram->fill(0);
     img_ppi = new QImage(DISPLAY_RES*2+1,DISPLAY_RES*2+1,QImage::Format_ARGB32);
@@ -742,20 +742,22 @@ void  C_radar_data::getNoiseLevel()
     int sumvar = 0;
     int n = 0;
     memset(histogram,0,256);
-    for(short azi=0;azi<MAX_AZIR;azi++)
+    int historgram_pos = range_max-50;
+    for(short azi=curAzir;n<500;azi--)
     {
         n++;
-        sumvar+= abs(data_mem.level[azi][range_max-50]-data_mem.level[azi][range_max-55]);;
-        unsigned char value = data_mem.level[azi][range_max-50];
-        if(value>5&&value<250)
+        if(azi<0)azi+=MAX_AZIR;
+        sumvar+= abs(data_mem.level[azi][historgram_pos]-data_mem.level[azi][historgram_pos-5]);;
+        unsigned char value = data_mem.level[azi][historgram_pos];
+        if(value>0&&value<250)
         {
-            histogram[value-3]+=1;
-            histogram[value-2]+=2;
-            histogram[value-1]+=3;
-            histogram[value  ]+=4;
-            histogram[value+1]+=3;
-            histogram[value+2]+=2;
-            histogram[value+3]+=1;
+//            histogram[value-3]+=1;
+//            histogram[value-2]+=2;
+//            histogram[value-1]+=3;
+            histogram[value  ]+=1;
+//            histogram[value+1]+=3;
+//            histogram[value+2]+=2;
+//            histogram[value+3]+=1;
         }
     }
     short histogram_max_val=0;
@@ -765,7 +767,7 @@ void  C_radar_data::getNoiseLevel()
     {
         noiseVar+=(sumvar/float(n)-noiseVar)/2.0f;
     }
-    for(short i = 0;i<256;i++)
+    for(short i = 0;i<250;i++)
     {
         if(histogram[i]>histogram_max_val)
         {
@@ -926,7 +928,7 @@ void C_radar_data::ProcessData(unsigned short azi)
     //do bup song
     if(is_do_bup_song)
     {
-        int r_pos = (double)(tb_tap[azi]*tb_tap[azi])/tb_tap_k;
+        int r_pos = (double)(he_so_tap_recv[azi]*he_so_tap_recv[azi])/tb_tap_k;
         for(short pos=0;pos<range_max;pos++)
         {
             if(pos==r_pos)
@@ -1238,7 +1240,7 @@ void C_radar_data::ProcessDataFrame()
     if(tempType>4)printf("Wrong temperature\n");
     sn_stat = dataBuff[14]<<8|dataBuff[15];
     chu_ky = dataBuff[16]<<8|dataBuff[17];
-    tb_tap[newAzi] = dataBuff[18]<<8|dataBuff[19];
+    he_so_tap_recv[newAzi] = (dataBuff[18]<<8)|dataBuff[19];
     memcpy(command_feedback,&dataBuff[RADAR_COMMAND_FEEDBACK],8);
     memcpy(noise_level,&dataBuff[RADAR_COMMAND_FEEDBACK+8],8);
     curAzir = newAzi;
@@ -1869,7 +1871,7 @@ void C_radar_data::setZoomRectXY(float ctx, float cty)
 
 int C_radar_data::get_tb_tap(){
 
-    hsTap += ((tb_tap[curAzir])-hsTap)/5.0;
+    hsTap += ((he_so_tap_recv[curAzir])-hsTap)/5.0;
     return int(hsTap);
 }
 

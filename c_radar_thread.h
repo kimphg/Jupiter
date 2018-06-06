@@ -88,7 +88,7 @@ public:
 signals:
     void HeadingDataReceived(double heading);
 private:
-    QSerialPort mEncoderPort;
+    //QSerialPort mEncoderPort;
     double mHeading ;
     unsigned char failureCount;
     bool  isDrawn;

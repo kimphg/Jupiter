@@ -652,6 +652,7 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
 
     p->setCompositionMode(QPainter::CompositionMode_Plus);
     mGridViewPen1.setStyle(Qt::DashLine);
+    mGridViewPen1.setWidth(1);
     QFont font;
     font.setPointSize(10);
     p->setFont(font);
@@ -660,7 +661,7 @@ void Mainwindow::DrawGrid(QPainter* p,short centerX,short centerY)
     p->drawLine(centerX-5,centerY,centerX+5,centerY);
     p->drawLine(centerX,centerY-5,centerX,centerY+5);
     //pen.setColor(QColor(30,90,150,120));
-    mGridViewPen1.setWidth(1);
+
     p->setPen(mGridViewPen1);
     for(short i = 1;i<8;i++)
     {
@@ -1481,44 +1482,41 @@ void Mainwindow::DrawViewFrame(QPainter* p)
 
 
     //draw view frame
-    if(true)
+
+
+    //fill back ground
+    p->setBrush(QColor(40,60,100,255));
+    p->drawRect(scrCtX+scrCtY,0,width()-scrCtX-scrCtY,height());
+    p->drawRect(0,0,scrCtX-scrCtY,height());
+    p->setBrush(Qt::NoBrush);
+    p->setPen(penOuterGrid4);
+    p->drawEllipse(scrCtX-scrCtY+25,25,mDViewFrame,mDViewFrame);
+    p->setPen(penBackground);
+    for (short i=60;i<650;i+=110)
     {
-        short linewidth = 0.6*height();
-        //penBackground.setWidth(linewidth/10);
-        p->setPen(penBackground);
-        for (short i=linewidth/12;i<linewidth;i+=linewidth/6)
-        {
-            p->drawEllipse(-i/2+(scrCtX-scrCtY)+25,-i/2+25,mDViewFrame+i,mDViewFrame+i);
-        }
-        //p->setPen(penBackground);
-        p->setBrush(QColor(40,60,100,255));
-        p->drawRect(scrCtX+scrCtY,0,width()-scrCtX-scrCtY,height());
-        p->drawRect(0,0,scrCtX-scrCtY,height());
-        p->setBrush(Qt::NoBrush);
-        p->setPen(penOuterGrid4);
-        p->drawEllipse(scrCtX-scrCtY+25,25,mDViewFrame,mDViewFrame);
-        p->setPen(penOuterGrid2);
-        QFont font10 = p->font() ;
-        font10.setPointSize(10);
-        p->setFont(font10);
-
-        //short theta;
-        for(short theta=0;theta<360;theta+=10)
-        {
-            if(CalcAziContour(theta,&points[0],&points[1],&points[2],mDViewFrame))
-            {
-                p->drawLine(points[1],points[2]);
-                p->drawText(points[0].x()-25,points[0].y()-10,50,20,
-                        Qt::AlignHCenter|Qt::AlignVCenter,
-                        QString::number(theta));
-            }
-        }
-
+        p->drawEllipse(-i/2+(scrCtX-scrCtY)+25,-i/2+25,mDViewFrame+i,mDViewFrame+i);
     }
+
+
+    p->setPen(penOuterGrid2);
+    QFont font10 = p->font() ;
+    font10.setPointSize(10);
+    p->setFont(font10);
+    for(short theta=0;theta<360;theta+=10)
+    {
+        if(CalcAziContour(theta,&points[0],&points[1],&points[2],mDViewFrame))
+        {
+            p->drawLine(points[1],points[2]);
+            p->drawText(points[0].x()-25,points[0].y()-10,50,20,
+                    Qt::AlignHCenter|Qt::AlignVCenter,
+                    QString::number(theta));
+        }
+    }
+
     //plot heading base azi
     if(CalcAziContour(mHeadingBase+mTrueN,&points[0],&points[1],&points[2],height()-70))
     {
-        p->setPen(QPen(Qt::cyan,6));
+        p->setPen(QPen(Qt::cyan,6,Qt::SolidLine,Qt::RoundCap));
         p->drawLine(points[2],points[1]);
         p->drawText(720,60,200,20,0,"Heading: "+QString::number(mHeadingBase+mTrueN,'f',1));
 
@@ -1526,7 +1524,7 @@ void Mainwindow::DrawViewFrame(QPainter* p)
     //plot cur azi
     if(CalcAziContour(aziDeg,&points[0],&points[1],&points[2],height()-70))
     {
-        p->setPen(QPen(Qt::red,4));
+        p->setPen(QPen(Qt::red,4,Qt::SolidLine,Qt::RoundCap));
         p->drawLine(points[2],points[1]);
         //draw text
         p->drawText(720,20,200,20,0,"Antenna: "+QString::number(aziDeg,'f',1));
@@ -1539,8 +1537,8 @@ void Mainwindow::DrawViewFrame(QPainter* p)
     if(centerAzi>360)centerAzi-=360;
     if(CalcAziContour(centerAzi,&points[0],&points[2],&points[1],height()-70))
     {
-        p->setPen(QPen(Qt::yellow,8,Qt::SolidLine,Qt::FlatCap,Qt::MiterJoin));
-        p->drawLine(points[2],points[0]);
+        p->setPen(QPen(Qt::yellow,8,Qt::SolidLine,Qt::RoundCap,Qt::MiterJoin));
+        p->drawLine(points[2],points[1]);
         p->drawText(720,40,200,20,0,"Sector:  "+QString::number(centerAzi+mTrueN,'f',1));
     }
 
@@ -1900,6 +1898,7 @@ void Mainwindow::autoSwitchFreq()
 void Mainwindow::sync1S()//period 1 second
 {
     //processing->SerialEncoderRead();
+
     this->updateTargetInfo();
     if(processing->isConnected())
         setRadarState(CONNECTED);
@@ -1920,6 +1919,7 @@ void Mainwindow::sync1S()//period 1 second
         isScaleChanged = false;
     }
     showTime();
+
     // display radar temperature:
     temperature[pRadar->tempType] = pRadar->moduleVal;
 
@@ -1963,10 +1963,13 @@ void Mainwindow::sync1S()//period 1 second
     default:
         break;
     }
-    ui->label_debug_data->setText("Chu ky: "+QString::number(pRadar->chu_ky));
-    unsigned int chuKy = 1000000/(pRadar->chu_ky*(pow(2,pRadar->clk_adc))/10.0);
+    //return;
+    //ui->label_debug_data->setText("Chu ky: "+QString::number(pRadar->chu_ky));
+    /*unsigned int chuKy = 1000000/(pRadar->chu_ky*(pow(2,pRadar->clk_adc))/10.0);
 
     ui->label_sn_freq->setText(QString::number(chuKy));
+    */
+    ui->label_debug->setText(QString::number(pRadar->getNoiseAverage()));
     ui->label_he_so_tap->setText(QString::fromUtf8("Hệ số tạp: ")+QString::number(pRadar->get_tb_tap()));
     if(ui->toolButton_auto_freq->isChecked())
     {
@@ -1975,6 +1978,7 @@ void Mainwindow::sync1S()//period 1 second
             this->autoSwitchFreq();
         }
     }
+
     int value;
     switch((pRadar->sn_stat>>8)&0x07)
     {

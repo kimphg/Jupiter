@@ -23164,7 +23164,7 @@
         <x>280</x>
         <y>10</y>
         <width>231</width>
-        <height>251</height>
+        <height>231</height>
        </rect>
       </property>
       <property name="autoFillBackground">
@@ -23296,7 +23296,7 @@
         <x>10</x>
         <y>10</y>
         <width>251</width>
-        <height>263</height>
+        <height>231</height>
        </rect>
       </property>
       <property name="autoFillBackground">
@@ -23306,6 +23306,19 @@
        <string notr="true" comment="asd ">Hiệu chỉnh phương bắc</string>
       </property>
       <layout class="QFormLayout" name="formLayout_4">
+       <item row="0" column="0" colspan="2">
+        <widget class="QCustomButton" name="toolButton_set_heading">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Cập nhật phương bắc</string>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label_15">
          <property name="font">
@@ -23314,11 +23327,21 @@
           </font>
          </property>
          <property name="text">
-          <string>Encoder ăng ten:</string>
+          <string>Ăng ten - mũi xe:</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="textEdit_heading">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
         <widget class="QLabel" name="label_21">
          <property name="font">
           <font>
@@ -23326,19 +23349,17 @@
           </font>
          </property>
          <property name="text">
-          <string>Encoder tay quay:</string>
+          <string>Tay quay tâm quạt:</string>
          </property>
         </widget>
        </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_23">
-         <property name="font">
-          <font>
-           <pointsize>12</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>Bù góc la bàn:</string>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="textEdit_heading_2">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
         </widget>
        </item>
@@ -23366,49 +23387,6 @@
          </property>
          <property name="checkable">
           <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="textEdit_heading">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0" colspan="2">
-        <widget class="QCustomButton" name="toolButton_set_heading">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Cập nhật phương bắc</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="textEdit_heading_2">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
-        <widget class="QLineEdit" name="textEdit_heading_3">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
          </property>
         </widget>
        </item>
@@ -23851,7 +23829,19 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_25">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Mũi xe -  phương bắc:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
         <widget class="QLineEdit" name="textEdit_heading_base">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -23861,25 +23851,13 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_25">
-         <property name="font">
-          <font>
-           <pointsize>12</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>Hướng mũi xe:</string>
-         </property>
-        </widget>
-       </item>
       </layout>
      </widget>
      <widget class="QCustomGroupBox" name="groupBox_9">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>300</y>
+        <y>270</y>
         <width>193</width>
         <height>151</height>
        </rect>
@@ -24511,6 +24489,22 @@
         </widget>
        </item>
       </layout>
+     </widget>
+     <widget class="QLabel" name="label_he_so_tap">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>460</y>
+        <width>191</width>
+        <height>39</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>--</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_5">
@@ -27450,8 +27444,8 @@
      <string>Điều khiển tần số</string>
     </property>
     <layout class="QGridLayout" name="gridLayout_16">
-     <item row="8" column="0">
-      <widget class="QCustomButton" name="toolButton_auto_freq">
+     <item row="2" column="0">
+      <widget class="QCustomButton" name="toolButton_tx_3">
        <property name="enabled">
         <bool>true</bool>
        </property>
@@ -27467,15 +27461,21 @@
         </font>
        </property>
        <property name="text">
-        <string>Tự động chuyển tần</string>
+        <string>Tần số 2</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
        </property>
+       <property name="autoExclusive">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup</string>
+       </attribute>
       </widget>
      </item>
-     <item row="4" column="0">
-      <widget class="QCustomButton" name="toolButton_tx_5">
+     <item row="3" column="0">
+      <widget class="QCustomButton" name="toolButton_tx_4">
        <property name="enabled">
         <bool>true</bool>
        </property>
@@ -27491,7 +27491,67 @@
         </font>
        </property>
        <property name="text">
-        <string>Tần số 4</string>
+        <string>Tần số 3</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="autoExclusive">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QCustomButton" name="toolButton_tx_7">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Tần số 6</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="autoExclusive">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QCustomButton" name="toolButton_tx_6">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Tần số 5</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -27537,8 +27597,8 @@
        </attribute>
       </widget>
      </item>
-     <item row="5" column="0">
-      <widget class="QCustomButton" name="toolButton_tx_6">
+     <item row="4" column="0">
+      <widget class="QCustomButton" name="toolButton_tx_5">
        <property name="enabled">
         <bool>true</bool>
        </property>
@@ -27554,97 +27614,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Tần số 5</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="autoExclusive">
-        <bool>true</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="6" column="0">
-      <widget class="QCustomButton" name="toolButton_tx_7">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Tần số 6</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="autoExclusive">
-        <bool>true</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QCustomButton" name="toolButton_tx_4">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Tần số 3</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="autoExclusive">
-        <bool>true</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QCustomButton" name="toolButton_tx_3">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Tần số 2</string>
+        <string>Tần số 4</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -27658,12 +27628,26 @@
       </widget>
      </item>
      <item row="7" column="0">
-      <widget class="QLabel" name="label_he_so_tap">
-       <property name="text">
-        <string>--</string>
+      <widget class="QCustomButton" name="toolButton_auto_freq">
+       <property name="enabled">
+        <bool>true</bool>
        </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Tự động chuyển tần</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
