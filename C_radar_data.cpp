@@ -547,11 +547,15 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
                 break;
             }
             unsigned char pvalue = value*k;
-            if( data_mem.display_mask[px+x][py+y] <= pvalue)
+
+            if( data_mem.display_mask[px+x][py+y] < pvalue)
             {
                 data_mem.display_mask[px+x][py+y] = pvalue;
                 img_ppi->setPixel(px+x,py+y,getColor(pvalue,dopler,sled));//todo: set color table
-
+            }
+            else if(!pvalue)
+            {
+                img_ppi->setPixel(px+x,py+y,0x0fffff00);
             }
         }
     }
@@ -2116,7 +2120,7 @@ void C_radar_data::drawSgnZoom(short azi_draw, short r_pos)
 }
 uint C_radar_data::getColor(unsigned char pvalue,unsigned char dopler,unsigned char sled)
 {
-    if(!pvalue)return 0x0fffff00;
+    //if(!pvalue)return 0x0fffff0f;
     unsigned short value = ((unsigned short)pvalue)*brightness;
     if(!isSled)sled = 0;
     else
