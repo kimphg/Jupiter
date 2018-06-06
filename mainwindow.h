@@ -390,6 +390,8 @@ private slots:
     void on_toolButton_tx_2_clicked(bool checked);
 
 private:
+    float mHeadingAntenna;
+    float mHeadingSelsyn;
     void initActionsConnections();
     void initGraphicView();
     void updateTargetInfo();
@@ -407,6 +409,7 @@ private:
     void sendToRadarString(QString command);
     void autoSwitchFreq();
     void checkClickAIS(int xclick, int yclick);
+    void setFreq(int newfreq);
 };
 
 #endif // MAINWINDOW_H

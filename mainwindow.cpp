@@ -41,7 +41,7 @@ short                       mousePointerX,mousePointerY,mouseX,mouseY;
 //bool                        isDraging = false;
 bool                        isScaleChanged =true;
 double                      mScale;
-double                      centerAzi=0;
+
 double                      temperature[255];
 int         curTempIndex = 0;
 double      rangeRatio = 1;
@@ -1294,14 +1294,13 @@ void Mainwindow::InitSetting()
     mHeadingBase = mGlobbalConfig.getDouble("mHeadingBase");
 
     pRadar->setTrueN(mTrueN);
-    ui->textEdit_heading->setText(mGlobbalConfig.getString("mTrueN"));
-    ui->textEdit_heading_2->setText(mGlobbalConfig.getString("mTrueN2"));
+    ui->textEdit_heading->setText(mGlobbalConfig.getString("mHeadingAntenna"));
+    ui->textEdit_heading_2->setText(mGlobbalConfig.getString("mHeadingSelsyn"));
     ui->textEdit_heading_base->setText(mGlobbalConfig.getString("mHeadingBase"));
     mZoomSizeAz = mGlobbalConfig.getDouble("mZoomSizeAz");
     ui->textEdit_size_ar_a->setText(QString::number(mZoomSizeAz));
     mZoomSizeRg = mGlobbalConfig.getDouble("mZoomSizeRg");
     ui->textEdit_size_ar_r->setText(QString::number(mZoomSizeRg));
-    pRadar->setTrueN(mTrueN);
     //load map
     osmap = new CMap();
     SetGPS(mGlobbalConfig.getDouble("mLat"), mGlobbalConfig.getDouble("mLon"));
@@ -1469,7 +1468,7 @@ void Mainwindow::DrawViewFrame(QPainter* p)
     //ve phuong vi ang ten
     //,point1,point2,pointA,pointB;
 
-    double aziDeg = rad2deg(pRadar->getCurAziRad());
+
     //double minazi = rad2deg(pRadar->getArcMinAziRad());
     //double maxazi = rad2deg(pRadar->getArcMaxAziRad());
     //if(maxazi<minazi)minazi-=360.0;
@@ -1512,13 +1511,22 @@ void Mainwindow::DrawViewFrame(QPainter* p)
                     QString::number(theta));
         }
     }
-
+    double aziDeg = rad2deg(pRadar->getCurAziRad());
+    //plot center azi
+    double centerAzi = processing->getSelsynAzi()+mTrueN2 ;
+    if(centerAzi>360)centerAzi-=360;
+    if(CalcAziContour(centerAzi,&points[0],&points[2],&points[1],height()-70))
+    {
+        p->setPen(QPen(Qt::yellow,8,Qt::SolidLine,Qt::RoundCap,Qt::MiterJoin));
+        p->drawLine(points[2],points[1]);
+        p->drawText(720,40,200,20,0,"Sector:  "+QString::number(centerAzi,'f',1));
+    }
     //plot heading base azi
-    if(CalcAziContour(mHeadingBase+mTrueN,&points[0],&points[1],&points[2],height()-70))
+    if(CalcAziContour(mHeadingBase,&points[0],&points[1],&points[2],height()-70))
     {
         p->setPen(QPen(Qt::cyan,6,Qt::SolidLine,Qt::RoundCap));
         p->drawLine(points[2],points[1]);
-        p->drawText(720,60,200,20,0,"Heading: "+QString::number(mHeadingBase+mTrueN,'f',1));
+        p->drawText(720,60,200,20,0,"Heading: "+QString::number(mHeadingBase,'f',1));
 
     }
     //plot cur azi
@@ -1531,16 +1539,8 @@ void Mainwindow::DrawViewFrame(QPainter* p)
 
     }
 
-    // text of center azi
-    //plot center azi
-    centerAzi = processing->getSelsynAzi()+mTrueN2 ;
-    if(centerAzi>360)centerAzi-=360;
-    if(CalcAziContour(centerAzi,&points[0],&points[2],&points[1],height()-70))
-    {
-        p->setPen(QPen(Qt::yellow,8,Qt::SolidLine,Qt::RoundCap,Qt::MiterJoin));
-        p->drawLine(points[2],points[1]);
-        p->drawText(720,40,200,20,0,"Sector:  "+QString::number(centerAzi+mTrueN,'f',1));
-    }
+
+
 
 }
 
@@ -1621,7 +1621,7 @@ void Mainwindow::InitTimer()
     //syncTimer1s.moveToThread(t);
 
     connect(&scrUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateRadarData()));
-    scrUpdateTimer.start(20);//ENVDEP
+    scrUpdateTimer.start(30);//ENVDEP
     scrUpdateTimer.moveToThread(t2);
     //connect(t2,SIGNAL(finished()),t2,SLOT(deleteLater()));
 
@@ -1865,34 +1865,36 @@ void Mainwindow::updateTargetInfo()
         ui->label_data_dopler->setText("--");
     }
 }
+void Mainwindow::setFreq(int newfreq)
+{
+    switch(newfreq)
+    {
+    case 0:
+        ui->toolButton_tx_2->setChecked(true);
+        sendToRadarString(mFreq1Command);break;
+    case 1:
+        ui->toolButton_tx_3->setChecked(true);
+        sendToRadarString(mFreq2Command);break;
+    case 2:
+        ui->toolButton_tx_4->setChecked(true);
+        sendToRadarString(mFreq3Command);break;
+    case 3:
+        ui->toolButton_tx_5->setChecked(true);
+        sendToRadarString(mFreq4Command);break;
+    case 4:
+        ui->toolButton_tx_6->setChecked(true);
+        sendToRadarString(mFreq5Command);break;
+    case 5:
+        ui->toolButton_tx_7->setChecked(true);
+        sendToRadarString(mFreq6Command);break;
+    default:break;
+    }
+
+}
 void Mainwindow::autoSwitchFreq()
 {
     int newFreq = rand()%6;
-    if(newFreq==0)
-    {
-        ui->toolButton_tx_2->setChecked(true);
-    }
-    else  if(newFreq==1)
-    {
-        ui->toolButton_tx_3->setChecked(true);
-    }
-    else if(newFreq==2)
-    {
-        ui->toolButton_tx_4->setChecked(true);
-    }
-    else if(newFreq==3)
-    {
-        ui->toolButton_tx_5->setChecked(true);
-    }
-    else if(newFreq==4)
-    {
-        ui->toolButton_tx_6->setChecked(true);
-    }
-    else if(newFreq==5)
-    {
-        ui->toolButton_tx_7->setChecked(true);
-    }
-
+    setFreq(newFreq);
 
 }
 void Mainwindow::sync1S()//period 1 second
@@ -1973,9 +1975,10 @@ void Mainwindow::sync1S()//period 1 second
     ui->label_he_so_tap->setText(QString::fromUtf8("Hệ số tạp: ")+QString::number(pRadar->get_tb_tap()));
     if(ui->toolButton_auto_freq->isChecked())
     {
-        if(pRadar->get_tb_tap()>mMaxTapMayThu)
+        if(pRadar->mJammingDetected)
         {
             this->autoSwitchFreq();
+            pRadar->mJammingDetected = false;
         }
     }
 
@@ -2909,10 +2912,13 @@ void Mainwindow::SetGPS(double lat,double lon)
 
 void Mainwindow::on_toolButton_set_heading_clicked()
 {
-
-    mTrueN = ui->textEdit_heading->text().toFloat();
-    mTrueN2 = ui->textEdit_heading_2->text().toFloat();
+    mHeadingAntenna = ui->textEdit_heading->text().toFloat();
+    mHeadingSelsyn = ui->textEdit_heading_2->text().toFloat();
     mHeadingBase = ui->textEdit_heading_base->text().toFloat();
+    mTrueN = mHeadingBase+mHeadingAntenna;
+    mTrueN2 = mHeadingBase+ mHeadingSelsyn;
+    mGlobbalConfig.setValue("mHeadingAntenna",mHeadingAntenna);
+    mGlobbalConfig.setValue("mHeadingSelsyn",mHeadingSelsyn);
     mGlobbalConfig.setValue("mHeadingBase",mHeadingBase);
     mGlobbalConfig.setValue("mTrueN",mTrueN);
     mGlobbalConfig.setValue("mTrueN2",mTrueN2);
@@ -3592,7 +3598,7 @@ void Mainwindow::on_toolButton_heading_update_clicked()
     {
         mTrueN = processing->getHeading()+mGlobbalConfig.getDouble("mTrueN3");
         if(mTrueN>=360)mTrueN-=360;
-        ui->label_compass_value->setText(QString::number(processing->getHeading(),'f',1));
+        //ui->label_compass_value->setText(QString::number(processing->getHeading(),'f',1));
         ui->textEdit_heading->setText(QString::number(mTrueN));
     }
     else

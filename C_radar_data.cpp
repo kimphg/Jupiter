@@ -372,8 +372,8 @@ C_radar_data::C_radar_data()
 
         colorTable.push_back((getColor(i,0,0)));
     }
-    hsTap = 0;
-    he_so_tap_recv=new unsigned short[MAX_AZIR];
+    mHsTap = 0;
+    //he_so_tap_recv=new unsigned short[MAX_AZIR];
     img_histogram=new QImage(257,101,QImage::Format_Mono);
     img_histogram->fill(0);
     img_ppi = new QImage(DISPLAY_RES*2+1,DISPLAY_RES*2+1,QImage::Format_ARGB32);
@@ -736,13 +736,14 @@ void C_radar_data::drawAzi(short azi)
 
 }
 
-void  C_radar_data::getNoiseLevel()
+void  C_radar_data::processSector32azi()
 {
 
     int sumvar = 0;
     int n = 0;
     memset(histogram,0,256);
     int historgram_pos = range_max-50;
+
     for(short azi=curAzir;n<500;azi--)
     {
         n++;
@@ -759,7 +760,9 @@ void  C_radar_data::getNoiseLevel()
 //            histogram[value+2]+=2;
 //            histogram[value+3]+=1;
         }
+
     }
+
     short histogram_max_val=0;
     short histogram_max_pos;
     if(noiseVar<7)noiseVar = 7;
@@ -926,7 +929,7 @@ void C_radar_data::ProcessData(unsigned short azi)
     // apply the  threshholding algorithm manualy
     memset(&thresh[0],0,RAD_M_PULSE_RES*2);
     //do bup song
-    if(is_do_bup_song)
+    /*if(is_do_bup_song)
     {
         int r_pos = (double)(he_so_tap_recv[azi]*he_so_tap_recv[azi])/tb_tap_k;
         for(short pos=0;pos<range_max;pos++)
@@ -937,7 +940,7 @@ void C_radar_data::ProcessData(unsigned short azi)
             data_mem.level[azi][pos] = 0;
         }
 
-    }
+    }*/
     if(doubleFilter)// bo loc nguong rain 2 chieu
     {
         rainLevel = noiseAverage;
@@ -1240,15 +1243,19 @@ void C_radar_data::ProcessDataFrame()
     if(tempType>4)printf("Wrong temperature\n");
     sn_stat = dataBuff[14]<<8|dataBuff[15];
     chu_ky = dataBuff[16]<<8|dataBuff[17];
-    he_so_tap_recv[newAzi] = (dataBuff[18]<<8)|dataBuff[19];
+    //kiem tra he so tap may thu va phat hien nhieu tich cuc
+    int newHsTap = (dataBuff[18]<<8)|dataBuff[19];
+    if(newHsTap>mHsTap*1.5)if(!isClkAdcChanged)mJammingDetected = true;
+    mHsTap = (newHsTap+mHsTap)/2;
+    //kiem tra lenh phan hoi
     memcpy(command_feedback,&dataBuff[RADAR_COMMAND_FEEDBACK],8);
-    memcpy(noise_level,&dataBuff[RADAR_COMMAND_FEEDBACK+8],8);
+    //memcpy(noise_level,&dataBuff[RADAR_COMMAND_FEEDBACK+8],8);
     curAzir = newAzi;
     aziToProcess.push(curAzir);
     decodeData(curAzir);
     if(!((unsigned char)(curAzir<<3))){
         procTracks(curAzir);
-        getNoiseLevel();
+        processSector32azi();
     }
     if(curAzir==0)
     {
@@ -1871,8 +1878,8 @@ void C_radar_data::setZoomRectXY(float ctx, float cty)
 
 int C_radar_data::get_tb_tap(){
 
-    hsTap += ((he_so_tap_recv[curAzir])-hsTap)/5.0;
-    return int(hsTap);
+    //mHsTap += ((he_so_tap_recv[curAzir])-mHsTap)/5.0;
+    return int(mHsTap);
 }
 
 void C_radar_data::setTb_tap_k(double value)

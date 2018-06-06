@@ -221,7 +221,7 @@ public:
     void                    setZoomRectAR(float ctx, float cty, double sizeKM, double sizeDeg);
     void                    setZoomRectXY(float ctx, float cty);
     unsigned int            sn_stat,chu_ky;
-    unsigned short          *tb_tap;
+//    unsigned short          *he_so_tap_recv;
     double                  tb_tap_k;
     int                     get_tb_tap();
     bool                    is_do_bup_song;
@@ -300,7 +300,7 @@ public:
     double getArcMaxAziRad() const;
     double getArcMinAziRad() const;
 private:
-    float hsTap ;
+    float mHsTap ;
     QVector<QRgb> colorTable;
     double      selfRotationDazi;
     double      selfRotationAzi;
@@ -316,7 +316,7 @@ private:
     bool        isProcessing;
     bool        isSharpEye;
     float       noiseAverage,rainLevel,noiseVar;
-    void        getNoiseLevel();
+    void        processSector32azi();
     void        procPix(short proc_azi,short range);
     void        procTracks(unsigned short curA);
     void        procPLot(plot_t* mPlot);
@@ -331,6 +331,7 @@ private:
     int getNewAzi();
 public:
     //void drawZoomAR();
+    bool mJammingDetected;
     float getNoiseAverage() const;
     void setNoiseAverage(float value);
     void setTb_tap_k(double value);
