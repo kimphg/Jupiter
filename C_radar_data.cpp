@@ -2116,7 +2116,7 @@ void C_radar_data::drawSgnZoom(short azi_draw, short r_pos)
 }
 uint C_radar_data::getColor(unsigned char pvalue,unsigned char dopler,unsigned char sled)
 {
-
+    if(!pvalue)return 0x0fffff00;
     unsigned short value = ((unsigned short)pvalue)*brightness;
     if(!isSled)sled = 0;
     else
