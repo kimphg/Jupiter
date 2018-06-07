@@ -553,10 +553,7 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
                 data_mem.display_mask[px+x][py+y] = pvalue;
                 img_ppi->setPixel(px+x,py+y,getColor(pvalue,dopler,sled));//todo: set color table
             }
-            else if(!pvalue)
-            {
-                img_ppi->setPixel(px+x,py+y,0x0fffff00);
-            }
+
         }
     }
 
