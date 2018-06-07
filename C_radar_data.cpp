@@ -751,15 +751,15 @@ void  C_radar_data::processSector32azi()
         if(azi<0)azi+=MAX_AZIR;
         sumvar+= abs(data_mem.level[azi][historgram_pos]-data_mem.level[azi][historgram_pos-5]);;
         unsigned char value = data_mem.level[azi][historgram_pos];
-        if(value>0&&value<250)
+        if(value>5&&value<250)
         {
-//            histogram[value-3]+=1;
-//            histogram[value-2]+=2;
-//            histogram[value-1]+=3;
+            histogram[value-3]+=1;
+            histogram[value-2]+=2;
+            histogram[value-1]+=3;
             histogram[value  ]+=1;
-//            histogram[value+1]+=3;
-//            histogram[value+2]+=2;
-//            histogram[value+3]+=1;
+            histogram[value+1]+=3;
+            histogram[value+2]+=2;
+            histogram[value+3]+=1;
         }
 
     }
