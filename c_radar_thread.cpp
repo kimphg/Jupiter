@@ -93,8 +93,9 @@ double dataProcessingThread::getSelsynAzi() const
 {
     return selsynEncoderAzi;
 }
-dataProcessingThread::dataProcessingThread()
+dataProcessingThread::dataProcessingThread(int baud)
 {
+    mSerialBaud = baud;
     failureCount = 0;
     isHeadingAvaible=false;
     selsynEncoderAzi = 0;

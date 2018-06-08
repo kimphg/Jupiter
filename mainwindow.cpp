@@ -1613,7 +1613,7 @@ void Mainwindow::InitTimer()
 {
     t2 = new QThread();
 
-    processing = new dataProcessingThread();
+    processing = new dataProcessingThread(mGlobbalConfig.getInt("mSerialBaud"));
     pRadar = processing->mRadarData;
     connect(&syncTimer1s, SIGNAL(timeout()), this, SLOT(sync1S()));
     syncTimer1s.start(1000);

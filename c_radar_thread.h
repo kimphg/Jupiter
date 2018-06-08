@@ -46,7 +46,7 @@ public:
     void SetRadarPort( unsigned short portNumber);
     void SetARPAPort( unsigned short portNumber);
     ~dataProcessingThread();
-    dataProcessingThread();
+    dataProcessingThread(int baud);
     QTimer commandSendTimer;
     QTimer readUdpBuffTimer;
     QTimer readSerialTimer;
