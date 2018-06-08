@@ -1268,6 +1268,7 @@ void Mainwindow::setDistanceUnit(int unit)//0:NM, 1:KM
 }
 void Mainwindow::InitSetting()
 {
+    processing->mSerialBaud = mGlobbalConfig.getInt("mSerialBaud");
     mMaxTapMayThu = mGlobbalConfig.getInt("mMaxTapMayThu");
     mRangeLevel = mGlobbalConfig.getInt("mRangeLevel");
     assert(mRangeLevel>=0&&mRangeLevel<8);

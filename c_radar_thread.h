@@ -42,6 +42,7 @@ public:
     unsigned short    playRate;
     DataBuff*   dataBuff;
     float   k_vet;
+    int mSerialBaud;
     void SetRadarPort( unsigned short portNumber);
     void SetARPAPort( unsigned short portNumber);
     ~dataProcessingThread();

@@ -1237,6 +1237,7 @@ void C_radar_data::ProcessDataFrame()
         clk_adc = n_clk_adc;
         isClkAdcChanged = true;
         resetData();
+        clearPPI();
 
     }
     moduleVal = dataBuff[3];//

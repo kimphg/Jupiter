@@ -174,7 +174,7 @@ void dataProcessingThread::initSerialComm()
         printf("\nencoder connected");
     }*/
     // baudrate at 38400 standart for sector encoder and ais
-    int serialBaud = 38400;
+    //mSerialBaud = 38400;
     QList<QSerialPortInfo> portlist = QSerialPortInfo::availablePorts();
     for(int i = 0;i<portlist.size();i++)
     {
@@ -183,7 +183,7 @@ void dataProcessingThread::initSerialComm()
             QSerialPort *newport = new QSerialPort(this);
             QString qstr = portlist.at(i).portName();
             newport->setPortName(qstr);
-            newport->setBaudRate(serialBaud);
+            newport->setBaudRate(mSerialBaud);
             newport->open(QIODevice::ReadWrite);
             connect(newport, &QSerialPort::readyRead, this, &dataProcessingThread::SerialDataRead);
             serialPorts.push_back(newport);
