@@ -225,7 +225,7 @@ public:
     double                  tb_tap_k;
     int                     get_tb_tap();
     bool                    is_do_bup_song;
-    bool                    isClkAdcChanged,xl_dopler,cut_thresh,isSled,filter2of3;
+    bool                    isClkAdcChanged,xl_dopler,is_normalize_signal,isSled,filter2of3;
     bool                    isManualTune,rgs_auto,bo_bang_0,data_export;
     bool                    isSelfRotation;
     double                   krain,kgain,ksea,brightness;

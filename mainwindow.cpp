@@ -1312,7 +1312,7 @@ void Mainwindow::InitSetting()
     mMapOpacity = mGlobbalConfig.getDouble("mMapOpacity");
     //config.setMapOpacity(value/50.0);
     ui->horizontalSlider_map_brightness->setValue(mMapOpacity*50);
-    ui->toolButton_xl_nguong_3->setChecked(true);
+    ui->toolButton_xl_nguong_3->setChecked(mGlobbalConfig.getInt("is_normalize_signal"));
     ui->groupBox_control->setHidden(true);
     ui->groupBox_control_setting->setHidden(true);
     setMouseTracking(true);
@@ -2956,7 +2956,8 @@ void Mainwindow::on_toolButton_xl_dopler_toggled(bool checked)
 
 void Mainwindow::on_toolButton_xl_nguong_3_toggled(bool checked)
 {
-    pRadar->cut_thresh = checked;
+    pRadar->is_normalize_signal = checked;
+    mGlobbalConfig.setValue("is_normalize_signal",checked);
 }
 
 void Mainwindow::on_groupBox_3_currentChanged(int index)

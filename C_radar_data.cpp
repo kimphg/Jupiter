@@ -398,7 +398,7 @@ C_radar_data::C_radar_data()
     bo_bang_0 = false;
     data_export = false;
     xl_dopler = false;
-    cut_thresh = false;
+    is_normalize_signal = false;
     filter2of3 = false;
     is_do_bup_song = false;
     clk_adc = 0;
@@ -546,13 +546,15 @@ void C_radar_data::drawSgn(short azi_draw, short r_pos)
                 k=0.2;
                 break;
             }
+
             unsigned char pvalue = value*k;
 
-            if( data_mem.display_mask[px+x][py+y] < pvalue)
+            if( data_mem.display_mask[px+x][py+y] <= pvalue)
             {
                 data_mem.display_mask[px+x][py+y] = pvalue;
                 img_ppi->setPixel(px+x,py+y,getColor(pvalue,dopler,sled));//todo: set color table
             }
+            else if(!value){img_ppi->setPixel(px+x,py+y,0x80ff8000);continue;}// may hoi
 
         }
     }
@@ -749,7 +751,7 @@ void  C_radar_data::processSector32azi()
     {
         n++;
         if(azi<0)azi+=MAX_AZIR;
-        sumvar+= abs(data_mem.level[azi][historgram_pos]-data_mem.level[azi][historgram_pos-5]);;
+        sumvar+= abs(data_mem.level[azi][historgram_pos]-data_mem.level[azi][historgram_pos-5]);
         unsigned char value = data_mem.level[azi][historgram_pos];
         if(value>5&&value<250)
         {
@@ -766,11 +768,9 @@ void  C_radar_data::processSector32azi()
 
     short histogram_max_val=0;
     short histogram_max_pos;
+    noiseVar+=(sumvar/float(n)-noiseVar)/2.0f;
     if(noiseVar<5)noiseVar = 5;
-    else
-    {
-        noiseVar+=(sumvar/float(n)-noiseVar)/2.0f;
-    }
+
     for(short i = 0;i<250;i++)
     {
         if(histogram[i]>histogram_max_val)
@@ -781,14 +781,8 @@ void  C_radar_data::processSector32azi()
 
     }
 
-    if(noiseAverage)
-    {
-        noiseAverage += (histogram_max_pos-noiseAverage)/2.0f;
-    }
-    else
-    {
-        noiseAverage = 31;//histogram_max_pos;
-    }
+    noiseAverage += (histogram_max_pos-noiseAverage)/2.0f;
+
     img_histogram->fill(0);
     for(short i = 0;i<256;i++)
     {
@@ -1019,7 +1013,7 @@ void C_radar_data::ProcessData(unsigned short azi)
         }
         else
         {
-            if(cut_thresh)
+            if(is_normalize_signal)
             {
 
                 if(!r_pos)
@@ -1032,7 +1026,7 @@ void C_radar_data::ProcessData(unsigned short azi)
                 thresh[r_pos] = rainLevel - noiseVar*4;
                 if(data_mem.level[azi][r_pos]>(thresh[r_pos]))
                     data_mem.level_disp[azi][r_pos] = (data_mem.level[azi][r_pos] - (thresh[r_pos]))*(thresh[r_pos]/255.0f+1.0f);
-                else data_mem.level_disp[azi][r_pos] = 0;
+                else data_mem.level_disp[azi][r_pos] = 1;
             }
             else
             {
@@ -1101,12 +1095,12 @@ void C_radar_data::ProcessData(unsigned short azi)
         }
         if(cutoff)
         {
-            if(isManualTune&&rgs_auto)data_mem.level_disp[azi][r_pos]= 0;
+            if(isManualTune&&rgs_auto)data_mem.level_disp[azi][r_pos]= 1;
             data_mem.sled[azi][r_pos] -= (data_mem.sled[azi][r_pos])/20.0f;
         }
         else
         {
-            data_mem.sled[azi][r_pos] =255;
+            data_mem.sled[azi][r_pos] = 255;
         }
         if(r_pos>RANGE_MIN)
         {
@@ -1247,7 +1241,7 @@ void C_radar_data::ProcessDataFrame()
     chu_ky = dataBuff[16]<<8|dataBuff[17];
     //kiem tra he so tap may thu va phat hien nhieu tich cuc
     int newHsTap = (dataBuff[18]<<8)|dataBuff[19];
-    if(newHsTap>mHsTap*1.5)if(!isClkAdcChanged)mJammingDetected = true;
+    if(newHsTap>mHsTap*2)if(!isClkAdcChanged)mJammingDetected = true;
     mHsTap = (newHsTap+mHsTap)/2;
     //kiem tra lenh phan hoi
     memcpy(command_feedback,&dataBuff[RADAR_COMMAND_FEEDBACK],8);
@@ -2105,13 +2099,15 @@ void C_radar_data::drawSgnZoom(short azi_draw, short r_pos)
                 k=0.7f;
                 break;
             }
+//            if(value<6){img_ppi->setPixel(px+x,py+y,0x80ff8000);continue;}
             unsigned char pvalue = value*k;
             if( data_mem.display_mask_zoom[px+x][py+y] <= pvalue)
             {
                 data_mem.display_mask_zoom[px+x][py+y] = pvalue;
                 img_zoom_ppi->setPixel(px+x,py+y,getColor(pvalue,dopler,sled));
                 //DrawZoom(px,py,pvalue);
-            }
+            }else if(!value){img_zoom_ppi->setPixel(px+x,py+y,0x80ff8000);continue;}
+
         }
     }
 
