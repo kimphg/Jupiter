@@ -1268,6 +1268,7 @@ void Mainwindow::setDistanceUnit(int unit)//0:NM, 1:KM
 }
 void Mainwindow::InitSetting()
 {
+    on_comboBox_currentIndexChanged(0);
     processing->mSerialBaud = mGlobbalConfig.getInt("mSerialBaud");
     mMaxTapMayThu = mGlobbalConfig.getInt("mMaxTapMayThu");
     mRangeLevel = mGlobbalConfig.getInt("mRangeLevel");

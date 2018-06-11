@@ -23,6 +23,7 @@ protected slots:
 private slots:
     void closeEvent(QCloseEvent *event);
 private:
+    int waitTime;
     bool warningBlink;
     bool ansTrue;
     int timerId;

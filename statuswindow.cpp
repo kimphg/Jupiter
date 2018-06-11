@@ -5,6 +5,7 @@ StatusWindow::StatusWindow(dataProcessingThread *radar,QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::StatusWindow)
 {
+    waitTime = 0;
     ansTrue = false;
     ui->setupUi(this);
     mRadar = radar;
@@ -27,10 +28,21 @@ void StatusWindow::closeEvent(QCloseEvent *event)
 }
 void StatusWindow::sendReq()
 {
-    if(ansTrue)
+    if(ansTrue)// change to next parameter if answer is correct
     {
         paramId++;
         ansTrue = false;
+        waitTime = 0;
+    }
+    else
+    {
+        waitTime++;
+        if(waitTime>5)// change to next parameter if too many failures
+        {
+            paramId++;
+            ansTrue = false;
+            waitTime = 0;
+        }
     }
     if(paramId>0xac)
     {
@@ -62,7 +74,6 @@ bool StatusWindow::receiveRes()
           &&(resModId==moduleId)
        )
     {
-        ansTrue = false;
         double x =mRadar->mRadarData->moduleVal;
         switch (resModId) {
         case 0:
@@ -136,4 +147,5 @@ void StatusWindow::timerEvent(QTimerEvent *event)
 StatusWindow::~StatusWindow()
 {
     delete ui;
+    killTimer(timerId);
 }

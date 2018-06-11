@@ -766,7 +766,7 @@ void  C_radar_data::processSector32azi()
 
     short histogram_max_val=0;
     short histogram_max_pos;
-    if(noiseVar<7)noiseVar = 7;
+    if(noiseVar<5)noiseVar = 5;
     else
     {
         noiseVar+=(sumvar/float(n)-noiseVar)/2.0f;
