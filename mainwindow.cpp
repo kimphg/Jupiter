@@ -1773,13 +1773,13 @@ void MainWindow::sendFrame(const char* hexdata,QHostAddress host,int port )
 //void Mainwindow::on_actionExit_triggered()
 //{
 
-//    processing->stopThread();
-//    processing->wait();
+
 //    ExitProgram();
 //}
 void Mainwindow::ExitProgram()
 {
-    //config.SaveToFile();
+        processing->stopThread();
+        processing->wait();
     QApplication::quit();
 #ifdef _WIN32
     QProcess::startDetached("shutdown -s -f -t 0");
@@ -2628,7 +2628,7 @@ void Mainwindow::on_horizontalSlider_sea_valueChanged(int value)
 
 void Mainwindow::on_toolButton_exit_clicked()
 {
-    //on_actionExit_triggered();
+    ExitProgram();
 }
 
 //void Mainwindow::on_toolButton_setting_clicked()
