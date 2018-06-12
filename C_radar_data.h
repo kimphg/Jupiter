@@ -223,7 +223,7 @@ public:
     unsigned int            sn_stat,chu_ky;
 //    unsigned short          *he_so_tap_recv;
     double                  tb_tap_k;
-    int                     get_tb_tap();
+    int                     getHsTapAverage();
     bool                    is_do_bup_song;
     bool                    isClkAdcChanged,xl_dopler,is_normalize_signal,isSled,filter2of3;
     bool                    isManualTune,rgs_auto,bo_bang_0,data_export;
@@ -300,7 +300,9 @@ public:
     double getArcMaxAziRad() const;
     double getArcMinAziRad() const;
 private:
-    float mHsTap ;
+    int      mHsTap ;
+    float    mHsTapAverage;
+    float    mHsTapMax;
     QVector<QRgb> colorTable;
     double      selfRotationDazi;
     double      selfRotationAzi;
@@ -337,6 +339,8 @@ public:
     void setTb_tap_k(double value);
     double getSelfRotationAzi() const;
     void setSelfRotationAzi(int value);
+    void setHsTapMax(float hsTapMax);
+    float getHsTapAverage() const;
 };
 
 //extern C_radar_data radarData;

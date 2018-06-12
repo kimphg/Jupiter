@@ -59,7 +59,7 @@ void StatusWindow::sendReq()
 bool StatusWindow::receiveRes()
 {
     QString resVal;
-    double hsTap = mRadar->mRadarData->get_tb_tap();
+    double hsTap = mRadar->mRadarData->getHsTapAverage();
     hsTap = 20*log10(hsTap/165.0)+77.0;
     ui->label_res_receiver->setText(QString::number(hsTap,'f',1));
     int resModId = mRadar->mRadarData->tempType;

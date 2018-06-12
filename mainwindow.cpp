@@ -1268,6 +1268,9 @@ void Mainwindow::setDistanceUnit(int unit)//0:NM, 1:KM
 }
 void Mainwindow::InitSetting()
 {
+    float hsTap = mGlobbalConfig.getDouble("hsTap");
+    ui->textEdit_size_ar_a_2->setText(QString::number(hsTap));
+    pRadar->setHsTapMax(hsTap);
     on_comboBox_currentIndexChanged(0);
     processing->mSerialBaud = mGlobbalConfig.getInt("mSerialBaud");
     mMaxTapMayThu = mGlobbalConfig.getInt("mMaxTapMayThu");
@@ -1974,7 +1977,7 @@ void Mainwindow::sync1S()//period 1 second
     ui->label_sn_freq->setText(QString::number(chuKy));
     */
     ui->label_debug->setText(QString::number(pRadar->getNoiseAverage()));
-    ui->label_he_so_tap->setText(QString::fromUtf8("Hệ số tạp: ")+QString::number(pRadar->get_tb_tap()));
+    ui->label_he_so_tap->setText(QString::number(pRadar->getHsTapAverage()));
     if(ui->toolButton_auto_freq->isChecked())
     {
         if(pRadar->mJammingDetected)
@@ -3721,4 +3724,11 @@ void Mainwindow::on_toolButton_tx_2_toggled(bool checked)
 void Mainwindow::on_toolButton_tx_2_clicked(bool checked)
 {
 
+}
+
+void Mainwindow::on_textEdit_size_ar_a_2_editingFinished()
+{
+    float hsTap = ui->textEdit_size_ar_a_2->text().toDouble();
+    pRadar->setHsTapMax(hsTap);
+    mGlobbalConfig.setValue("hsTap",hsTap);
 }

@@ -23394,9 +23394,9 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>270</y>
+        <y>250</y>
         <width>193</width>
-        <height>151</height>
+        <height>131</height>
        </rect>
       </property>
       <property name="autoFillBackground">
@@ -24027,21 +24027,63 @@
        </item>
       </layout>
      </widget>
-     <widget class="QLabel" name="label_he_so_tap">
+     <widget class="QCustomGroupBox" name="groupBox_13">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>430</y>
-        <width>191</width>
-        <height>39</height>
+        <y>390</y>
+        <width>241</width>
+        <height>111</height>
        </rect>
       </property>
-      <property name="text">
-       <string>--</string>
+      <property name="autoFillBackground">
+       <bool>false</bool>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
+      <property name="title">
+       <string notr="true" comment="asd ">Chuyển tần tự động:</string>
       </property>
+      <layout class="QFormLayout" name="formLayout_13">
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_he_so_tap_2">
+         <property name="text">
+          <string>Hệ số tạp định mức:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="textEdit_size_ar_a_2">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_he_so_tap_3">
+         <property name="text">
+          <string>Hệ số tạp máy thu:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="label_he_so_tap">
+         <property name="text">
+          <string>--</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_5">

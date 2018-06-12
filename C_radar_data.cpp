@@ -76,7 +76,7 @@ void track_t::init(object_t *object)
     h <<    1 ,  0 ,  0 ,  0 ,
             0 ,  1 ,  0 ,  0 ,
 
-    p.resize(4,4);
+            p.resize(4,4);
     p <<   50 ,  0 ,  0 ,  0 ,
             0 ,  50,  0 ,  0 ,
             0 ,  0 , 50 ,  0 ,
@@ -125,7 +125,7 @@ void track_t::stateUpdate(bool isNewPlot)
         state+=2;
         if(state>12)
         {
-           state = 12;
+            state = 12;
         }
     }
 }
@@ -188,10 +188,10 @@ void track_t::update()
         Matrix2d tmp;
         tmp = (h*p*h.transpose() + r).inverse();
         k = p*h.transpose()*(tmp);
-//        if(isManual)
-//        {
-//            printf("\n%f %f \n %f %f \n %f %f \n%f %f\n\n",k(0,0),k(0,1),k(1,0),k(1,1),k(2,0),k(2,1),k(3,0),k(3,1));
-//        }
+        //        if(isManual)
+        //        {
+        //            printf("\n%f %f \n %f %f \n %f %f \n%f %f\n\n",k(0,0),k(0,1),k(1,0),k(1,1),k(2,0),k(2,1),k(3,0),k(3,1));
+        //        }
         //            if(isManual)
         //            {
         //                int a = 8;
@@ -365,6 +365,8 @@ void track_t::setManual(bool isMan)
 
 C_radar_data::C_radar_data()
 {
+    mJammingDetected =false;
+    mHsTapMax = 60;
     imgMode = VALUE_ORANGE_BLUE;
     brightness = 1.5;
     for(int i=0;i<255;i++)
@@ -449,6 +451,16 @@ double C_radar_data::getArcMinAziRad() const
     double result = (trueN+(double)arcMinAzi/(double)MAX_AZIR*PI_NHAN2);
     if(result>PI_NHAN2)result-=PI_NHAN2;
     return (result );
+}
+
+float C_radar_data::getHsTapAverage() const
+{
+    return mHsTapAverage;
+}
+
+void C_radar_data::setHsTapMax(float hsTapMax)
+{
+    mHsTapMax = hsTapMax;
 }
 
 double C_radar_data::getSelfRotationAzi() const
@@ -741,6 +753,11 @@ void C_radar_data::drawAzi(short azi)
 
 void  C_radar_data::processSector32azi()
 {
+    //kiem tra he so tap, phat hien nhieu tich cuc
+    mHsTapAverage = mHsTap/32;
+    if(mHsTapAverage>mHsTapMax)mJammingDetected = true;
+    mHsTap = 0;
+
 
     int sumvar = 0;
     int n = 0;
@@ -897,27 +914,27 @@ void C_radar_data::ProcessData(unsigned short azi)
         for(short r_pos=5;r_pos<range_max;r_pos++)
         {
 
-                int a = (int)data_mem.level[azi][r_pos];
-                //if(!a) break;
-                //printf("Innitial:%d\n",a);
-                if(data_mem.dopler[azi][r_pos]==data_mem.dopler[azi][r_pos-1])
-                {
-                   a = a*1.5;
+            int a = (int)data_mem.level[azi][r_pos];
+            //if(!a) break;
+            //printf("Innitial:%d\n",a);
+            if(data_mem.dopler[azi][r_pos]==data_mem.dopler[azi][r_pos-1])
+            {
+                a = a*1.5;
 
-                }
-                if(data_mem.dopler[azi][r_pos]==data_mem.dopler[azi][r_pos-2])
-                {
-                   a = a*1.2;
-                }
-                if(a>255)a=255;
-                //printf("Result a:%d\n",a);
-                data_mem.level[azi][r_pos] = (unsigned char)a;
-    //                data_mem.level[azi][r_pos] +
-    //                int k = 0;
-    //                for(int i=-4;i<=5;i++)
-    //                {
-    //                    if(data_mem.dopler[azi][r_pos+i]==data_mem.dopler[azi][r_pos+i+1])k++;
-    //                }
+            }
+            if(data_mem.dopler[azi][r_pos]==data_mem.dopler[azi][r_pos-2])
+            {
+                a = a*1.2;
+            }
+            if(a>255)a=255;
+            //printf("Result a:%d\n",a);
+            data_mem.level[azi][r_pos] = (unsigned char)a;
+            //                data_mem.level[azi][r_pos] +
+            //                int k = 0;
+            //                for(int i=-4;i<=5;i++)
+            //                {
+            //                    if(data_mem.dopler[azi][r_pos+i]==data_mem.dopler[azi][r_pos+i+1])k++;
+            //                }
 
         }
     }
@@ -1000,14 +1017,14 @@ void C_radar_data::ProcessData(unsigned short azi)
 
             }
             if(filter2of3)cutoff = data_mem.hot_disp[azi][r_pos]<2;
-//            if(cutoff)
-//            {
-//                data_mem.sled[azi][r_pos]-= (data_mem.sled[azi][r_pos])/100.0f;
+            //            if(cutoff)
+            //            {
+            //                data_mem.sled[azi][r_pos]-= (data_mem.sled[azi][r_pos])/100.0f;
 
-//            }else
-//            {
-//                data_mem.sled[azi][r_pos] += (255 - data_mem.sled[azi][r_pos])/10.0f;
-//            }
+            //            }else
+            //            {
+            //                data_mem.sled[azi][r_pos] += (255 - data_mem.sled[azi][r_pos])/10.0f;
+            //            }
             data_mem.level_disp[azi][r_pos] = cutoff?0:data_mem.level[azi][r_pos];
 
         }
@@ -1086,8 +1103,8 @@ void C_radar_data::ProcessData(unsigned short azi)
             if(!cutoff)
             {
                 if((data_mem.hot[azi][r_pos+1])<2
-                    &&data_mem.hot[azi][r_pos-1]<2
-                    &&data_mem.hot[azi][r_pos]<2)
+                        &&data_mem.hot[azi][r_pos-1]<2
+                        &&data_mem.hot[azi][r_pos]<2)
                 {
                     cutoff = true;
                 }
@@ -1239,10 +1256,10 @@ void C_radar_data::ProcessDataFrame()
     if(tempType>4)printf("Wrong temperature\n");
     sn_stat = dataBuff[14]<<8|dataBuff[15];
     chu_ky = dataBuff[16]<<8|dataBuff[17];
-    //kiem tra he so tap may thu va phat hien nhieu tich cuc
-    int newHsTap = (dataBuff[18]<<8)|dataBuff[19];
-    if(newHsTap>mHsTap*2)if(!isClkAdcChanged)mJammingDetected = true;
-    mHsTap = (newHsTap+mHsTap)/2;
+    // he so tap may thu (phat hien nhieu tich cuc)
+
+    //if(newHsTap>mHsTap*2)if(!isClkAdcChanged)mJammingDetected = true;
+    mHsTap += (((dataBuff[18]<<8)|dataBuff[19])-mHsTap)/5;
     //kiem tra lenh phan hoi
     memcpy(command_feedback,&dataBuff[RADAR_COMMAND_FEEDBACK],8);
     //memcpy(noise_level,&dataBuff[RADAR_COMMAND_FEEDBACK+8],8);
@@ -1395,7 +1412,7 @@ void C_radar_data::procPLot(plot_t* mPlot)
         //            {
         //                return;
         //            }
-//        float ctR = ((float)mPlot->sumR/(float)mPlot->size);//(mPlot->maxR+mPlot->minR)/2.0f;
+        //        float ctR = ((float)mPlot->sumR/(float)mPlot->size);//(mPlot->maxR+mPlot->minR)/2.0f;
         if(ctA<0||ctA>MAX_AZIR|| ctR>=RAD_M_PULSE_RES)
         {
             return;
@@ -1495,21 +1512,37 @@ void C_radar_data::procTracks(unsigned short curA)
 }
 void C_radar_data::kmxyToPolarDeg(double x, double y, double *azi, double *range)
 {
-    if(y==0)return;
-    *azi = atanf(x/y);
-    if(y<0)*azi+=PI;
-    if(*azi<0)*azi += PI_NHAN2;
-    *range = sqrt(x*x+y*y);
-    *azi = *azi*DEG_RAD;
+    if(!y)
+    {
+        *azi = x>0? PI_CHIA2:(PI_NHAN2-PI_CHIA2);
+        *azi = *azi*DEG_RAD;
+        *range = abs(x);
+    }
+    else
+    {
+        *azi = atanf(x/y);
+        if(y<0)*azi+=PI;
+        if(*azi<0)*azi += PI_NHAN2;
+        *range = sqrt(x*x+y*y);
+        *azi = *azi*DEG_RAD;
+    }
 
 }
 void C_radar_data::addTrackManual(double x,double y)
 {
-    if(y==0)return;
-    float azi = atanf(x/y);//tinh azi,range
-    if(y<0)azi+=PI;
-    if(azi<0)azi += PI_NHAN2;
-    float range = sqrt(x*x+y*y);
+    float azi,range;
+    if(!y)
+    {
+        azi = x>0? PI_CHIA2:(PI_NHAN2-PI_CHIA2);
+        range = abs(x);
+    }
+    else
+    {
+         azi = atanf(x/y);//tinh azi,range
+        if(y<0)azi+=PI;
+        if(azi<0)azi += PI_NHAN2;
+         range = sqrt(x*x+y*y);
+    }
     object_t newobj;
     newobj.az = azi;
     newobj.rg = range;
@@ -1699,7 +1732,7 @@ bool C_radar_data::procObjectManual(object_t* pObject)// !!!
                 if(max_length<mTrackList.at(i).object_list.size())
                 {
                     max_length = mTrackList.at(i).object_list.size();
-                    trackId = i;  
+                    trackId = i;
                 }
             }
         }
@@ -1726,35 +1759,35 @@ void C_radar_data::procPix(short proc_azi,short range)//_______signal detected, 
     char dopler_2 = dopler_0 - 1;
     if(dopler_2<0)dopler_2+=16;
     if(data_mem.detect[pr_proc_azi][range]
-    &&(data_mem.dopler[pr_proc_azi][range]==dopler_0
-     ||data_mem.dopler[pr_proc_azi][range]==dopler_1
-     ||data_mem.dopler[pr_proc_azi][range]==dopler_2)
+            &&(data_mem.dopler[pr_proc_azi][range]==dopler_0
+               ||data_mem.dopler[pr_proc_azi][range]==dopler_1
+               ||data_mem.dopler[pr_proc_azi][range]==dopler_2)
             )
     {
         plotIndex = data_mem.plotIndex[pr_proc_azi][range];
 
     }else if(data_mem.detect[proc_azi][range-1]
              &&(data_mem.dopler[proc_azi][range-1]==dopler_0
-              ||data_mem.dopler[proc_azi][range-1]==dopler_1
-              ||data_mem.dopler[proc_azi][range-1]==dopler_2)
-                     )
+                ||data_mem.dopler[proc_azi][range-1]==dopler_1
+                ||data_mem.dopler[proc_azi][range-1]==dopler_2)
+             )
     {
         plotIndex = data_mem.plotIndex[proc_azi][range-1];
     }
     else if(data_mem.detect[pr_proc_azi][range-1]
             &&(data_mem.dopler[pr_proc_azi][range-1]==dopler_0
-             ||data_mem.dopler[pr_proc_azi][range-1]==dopler_1
-             ||data_mem.dopler[pr_proc_azi][range-1]==dopler_2)
-                    )
+               ||data_mem.dopler[pr_proc_azi][range-1]==dopler_1
+               ||data_mem.dopler[pr_proc_azi][range-1]==dopler_2)
+            )
     {
         plotIndex = data_mem.plotIndex[pr_proc_azi][range-1];
 
     }
     else if(data_mem.detect[pr_proc_azi][range+1]
             &&(data_mem.dopler[pr_proc_azi][range+1]==dopler_0
-             ||data_mem.dopler[pr_proc_azi][range+1]==dopler_1
-             ||data_mem.dopler[pr_proc_azi][range+1]==dopler_2)
-                    )
+               ||data_mem.dopler[pr_proc_azi][range+1]==dopler_1
+               ||data_mem.dopler[pr_proc_azi][range+1]==dopler_2)
+            )
     {
         plotIndex = data_mem.plotIndex[pr_proc_azi][range+1];
     }
@@ -1872,10 +1905,10 @@ void C_radar_data::setZoomRectXY(float ctx, float cty)
 }
 
 
-int C_radar_data::get_tb_tap(){
+int C_radar_data::getHsTapAverage(){
 
     //mHsTap += ((he_so_tap_recv[curAzir])-mHsTap)/5.0;
-    return int(mHsTap);
+    return int(mHsTapAverage);
 }
 
 void C_radar_data::setTb_tap_k(double value)
@@ -2055,7 +2088,7 @@ void C_radar_data::setScaleZoom(float scale)
 
 //void C_radar_data::drawZoomAR()
 //{
-    
+
 //      //memcpy(imgAR->bits(),(unsigned char *)&data_mem.level[0][0],MAX_AZIR*RAD_M_PULSE_RES);
 //      QImage* imgAR = new QImage((unsigned char *)&data_mem.level[0][0],RAD_M_PULSE_RES,MAX_AZIR,QImage::Format_Indexed8);
 //        imgAR->setColorTable(colorTable);
@@ -2099,7 +2132,7 @@ void C_radar_data::drawSgnZoom(short azi_draw, short r_pos)
                 k=0.7f;
                 break;
             }
-//            if(value<6){img_ppi->setPixel(px+x,py+y,0x80ff8000);continue;}
+            //            if(value<6){img_ppi->setPixel(px+x,py+y,0x80ff8000);continue;}
             unsigned char pvalue = value*k;
             if( data_mem.display_mask_zoom[px+x][py+y] <= pvalue)
             {
@@ -2207,11 +2240,11 @@ void C_radar_data::resetTrack()
     init_time = 3;
     curIdCount = 1;
     mTrackList.clear();
-//    for(unsigned short i=0;i<mTrackList.size();i++)
-//    {
-//        if(mTrackList.at(i).state)
-//        {
-//            mTrackList.at(i).state = 0;
-//        }
-//    }
+    //    for(unsigned short i=0;i<mTrackList.size();i++)
+    //    {
+    //        if(mTrackList.at(i).state)
+    //        {
+    //            mTrackList.at(i).state = 0;
+    //        }
+    //    }
 }
