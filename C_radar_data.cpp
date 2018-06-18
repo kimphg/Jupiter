@@ -757,8 +757,6 @@ void  C_radar_data::processSector32azi()
     mHsTapAverage = mHsTap/32;
     if(mHsTapAverage>mHsTapMax)mJammingDetected = true;
     mHsTap = 0;
-
-
     int sumvar = 0;
     int n = 0;
     memset(histogram,0,256);
@@ -1259,7 +1257,7 @@ void C_radar_data::ProcessDataFrame()
     // he so tap may thu (phat hien nhieu tich cuc)
 
     //if(newHsTap>mHsTap*2)if(!isClkAdcChanged)mJammingDetected = true;
-    mHsTap += (((dataBuff[18]<<8)|dataBuff[19])-mHsTap)/5;
+    mHsTap += ((dataBuff[18]<<8)|dataBuff[19]);
     //kiem tra lenh phan hoi
     memcpy(command_feedback,&dataBuff[RADAR_COMMAND_FEEDBACK],8);
     //memcpy(noise_level,&dataBuff[RADAR_COMMAND_FEEDBACK+8],8);

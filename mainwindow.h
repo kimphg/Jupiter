@@ -391,6 +391,8 @@ private slots:
 
     void on_textEdit_size_ar_a_2_editingFinished();
 
+    void on_toolButton_reset_4_clicked();
+
 private:
     float mHeadingAntenna;
     float mHeadingSelsyn;

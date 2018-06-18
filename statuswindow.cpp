@@ -85,14 +85,14 @@ bool StatusWindow::receiveRes()
             else if(paramId==0xab)
             {
                 resVal = QString::number(x-72.0,'f',1);
-                if(((x-72.0)>10||(x-72.0)<4)&warningBlink)ui->label_res_dds_out->setStyleSheet("border: 3px solid red;");
+                if(((x-72.0)>10||(x-72.0)<4))ui->label_res_dds_out->setStyleSheet("border: 3px solid red;");
                 else ui->label_res_dds_out->setStyleSheet("");
                 ui->label_res_dds_out->setText(resVal);
             }
             else if(paramId==0xac)
             {
                 resVal = QString::number(x-78.0,'f',1);
-                if(((x-78.0)>-5||(x-78.0)<-15)&warningBlink)ui->label_trans_input->setStyleSheet("border: 3px solid red;");
+                if(((x-78.0)>-5||(x-78.0)<-15))ui->label_trans_input->setStyleSheet("border: 3px solid red;");
                 else ui->label_trans_input->setStyleSheet("");
                 ui->label_trans_input->setText(resVal);
             }
@@ -105,9 +105,9 @@ bool StatusWindow::receiveRes()
             }
             else if(paramId==0xab)
             {
-                double val = (x/62.0)*(x/62.0)*100.0;
+                double val = (x/60.0)*(x/60.0)*100.0;
                 resVal = QString::number(val,'f',1);
-                if((val<80||val>100)&warningBlink)ui->label_trans_output->setStyleSheet("border: 3px solid red;");
+                if((val<80||val>100))ui->label_trans_output->setStyleSheet("border: 3px solid red;");
                 else ui->label_trans_output->setStyleSheet("");
                 ui->label_trans_output->setText(resVal);
             }

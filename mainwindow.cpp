@@ -3026,8 +3026,8 @@ void Mainwindow::on_toolButton_delete_target_clicked()
                 targetList.at(selected_target_index)->hide();
             }
 
-            else*/
-    //    pRadar->mTrackList.at(targetDisplayList.at(selected_target_index)->trackId).isManual = false;
+            else
+        pRadar->mTrackList.at(targetDisplayList.at(selected_target_index)->trackId).isManual = false;*/
 }
 
 void Mainwindow::on_toolButton_tx_clicked()
@@ -3731,4 +3731,22 @@ void Mainwindow::on_textEdit_size_ar_a_2_editingFinished()
     float hsTap = ui->textEdit_size_ar_a_2->text().toDouble();
     pRadar->setHsTapMax(hsTap);
     mGlobbalConfig.setValue("hsTap",hsTap);
+}
+
+void Mainwindow::on_toolButton_reset_4_clicked()
+{
+    trackList* trackListPt = &pRadar->mTrackList;
+
+    for(uint trackId=0;trackId<trackListPt->size();trackId++)
+    {
+        if(!trackListPt->at(trackId).isConfirmed)continue;
+        if(!trackListPt->at(trackId).isManual)continue;
+        if(selectedTargetIndex == trackId)
+        {
+            trackListPt->at(trackId).isConfirmed=false;
+            trackListPt->at(trackId).isManual=false;
+            trackListPt->at(trackId).isLost=true;
+        }
+
+    }
 }
