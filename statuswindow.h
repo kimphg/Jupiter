@@ -25,7 +25,7 @@ private slots:
 private:
     int waitTime;
     bool warningBlink;
-    bool ansTrue;
+    bool ansCorrect;
     int timerId;
     unsigned char command[7];
     unsigned char moduleId;
