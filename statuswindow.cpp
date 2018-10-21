@@ -28,14 +28,13 @@ void StatusWindow::closeEvent(QCloseEvent *event)
 }
 void StatusWindow::sendReq()
 {
-
-
     command[2]=moduleId;
     command[3]=paramId;
     mRadar->sendCommand(&command[0],7);
     mRadar->sendCommand(&command[0],7);
     mRadar->sendCommand(&command[0],7);
 }
+uchar oldStatVar=0;
 bool StatusWindow::receiveRes()
 {
     QString resVal;
@@ -43,6 +42,12 @@ bool StatusWindow::receiveRes()
     hsTap = 20*log10(hsTap/165.0)+77.0;
     ui->label_res_receiver->setText(QString::number(hsTap,'f',1));
     int resModId = mRadar->mRadarData->tempType;
+    uchar newStatVar = mRadar->mRadarData->moduleVal;
+    if(newStatVar!=oldStatVar)
+    {
+        oldStatVar = newStatVar;
+        return false;
+    }
     //unsigned char * pFeedBack = mRadar->mRadarData->getFeedback();
     if(   /*(pFeedBack[0]==command[0])
           &&(pFeedBack[1]==command[1])
@@ -54,7 +59,7 @@ bool StatusWindow::receiveRes()
           &&*/(resModId==moduleId)
        )
     {
-        double x =mRadar->mRadarData->moduleVal;
+        double x =newStatVar;
         switch (resModId) {
         case 0:
             if(paramId==0xaa)
@@ -92,7 +97,6 @@ bool StatusWindow::receiveRes()
                 ui->label_trans_output->setText(resVal);
             }
             break;
-
         case 3:
             if(paramId==0xaa)
             {
