@@ -9,7 +9,7 @@ StatusWindow::StatusWindow(dataProcessingThread *radar,QWidget *parent) :
     ansCorrect = false;
     ui->setupUi(this);
     mRadar = radar;
-    timerId = startTimer(500);
+    timerId = startTimer(800);
     moduleId = 0;
     paramId = 0xaa;
     command[0]=0xaa;
@@ -32,7 +32,7 @@ void StatusWindow::sendReq()
     command[3]=paramId;
     mRadar->sendCommand(&command[0],7);
     mRadar->sendCommand(&command[0],7);
-    mRadar->sendCommand(&command[0],7);
+    //mRadar->sendCommand(&command[0],7);
 }
 uchar oldStatVar=0;
 bool StatusWindow::receiveRes()
@@ -48,15 +48,15 @@ bool StatusWindow::receiveRes()
         oldStatVar = newStatVar;
         return false;
     }
-    //unsigned char * pFeedBack = mRadar->mRadarData->getFeedback();
-    if(   /*(pFeedBack[0]==command[0])
+    unsigned char * pFeedBack = mRadar->mRadarData->getFeedback();
+    if(   (pFeedBack[0]==command[0])
           &&(pFeedBack[1]==command[1])
           &&(pFeedBack[2]==command[2])
           &&(pFeedBack[3]==command[3])
           &&(pFeedBack[4]==command[4])
           &&(pFeedBack[5]==command[5])
           &&(pFeedBack[6]==command[6])
-          &&*/(resModId==moduleId)
+          &&(resModId==moduleId)
        )
     {
         double x =newStatVar;
